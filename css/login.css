@@ -1,0 +1,100 @@
+:root {
+    --primary-color: white;
+    --background-color: #1a1a2e;
+    --hover-effect: rgba(255, 255, 255, 0.6);
+}
+
+body.dark-mode {
+    --primary-color: rgb(255, 255, 255);
+    --background-color: rgb(216, 226, 248);
+    --hover-effect: rgba(0, 0, 0, 0.6);
+}
+body.dark-mode section {
+    background: var(--background-color);
+    color:  rgb(0, 10, 121);
+}
+body.dark-mode form { 
+    box-shadow: 0 0.5rem 1rem rgb(11, 5, 46);
+}
+
+body.dark-mode label {
+    color:  rgb(0, 10, 121);
+}
+body.dark-mode input { 
+    background-color: white;
+    color: black;
+}
+body.dark-mode button {
+    color: rgb(0, 10, 121);
+}
+
+/* GENERAL STYLES */
+body {
+    background: var(--background-color);
+    color: var(--primary-color);
+    font-family: 'Open Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    padding-top: 5rem;
+    font-size: 1.2rem;
+}
+
+/* FORM STYLING */
+form {
+    background: rgba(180, 179, 179, 0.05);
+    padding: 3rem;
+    border-radius: 3rem;
+    border-width: 5px;
+    box-shadow: 0 0.5rem 1rem rgb(255, 255, 255);
+    width: 30%;
+    text-align: left;
+    margin: 5rem auto; /* Center the form horizontally */
+}
+label {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    text-align: left; /* Center the label text */
+}
+input, textarea {
+    width: 80%;
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+    background: rgba(173, 170, 170, 0.1);
+    color: var(--primary-color);
+    font-size: 1rem;
+    transition: background 0.3s ease-in-out;
+    resize: none;
+}
+input:focus, textarea:focus {
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+}
+
+.button { 
+    display: flex;
+    justify-content: center;
+    gap: 1rem; /* Adjust the gap as needed */
+}
+button {
+    background: var(--primary-color);
+    color: var(--background-color);
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+button:hover {
+    background: var(--hover-effect);
+}
+

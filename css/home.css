@@ -1,0 +1,770 @@
+:root {
+    --primary-color: white;
+    --background-color: #1a1a2e;
+    --hover-effect: rgba(255, 255, 255, 0.6);
+}
+
+/* GENERAL STYLES */
+body {
+    background: var(--background-color);
+    color: var(--primary-color);
+    font-family: 'Open Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    padding-top: 5rem;
+    font-size: 1.2rem;
+}
+
+section { 
+    padding-top: 0.5rem;
+    padding-left: 4rem;
+    padding-right: 4rem;
+    margin-bottom: auto;
+    max-width: 100%; /* 1200px / 16px = 75rem */
+    background: none;
+    border-radius: 0.5rem;
+    transition: background 0.3s ease-in-out;
+}
+
+footer { 
+    position: relative;
+    text-align: center;
+    margin-top: 5rem;
+    padding: 2rem;
+    background: #11111e;
+}
+
+
+.footer { 
+    box-shadow: none;
+}
+
+img {
+    width: 2rem;  /* 150px / 16px = 9.375rem */
+    height : 2rem;
+    object-fit: cover; /* Ensures the image fills the area without distortion */
+    border-radius: 0.625rem; /* 10px / 16px = 0.625rem */
+}
+
+
+/* DARK MODE TOGGLE */
+.dark-mode-toggle {
+    position: fixed;
+    top: 3.2rem;
+    left: 3rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.dark-mode-toggle input {
+    display: none;
+}
+
+.dark-mode-toggle label {
+    background: rgb(255, 255, 255);
+    border-radius: 1rem;
+    width: 3rem;
+    height: 1.5rem;
+    position: fixed;
+    transition: background 0.3s ease-in-out;
+}
+
+.dark-mode-toggle label::after {
+    content: '';
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    background: var(--background-color);
+    border-radius: 50%;
+    transition: transform 0.3s ease-in-out;
+}
+
+.dark-mode-toggle input:checked + label {
+    background: white;
+}
+
+.dark-mode-toggle input:checked + label::after {
+    transform: translateX(1.5rem);
+}
+
+
+/* DARK MODE STYLES */
+body.dark-mode {
+    --primary-color: rgb(255, 255, 255);
+    --background-color: rgb(216, 226, 248);
+    --hover-effect: rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode h1, 
+body.dark-mode p, 
+body.dark-mode h2, 
+body.dark-mode form label,  
+body.dark-mode li,
+body.dark-mode div label,
+body.dark-mode figcaption, 
+body.dark-mode .nav-links a { 
+    color: rgb(0, 10, 121);
+}
+body.dark-mode .nav-links a::after { 
+    background-color: rgb(0, 8, 101);
+}
+body.dark-mode .bar { 
+    background-color: rgb(0, 8, 101);
+}
+
+body.dark-mode .section-box { 
+    background-color: rgb(216, 226, 248);
+    box-shadow: 0 1rem 1rem rgb(43, 43, 43);
+}
+body.dark-mode .section-box:hover { 
+    box-shadow: 0 1rem 1rem rgb(198, 211, 241);
+}
+
+body.dark-mode .intro-section { 
+    background-color: white;
+}
+body.dark-mode .intro-section h1 { 
+    color: #464646;
+}
+
+body.dark-mode .underline { 
+    background-color: rgb(0, 10, 121);
+}
+
+body.dark-mode .right-menu {
+    background-color: rgb(216, 226, 248);
+    border-left: 3px solid rgb(0, 10, 121);
+}
+body.dark-mode .right-menu a{ 
+    color: rgb(0, 10, 121);
+}
+
+body.dark-mode .right-menu a:hover {
+    color: rgb(205, 200, 200);
+}
+
+body.dark-mode footer {
+    background: rgba(255, 255, 255, 0.05);
+}
+body.dark-mode .underline2 { 
+    background-color: rgb(192, 204, 231)
+}
+body.dark-mode #hero, 
+body.dark-mode #contact {
+    background: var(--background-color);
+    color: var(--primary-color);
+}
+
+
+
+body.dark-mode label {
+    color: rgb(255, 255, 255);
+}
+
+body.dark-mode footer { 
+    color: rgb(0, 10, 121);
+}
+/* skill bar */
+
+body.dark-mode .skill-bar { 
+    background-color: rgb(221, 229, 241);
+}
+
+body.dark-mode .skill-progress { 
+    background-color: rgb(211, 223, 252);
+    background: linear-gradient(90deg, hsl(216, 100%, 87%), #8888ff);  /* Gradient color */
+}
+
+
+
+
+
+/*form styling */
+
+body.dark-mode input, 
+body.dark-mode textarea {
+    background: rgba(255, 255, 255, 0.9);
+    color: black;
+}
+
+body.dark-mode input:focus, 
+body.dark-mode textarea:focus {
+    background: rgba(255, 255, 255, 1);
+    outline: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* NAVIGATION BAR */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1rem;
+    background: none;
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+}
+/* NAV LINKS */
+.nav-links {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 1rem;
+    margin-left: 10rem;
+}
+.nav-links li {
+    position: relative;
+}
+.nav-links a {
+    text-decoration: none;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.01rem;
+    font-size: 1rem;
+    padding: 1rem;
+    position: relative;
+    transition: color 0.3s ease-in-out;
+}
+/* HOVER EFFECT */
+.nav-links a::after {
+    content: "";
+    position: absolute;
+    bottom: -0.3rem;
+    left: 50%;
+    bottom: 0.3rem;
+    left: 50%;
+    width: 0;
+    height: 0.2rem;
+    background: var(--primary-color);
+    transition: all 0.3s ease-in-out;
+    transform: translateX(-50%);
+}
+.nav-links a:hover::after {
+    width: 100%;
+}
+.hover-grey {
+    color: var(--primary-color);
+    text-decoration : none;
+    margin-left: 1rem;
+    transition: color 0.3s ease-in-out;
+}
+.hover-grey:hover {
+    color: grey;
+}
+
+
+
+/* HAMBURGER BUTTON */
+.hamburger {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    cursor: pointer;
+    z-index: 1002; /* Increased z-index */
+    position: absolute;
+    right: 5rem;
+}
+.bar {
+    width: 1.5rem;
+    height: 0.2rem;
+    background-color: #ffffff;
+    border-radius: 0.2rem;
+    transition: all 0.3s ease-in-out;
+    margin: 0.2rem 0;
+}
+
+/* TOGGLE CROSS EFFECT */
+.hamburger.open .bar:nth-child(1) {
+    opacity: 0;
+}
+.hamburger.open .bar:nth-child(2) {
+    transform: rotate(45deg) translate(0.34rem, 0.34rem);
+}
+.hamburger.open .bar:nth-child(3) {
+    transform: rotate(-45deg) translate(0.34rem, -0.34rem);
+}
+
+
+
+
+/* RIGHT-SIDE MENU */
+.right-menu {
+    position: fixed;
+    top: 0;
+    right: -25rem;
+    width: 15em;
+    height: 500vh;
+    background-color: #1a1a2e;
+    border-left: 3px solid white;
+    padding: 2rem;
+    transition: right 0.3s ease;
+    z-index: 1000;
+}
+.right-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.right-menu li {
+    position: relative;
+}
+.right-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+}
+.right-menu a:hover {
+    color: grey;
+}
+/* OPEN MENU STATE */
+.right-menu.open {
+    right: 0;
+    overflow-y: hidden;
+}
+
+
+
+
+
+
+
+
+
+
+
+/* FORM STYLING */
+form {
+    background: rgba(180, 179, 179, 0.05);
+    padding: 3rem;
+    border-radius: 3rem;
+    border-width: 5px;
+    box-shadow: 0 0.5rem 1rem rgb(255, 255, 255);
+    margin-top:50rem;
+    max-width: 20rem;
+    margin: auto; /* Center the form horizontally */
+    text-align: left;
+}
+label {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}
+input, textarea {
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+    background: rgba(173, 170, 170, 0.1);
+    color: var(--primary-color);
+    font-size: 1rem;
+    transition: background 0.3s ease-in-out;
+    resize: none;
+}
+input:focus, textarea:focus {
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+}
+
+
+
+
+
+
+
+
+
+
+
+/* Hero Section */
+#hero{
+    background: #1a1a2e;
+    color: white;
+    height: auto; /* Set to auto so it can grow depending on the content */
+    position: relative; /* Makes positioning child elements easier */
+    margin-bottom: 3rem;
+}
+
+/* Container for the three sections */
+.hero-container {
+    display: flex;
+    justify-content: space-between;
+}
+.section-box { 
+    box-shadow: 0 1rem 1rem rgba(255, 255, 255, 0.5);;
+}
+/* Left Section: Mission and Languages */
+.hero-left {
+    width: 25%;
+}
+.hero-left .section-box {
+    background: #26263f;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+/* Middle Section: Profile Text and Image */
+.hero-middle, .hero-middle2 {
+    width: 48%;
+    text-align: center;
+}
+.hero-middle .section-box {
+    background: #26263f;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+}
+
+
+
+
+/* Right Section: "Currently Doing..." */
+.hero-right {
+    width: 25%;
+}
+.hero-right .section-box {
+    background: #26263f;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.section-box:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+/* Right Side: Image */
+.hero-image img {
+    width: 25rem;  /* Adjust size */
+    height: 25rem;
+    margin-top: 3rem;
+    object-fit: cover;
+    border-radius: 50%; /* Circle shape */
+    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.2);
+}
+
+
+
+/* Hero Section */
+#hero2{
+    background: #1a1a2e;
+    color: white;
+    height: auto; /* Set to auto so it can grow depending on the content */
+    position: relative; /* Makes positioning child elements easier */
+}
+.hero-container2 { 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center; /* Center horizontally */
+    margin: 0 auto; /* Center horizontally */
+    height: auto; /* Full viewport height */
+}
+.hero-box { 
+    margin-top: 5rem;
+    width: 80%;
+    display: flex; 
+    height: auto;
+    flex-direction: column;
+}
+
+.hero-box .section-box:first-child {
+    display: flex; 
+    flex-direction: column;
+}
+.hero-box .section-box:not(:first-child) {
+    display: flex; 
+    flex-direction: row;
+}
+
+.hero-box:nth-child(2) { 
+    width: 60%;
+}
+
+
+.hero-box .section-box h1{ 
+    margin: auto auto ;
+}
+
+
+.section-box { 
+    padding: 3rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    background-color: #26263f;
+}
+
+/*NO fixed height*/
+.hero-middle2 .section-box {
+    background: #26263f;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+#chess, #piano, #football, #swimming { 
+    display : flex; 
+    flex-direction: column;
+}
+
+
+.figure-container {
+    display: flex;
+    flex-direction: column; /* Image above, text below */
+}
+
+.figure-container img {
+    width: 35rem; /* Keeps original aspect ratio */
+    max-width: 100%; /* Prevents overflow */
+    height: auto; 
+}
+
+.figure-container a { 
+    width: 100%;
+    height: 100%;
+    margin-top: 1rem;
+}
+
+.figure-container figcaption {
+    font-weight: bold;
+    text-align: center;
+    width: 100%; /* Takes the width of the figure */
+    font-size: 1rem;
+}
+
+
+
+
+/* Footer Section (Social Media Links) */
+.footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.social-media-link { 
+    display: inline-block; /* Makes them take the full width */
+    width: 13.5rem;
+    height: 3rem; 
+    margin: 0.25rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.3s ease-in-out;
+    text-align: center; 
+    line-height: 2.5rem; /* Vertically centers the text */
+    color: rgb(255, 255, 255);
+    text-decoration: none; 
+}
+
+/*90 deg specifies the direction of the gradient, in this case from left to right*/
+#facebook {
+    background: linear-gradient(90deg, #3b5998, #8b9dc3); /* Facebook gradient */
+}
+#instagram {
+    background: linear-gradient(90deg, #e1306c, #f77737); /* Instagram gradient */
+}
+#linkedin {
+    background: linear-gradient(90deg, #0077b5, #00a0dc); /* LinkedIn gradient */
+}
+#github {
+    background: linear-gradient(90deg, #3b3a3a, #959191); /* GitHub gradient */
+}
+
+.social-media-link:hover {
+    transform: scale(1.05); /* Scale up slightly on hover */
+    transition: transform 0.3s ease-in-out; /* Smooth transition */
+}
+
+.footer figcaption {
+    font-size: 1rem;
+}
+
+
+
+
+
+/* CTA Button */
+.cta-button {
+    display: inline-block;
+    margin-top: 1rem; /* 15px / 16px = 0.9375rem */
+    padding: 1rem 5rem; /* 12px / 16px = 0.75rem, 20px / 16px = 1.25rem */
+    background: #22d974; /* Green button */
+    color: white;
+    border-radius: 0.5rem;
+    border-width: 3px;
+    border-color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+.cta-button:hover {
+    background: #77ffb0;
+}
+
+
+
+/* Container for text + image */
+.cv-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+    width: 100%;
+}
+.cv-text { 
+    margin-left: 15rem;
+}
+.cv-img img { 
+    width: fit-content;  /* Adjust size */
+    height: fit-content;
+    max-width: 15rem;
+    max-height: 15rem;
+    filter: blur(0.75px);
+    margin-right: 20rem;
+    margin-bottom: 2rem;
+    object-fit: cover;
+    border-radius: 0%; /* Circle shape */
+}
+.cv-img img:hover {
+    filter: blur(5px);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Container for each skill */
+.skill-container {
+    margin-bottom: 20px;
+}
+.skill-container label {
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 5px;
+}
+.skill-bar {
+    width: 100%;
+    height: 1rem;
+    background-color: #1a1a2e;  /* Background of the bar (empty space) */
+    border-radius: 5px;
+    overflow: hidden;
+}
+.skill-progress {
+    height: 100%;
+    width: 0%;  /* Default width, adjust via inline style */
+    background: linear-gradient(90deg, #4b4b68, #33336f);  /* Gradient color */
+    transition: width 1s ease-in-out;
+    border-radius: 5px;
+}
+
+
+
+
+/*a line under the heading */
+.underline {
+    display: inline-block;
+    height: 2px;
+    background-color: #ffffff;  /* Line color */
+    width: 100%;  /* You can change this width depending on how long you want the line */
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+
+/*specifically to use for the menu only */
+.underline2 {
+    display: inline-block;
+    height: 2px;
+    background-color: #32324d;  /* Line color */
+    width: 100%;  /* You can change this width depending on how long you want the line */
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+
+
+.intro-section {
+    background: rgb(131, 130, 130);
+    width: 100%;
+    padding: 3rem;
+    padding-left: 0rem;
+    color: rgb(255, 255, 255);
+    text-align: center;
+    font-size: 1.5rem;
+    margin-top: 2rem; 
+    margin-bottom: 2rem;
+}
+
+
+
+.section-box:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+
+#contact { 
+    margin-top: 10rem;
+    margin-bottom: 10rem;
+}
+
+/* to not allow horizontal scrolling */
+
+body {
+    overflow-x: hidden;
+}
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+}
+
+
+

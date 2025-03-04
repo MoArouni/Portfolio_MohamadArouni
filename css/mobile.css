@@ -1,0 +1,136 @@
+/* Mobile Styles */
+@media screen and (max-width: 1000px) {
+    body {
+        font-size: 1rem;
+    }
+    h1 { 
+        font-size: 1.25rem;
+    }
+
+    /* Removed unnecessary margin-right */
+    #hero { 
+        margin-right: 2rem;
+    }
+    #hero2 { 
+        margin-right: 2rem;
+    }
+
+    .hero-box .section-box:not(:first-child) {
+        display: flex; 
+        flex-direction: column;
+    }
+    .figure-container img {
+        width: 20rem; /* Adjust size as needed */
+        height: auto;
+    }
+
+    .hero-container, .hero-container2 {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%; /* Ensure the hero container takes up full width */
+    }
+
+    /* Main Section Orders */
+    .hero-middle {
+        order: 1; /* About section at the top */
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-right {
+        order: 2; /* Mission section below About */
+    }
+
+    .hero-left {
+        order: 3; /* Left section at the bottom */
+    }
+
+    .hero-left {
+        display: flex;
+        flex-direction: column;
+    }
+    /* Left Section Orders */
+    .hero-left .languages {
+        order: 1; /* Languages section at the top of left */
+    }
+
+    .hero-left .social-media {
+        order: 2; /* Social media section below Languages */
+    }
+
+    .section-box {
+        text-align: center;
+        width: 100%;
+    }
+
+    section {
+        padding: 1rem;
+    }
+
+    .intro-section {
+        margin-top: 3rem; 
+        margin-bottom: 3rem;
+    }
+
+    .social-media-link { 
+        width: 100%;
+    }
+    .cv-text { 
+        margin:0;
+    }
+    .cv-img img { 
+        margin-right: 2rem;
+        height: 15rem;
+        width: 10rem;
+    }
+    .hamburger { 
+        top: 1.5rem; 
+        right: 3rem;
+    }
+    .dark-mode-toggle label { 
+        top: 2rem; 
+        left: 2rem;
+    }
+    /* NAVIGATION */
+    nav .nav-links { 
+        display: none;
+    }
+    #education { 
+        margin-right: 5rem; 
+    }
+
+    /* Ensuring full width for sections */
+    .hero-left, .hero-middle, .hero-middle2, .hero-right {
+        width: 100%;
+    }
+    #piano, #chess, #swimming, #football{ 
+        text-align: left;
+    }
+
+    .hero-middle .section-box, .hero-middle2 .section-box {
+        height: auto;
+    }
+
+    /* Hero Image */
+    .hero-image img {
+        width: 15rem;
+        height: 15rem;
+        margin-top: 1rem;
+    }
+
+    /* DARK MODE TOGGLE */
+    .dark-mode-toggle {
+        top: 1rem;
+        left: 1rem;
+    }
+
+    /* FORM STYLING */
+    form {
+        padding: 2rem;
+        max-width: 70%;
+    }
+
+    input, textarea {
+        font-size: 0.9rem;
+    }
+}
