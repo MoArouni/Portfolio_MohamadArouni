@@ -371,7 +371,7 @@ form {
     text-align: left;
 }
 label {
-    display: block;
+    display: block; /* Each label on a new line (behaviour of a block element" */
     font-size: 1.2rem;
     color: var(--primary-color);
     margin-bottom: 0.5rem;
