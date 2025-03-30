@@ -1,12 +1,17 @@
+<?php
+require_once __DIR__ . '/includes/db.php';
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mohamad Arouni Webpage</title>
-    <link rel="stylesheet" href="css/reset.css">
-    <link rel="stylesheet" href="css/home.css">
-    <link rel="stylesheet" href="css/mobile.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/mobile.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
@@ -14,21 +19,25 @@
 
 <body>
     <nav>
-        <script src="js/toggle_darkmode.js"></script>
+        <script src="../js/toggle_darkmode.js"></script>
         <div class="dark-mode-toggle">
             <input type="checkbox" id="dark-mode-toggle">
             <label for="dark-mode-toggle"></label>
         </div>
         
         <ul class="nav-links">
-            <li><a href="#home">Home</a></li>
+            <li><a href="#about">Home</a></li>
             <li><a href="#portfolio">Portfolio</a></li>
             <li><a href="#contact">Contact Me</a></li>
-            <li><a href="login.html">Login</a></li>
-            <li><a href="">Blog</a></li>
+            <li><a href="viewBlog.php">Blog</a></li>
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <li><a href="logout.php">Logout</a></li>
+            <?php else: ?>
+                <li><a href="../login.html">Login</a></li>
+            <?php endif; ?>
         </ul>
 
-        <script src="js/hamburger_menu.js"></script>
+        <script src="../js/hamburger_menu.js"></script>
         <button class="hamburger" id="hamburger">
             <div class="bar"></div>
             <div class="bar"></div>
@@ -39,7 +48,7 @@
             <ul>
                 <li><a href="#about">About Me</a></li>
                 <div class="underline2" style="width: 90%;"></div>
-                <li><a href="#hobbies">Hobbies</a></li>
+                <li><a href="/home/#hobbies">Hobbies</a></li>
                 <div class="underline2" style="width: 90%;"></div>
                 <li><a href="#cv">Download CV</a></li>
                 <div class="underline2" style="width: 90%;"></div>
@@ -49,16 +58,22 @@
                 <div class="underline2" style="width: 90%;"></div>
                 <li><a href="#skills">Skills</a></li>
                 <div class="underline2" style="width: 90%;"></div>
-                <li><a href="#technical-skills">Technical Skills</a></li>
-                <div class="underline2" style="width: 90%;"></div>
                 <li><a href="#certifications">Certifications</a></li>
                 <div class="underline2" style="width: 90%;"></div>
                 <li><a href="#contact">Contact Me</a></li>
                 <div class="underline2" style="width: 90%;"></div>
+                <li><a href="viewBlog.php">Blog</a></li>
+                <div class="underline2" style="width: 90%;"></div>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <li><a href="logout.php">Logout</a></li>
+                <?php else: ?>
+                    <li><a href="../login.html">Login</a></li>
+                <?php endif; ?>
+                <div class="underline2" style="width: 90%;"></div>
 
             </ul>
         </div>
-        <script src="js/anti-scroll-menu.js"></script>
+        <script src="../js/anti-scroll-menu.js"></script>
     </nav>
 
     <section id="hero">
@@ -86,25 +101,25 @@
                     <div class="skill-container">
                         <label for="skill">English</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 100%;"></div> <!-- Fluent -->
+                            <div id = "languages" class="skill-progress" style="width: 100%;"></div> <!-- Fluent -->
                         </div>
                     </div>
                     <div class="skill-container">
                         <label for="skill">French</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 100%;"></div> <!-- Fluent -->
+                            <div id = "languages" class="skill-progress" style="width: 100%;"></div> <!-- Fluent -->
                         </div>
                     </div>
                     <div class="skill-container">
                         <label for="skill">Arabic</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 100%;"></div> <!-- Fluent -->
+                            <div id = "languages" class="skill-progress" style="width: 100%;"></div> <!-- Fluent -->
                         </div>
                     </div>
                     <div class="skill-container">
                         <label for="skill">Spanish</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 60%;"></div> <!-- Proficient -->
+                            <div id = "languages" class="skill-progress" style="width: 60%;"></div> <!-- Proficient -->
                         </div>
                     </div>
                 </div>
@@ -117,7 +132,7 @@
                     <div class="underline" style="width: 4rem;"></div>
                     <p><em>I'm not here to impress, I'm here to improve.</em></p>
                     <div class="hero-image">
-                        <img src="/images/about/me/tyre-pic.jpg" alt="Your Profile">
+                        <img src="/Project/images/about/me/tyre-pic.jpg" alt="Your Profile">
                         <figcaption>Aspiring Computer Scientist</figcaption>
                     </div>
                 </div>
@@ -142,8 +157,8 @@
     <section id="hobbies" class="intro-section">
         <h1 style="font-size: 2rem; text-align: center;">Passions and Hobbies</h1>
         <a href="#portfolio" class="cta-button">Skip to my portfolio:</a>
+    </section>  
 
-    </section>       
     <section id="hero2">
         <div class="hero-container">
             <div class="hero-left">
@@ -154,7 +169,7 @@
                         I started playing for hours every day and became advanced in the game. 
                         It has given me numerous perspectives on life through the analogies you can draw from it.</p>
                     <figure class = "figure-container"> 
-                        <img src="/images/about/hobbies/chess.jpg" alt="Chess">
+                        <img src="/Project/images/about/hobbies/chess.jpg" alt="Chess">
                         <figcaption>Chess Regionals Victory round 1</figcaption>
                     </figure>
                 </div>
@@ -170,7 +185,7 @@
                         and one of my proudest moments was scoring the winning goal 
                         that secured our promotion.</p>
                         <figure class = "figure-container"> 
-                            <img src="/images/about/hobbies/football.jpg" alt="Footabll">
+                            <img src="/Project/images/about/hobbies/football.jpg" alt="Footabll">
                             <figcaption>Last Match at Hampstead FC</figcaption>
                         </figure>
                 </div>
@@ -184,7 +199,7 @@
                         training twice a day. This intense commitment not only sharpened my athletic skills but also gave  
                         me a level of discipline that drives my success in every aspect of life.</p>
                     <figure class = "figure-container">
-                        <img src="/images/about/hobbies/swimming.jpg" alt="Swimming">
+                        <img src="/Project/images/about/hobbies/swimming.jpg" alt="Swimming">
                         <figcaption>Nationals 6 and Under In Aramco, Riyadh</figcaption>
                     </figure>
                 </div>
@@ -199,7 +214,7 @@
                     These hobbies help me stay grounded and balanced, as well as active which helps me a lot while pursuing a career 
                     that lacks physical activity.</p>
                     <figure class = "figure-container">
-                        <img src="/images/about/hobbies/piano.jpg" alt="Swimming">
+                        <img src="/Project/images/about/hobbies/piano.jpg" alt="Swimming">
                         <figcaption>ABRSM grade 8 piano performance</figcaption>
                     </figure>
                 </div>
@@ -215,8 +230,9 @@
                 <p>If you wish to download my CV, you can do so here.</p>
             </div>
             <div id = "cv" class="cv-img">
-                <a href="/pdf/Mohamad_Arouni_CV.pdf" download>
-                <img src="/images/about/me/cv.png" alt="Basic Info">
+                <script src="../js/cv_authorise.js"></script>
+                <a id="downloadButton" href="javascript:void(0);" download>
+                    <img src="/Project/images/about/me/cv.png" alt="Basic Info">
                 </a>
             </div>
         </div>
@@ -230,7 +246,7 @@
                 </div>
                 <div class="section-box">
                     <figure class = "figure-container"> 
-                        <img src="/images/about/work/school.webp" alt="School">
+                        <img src="/Project/images/about/work/school.webp" alt="School">
                         <figcaption>
                             Lycee International De Londres Winston Churchill
                         </figcaption>
@@ -248,7 +264,7 @@
                 </div>
                 <div class="section-box">
                     <figure class = "figure-container"> 
-                        <img src="/images/about/work/university.png" alt="University">
+                        <img src="/Project/images/about/work/university.png" alt="University">
                         <figcaption>
                             Queen Mary University of London 
                             EECS school (Electronic Engineering and Computer Science)
@@ -278,7 +294,7 @@
                 <div class="section-box" >
                     <figure class="figure-container"> 
                         <a id="tetris" class="social-media-link" href="https://github.com/MoArouni/Tetris-project" target="_blank">
-                            <img src="/images/about/work/tetris.png" alt="Tetris">
+                            <img src="/Project/images/about/work/tetris.png" alt="Tetris">
                         </a>
                         <figcaption>
                             Tetris Enhacement : Open Source Project
@@ -292,15 +308,14 @@
                             </ul>
                         </div>                    
                     </figure>
-
-
                 </div>
+
                 <div class="section-box" style = "flex-direction: column;">
                     <figure class = "figure-container"> 
                         <a id = "data-tools" class = "social-media-link" 
                             href="https://github.com/MoArouni/Data_analysis_tools" 
                             target="_blank">
-                            <img src="/images/about/work/data-tools.png" alt="Data-tools">
+                            <img src="/Project/images/about/work/data-tools.png" alt="Data-tools">
                         </a>
                         <figcaption>
                             Flask Application : Data Analytics for Jewerelly Businesses
@@ -325,6 +340,172 @@
             </div>
         </div>
     </section>
+
+
+    <section id="skills" class="intro-section">
+        <h1 style="font-size: 2rem; text-align: center;">Skills</h1>
+    </section> 
+
+    <section id = "skills"> 
+        <div class="hero-container2">
+            <div class="skills">
+                <div class="section-box">
+                    <h1>Technical Skills</h1>
+                    <br>
+                    <div class="skill-container">
+                        <label for="skill">Python</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 80%;"></div> <!-- Fluent -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Java</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 80%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">HTML5</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 85%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">CSS3</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 80%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">JavaScript</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 30%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">SQL</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 30%;"></div> <!-- Intermediate -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Abstract Thinking</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 100%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Data and Statistical Analysis</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 70%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="section-box">
+                    <h1>Soft Skills</h1>
+                    <br>
+                    <div class="skill-container">
+                        <label for="skill">Collaboration</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 90%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Communication</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 100%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Problem Solving</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 100%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Time management</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 80%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Adaptability</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 90%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="section-box">
+                    <h1>Libraries and Frameworks</h1>
+                    <br>
+                    <div class="skill-container">
+                        <label for="skill">Pandas</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 80%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Matplotlib</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 70%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Flask</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 95%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Pygame</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 80%;"></div> <!-- Intermediate -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Scikit Learn</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 20%;"></div> <!-- Intermediate -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="certifications" class="intro-section">
+        <h1 style="font-size: 2rem; text-align: center;">Certifications</h1>
+    </section>
+    
+
+    <section id="certifications">
+        <div class = "hero-container2">
+            <div class="certification-grid">
+                <div class="certification-card">
+                    <img src="/Project/images/about/work/data-certificate.png" alt="Data Analysis with Python">
+                    <h3>Data Analysis with Python</h3>
+                    <p>Issued by: edX</p>
+                    <p>Year: July-August 2023</p>
+                </div>
+                <div class="certification-card">
+                    <img src="/Project/images/about/work/web-certificate.png" alt="Introduction to Web Development with HTML5, CSS3, JavaScript">
+                    <h3>Introduction to Web Development with HTML5, CSS3, JavaScript</h3>
+                    <p>Issued by: edX</p>
+                    <p>Year: August 2023</p>
+                </div>
+                <div class="certification-card">
+                    <img src="/Project/images/about/work/ai-certificate.png" alt="AI for Everyone: Master the Basics">
+                    <h3>AI for Everyone: Master the Basics</h3>
+                    <p>Issued by: edX</p>
+                    <p>Year: August 2023</p>
+                </div>
+                <!-- Repeat for other certifications -->
+            </div>        
+        </div>
+    </section>
+
     
     <!-- Contact Section -->
     <section id="contact">

@@ -7,23 +7,29 @@
         font-size: 1.25rem;
     }
 
-    /* Removed unnecessary margin-right */
-    #hero { 
-        margin-right: 2rem;
+    /* NAVIGATION */
+    nav .nav-links { 
+        display: none;
     }
-    #hero2 { 
+
+    .hamburger { 
+        top: 1.5rem; 
+        right: 3rem;
+    }
+    .dark-mode-toggle label { 
+        top: 2rem; 
+        left: 2rem;
+    }
+    /* Removed unnecessary margin-right */
+    #hero, #hero2 { 
         margin-right: 2rem;
     }
 
+    /* changing structure from row to column */
     .hero-box .section-box:not(:first-child) {
         display: flex; 
         flex-direction: column;
     }
-    .figure-container img {
-        width: 20rem; /* Adjust size as needed */
-        height: auto;
-    }
-
     .hero-container, .hero-container2 {
         display: flex;
         flex-direction: column;
@@ -36,18 +42,11 @@
         order: 1; /* About section at the top */
         margin-bottom: 0.5rem;
     }
-
     .hero-right {
         order: 2; /* Mission section below About */
     }
-
     .hero-left {
         order: 3; /* Left section at the bottom */
-    }
-
-    .hero-left {
-        display: flex;
-        flex-direction: column;
     }
     /* Left Section Orders */
     .hero-left .languages {
@@ -57,24 +56,33 @@
     .hero-left .social-media {
         order: 2; /* Social media section below Languages */
     }
+    
+    .hero-left {
+        display: flex;
+        flex-direction: column;
+    }
 
     .section-box {
         text-align: center;
         width: 100%;
     }
-
     section {
         padding: 1rem;
     }
 
-    .intro-section {
-        margin-top: 3rem; 
-        margin-bottom: 3rem;
+    .skills { 
+        display: flex;
+        flex-direction: column;   /* Align children (sections) horizontally */
+        gap: 0.5rem;
+        padding:3rem;
+        margin-right: 5rem;
     }
 
     .social-media-link { 
         width: 100%;
     }
+
+    /*position it well in the middle */
     .cv-text { 
         margin:0;
     }
@@ -83,21 +91,12 @@
         height: 15rem;
         width: 10rem;
     }
-    .hamburger { 
-        top: 1.5rem; 
-        right: 3rem;
-    }
-    .dark-mode-toggle label { 
-        top: 2rem; 
-        left: 2rem;
-    }
-    /* NAVIGATION */
-    nav .nav-links { 
-        display: none;
-    }
+
+    /*position it in the middle */
     #education { 
         margin-right: 5rem; 
     }
+
 
     /* Ensuring full width for sections */
     .hero-left, .hero-middle, .hero-middle2, .hero-right {
@@ -106,7 +105,8 @@
     #piano, #chess, #swimming, #football{ 
         text-align: left;
     }
-
+    
+    /* Ensuring full height for sections */
     .hero-middle .section-box, .hero-middle2 .section-box {
         height: auto;
     }
@@ -118,19 +118,17 @@
         margin-top: 1rem;
     }
 
-    /* DARK MODE TOGGLE */
-    .dark-mode-toggle {
-        top: 1rem;
-        left: 1rem;
-    }
-
     /* FORM STYLING */
     form {
         padding: 2rem;
         max-width: 70%;
     }
-
     input, textarea {
         font-size: 0.9rem;
     }
+
+    .blog-container { 
+        width: 80%;
+    }
 }
+

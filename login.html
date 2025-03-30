@@ -6,6 +6,7 @@
     <title>Login</title>
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/mobile.css">
     <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
@@ -17,17 +18,42 @@
         </div>
         
         <ul class="nav-links">
-            <li><a href="home.html">Home</a></li>
-            <li><a href="home.html#portfolio">Portfolio</a></li>
-            <li><a href="home.html#timeline">Timeline</a></li>
-            <li><a href="home.html#contact">Contact Me</a></li>
-            <li><a href="login.html">Login</a></li>
-            <li><a href="">Blog</a></li>
+            <li><a href="blog/home.php">Home</a></li>
+            <li><a href="blog/home.php#portfolio">Portfolio</a></li>
+            <li><a href="blog/home.php#contact">Contact Me</a></li>
+            <li><a href="blog/viewBlog.php">Blog</a></li>
         </ul>
+
+        
+        <script src="js/hamburger_menu.js"></script>
+        <button style="background : none;" class="hamburger" id="hamburger">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </button>
+
+        <div class="right-menu" id="right-menu">
+            <ul>
+                <li><a href="blog/home.php">Home</a></li>
+                <div class="underline2" style="width: 90%;"></div>
+                <li><a href="blog/home.php#portfolio">Portfolio</a></li>
+                <div class="underline2" style="width: 90%;"></div>
+                <li><a href="#cv">Download CV</a></li>
+                <div class="underline2" style="width: 90%;"></div>
+                <li><a href="#skills">Skills</a></li>
+                <div class="underline2" style="width: 90%;"></div>
+                <li><a href="#contact">Contact Me</a></li>
+                <div class="underline2" style="width: 90%;"></div>
+                <li><a href="blog/viewBlog.php">Blog</a></li>
+                <div class="underline2" style="width: 90%;"></div>
+                
+            </ul>
+        </div>
+        <script src="js/anti-scroll-menu.js"></script>
     </nav>
     <script src="js/toggle_darkmode.js"></script>
     <section>
-            <form action="login.php" method="POST">
+        <form action="blog/login.php" method="POST">
             <h1 style = "font-size: 3rem; text-align: center;">Login</h1>
             <br> 
             <br>
@@ -39,14 +65,9 @@
 
             <div class = "button">
                 <button type="submit">Login</button>
-                <button type="button" id="clearBtn">Clear</button
-            </div>  
+            </div>
         </form>
     </section>
-
     <p id="statusMessage"></p>
-
-    <script src="js/blog-clear.js"></script>
-
 </body>
 </html>

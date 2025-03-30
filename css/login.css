@@ -3,16 +3,12 @@
     --background-color: #1a1a2e;
     --hover-effect: rgba(255, 255, 255, 0.6);
 }
-
 body.dark-mode {
     --primary-color: rgb(255, 255, 255);
     --background-color: rgb(216, 226, 248);
     --hover-effect: rgba(0, 0, 0, 0.6);
 }
-body.dark-mode section {
-    background: var(--background-color);
-    color:  rgb(0, 10, 121);
-}
+
 body.dark-mode form { 
     box-shadow: 0 0.5rem 1rem rgb(11, 5, 46);
 }
@@ -60,7 +56,7 @@ label {
     text-align: left; /* Center the label text */
 }
 input, textarea {
-    width: 80%;
+    width: 100%;
     padding: 0.6rem;
     margin-bottom: 1rem;
     border-radius: 0.5rem;
