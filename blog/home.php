@@ -14,7 +14,9 @@ session_start();
     <link rel="stylesheet" href="../css/mobile.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Ovo&display=swap" rel="stylesheet">
+    <script src = "../js/text_appear.js"></script>
+
 </head>
 
 <body>
@@ -167,78 +169,12 @@ session_start();
         </div>
     </section>   
 
-
-    <section id="hobbies" class="intro-section">
-        <h1 style="font-size: 2rem; text-align: center;">Passions and Hobbies</h1>
-        <a href="#portfolio" class="cta-button">Skip to my portfolio:</a>
-    </section>  
-
-    <section id="hero2">
-        <div class="hero-container">
-            <div class="hero-left">
-                <div id = "chess" class="section-box">
-                    <h1>Chess</h1>
-                    <div class="underline" style= "width: 3.5rem;"></div>
-                    <p>Chess was a casual pastime for me as a kid, but as I grew older, 
-                        I started playing for hours every day and became advanced in the game. 
-                        It has given me numerous perspectives on life through the analogies you can draw from it.</p>
-                    <figure class = "figure-container"> 
-                        <img src="/Project/images/about/hobbies/chess.jpg" alt="Chess">
-                        <figcaption>Chess Regionals Victory round 1</figcaption>
-                    </figure>
-                </div>
-            </div>
-    
-            <!-- Middle Section: Swimming -->
-            <div class="hero-middle2">
-                <div id = "football" class="section-box">
-                    <h1 style="text-align: left;">Football</h1>
-                    <div class="underline" style="width: 5rem;"></div>
-                    <p>Football has always been a major part of my life. 
-                        I played in a Sunday league with a football club, 
-                        and one of my proudest moments was scoring the winning goal 
-                        that secured our promotion.</p>
-                        <figure class = "figure-container"> 
-                            <img src="/Project/images/about/hobbies/football.jpg" alt="Footabll">
-                            <figcaption>Last Match at Hampstead FC</figcaption>
-                        </figure>
-                </div>
-
-                <div id = "swimming" class="section-box">
-                    <h1 style="text-align: left;" >Swimming</h1>
-                    <div class="underline" style="width: 6.3rem;"></div>
-                    <p>Football is my passion, but swimming is the sport where I truly excelled. 
-                        I competed at the national level three times, starting when I was just five years old. 
-                        Throughout my journey, I had the opportunity to compete in Lebanon, the UK, and Saudi Arabia, 
-                        training twice a day. This intense commitment not only sharpened my athletic skills but also gave  
-                        me a level of discipline that drives my success in every aspect of life.</p>
-                    <figure class = "figure-container">
-                        <img src="/Project/images/about/hobbies/swimming.jpg" alt="Swimming">
-                        <figcaption>Nationals 6 and Under In Aramco, Riyadh</figcaption>
-                    </figure>
-                </div>
-            </div>
-    
-            <!-- Right Section: Chess -->
-            <div class="hero-right">
-                <div id = "piano" class="section-box">
-                    <h1>Piano</h1>
-                    <div class="underline" style="width: 3.5rem;"></div>
-                    <p>In addition to my studies and work, I enjoy playing the piano. With over 10 years of practice, I recently achieved a distinction in the grade 8 ABRSM piano performance exam.
-                    These hobbies help me stay grounded and balanced, as well as active which helps me a lot while pursuing a career 
-                    that lacks physical activity.</p>
-                    <figure class = "figure-container">
-                        <img src="/Project/images/about/hobbies/piano.jpg" alt="Swimming">
-                        <figcaption>ABRSM grade 8 piano performance</figcaption>
-                    </figure>
-                </div>
-            </div>
-        </div>
+    <section id="portfolio" class="intro-section">
+        <h1 style="font-size: 4rem; text-align: center; margin-right: 5rem;">Portfolio</h1>
     </section>
 
-
-    <section id="portfolio" class="intro-section">
-        <h1 style="font-size: 2rem; text-align: center; margin-right: 5rem;">Portfolio</h1>
+    
+    <div id="portfolio">
         <div class="cv-container">
             <div class="cv-text">
                 <p>If you wish to download my CV, you can do so here.</p>
@@ -250,23 +186,37 @@ session_start();
                 </a>
             </div>
         </div>
-    </section>
+    </div>
 
-    <section id = "education">
-        <div class="hero-container2">
-            <div class="hero-box">
-                <div class = "section-box"> 
-                    <h1>Education</h1>
+    <div id="education" class="intro-section">
+        <h1 style="font-size: 2rem; text-align: center;">Education</h1>
+    </div>  
+
+    <section id="education" class="hero-container2">
+        <!-- Education Items Grid -->
+        <div class="grid">
+            <!-- Lycee International -->
+            <div class="section-box project-container">
+                <!-- Image Division -->
+                <div class="project-image">
+                    <img src="/Project/images/about/work/school.webp" alt="School">
                 </div>
-                <div class="section-box">
-                    <figure class = "figure-container"> 
-                        <img src="/Project/images/about/work/school.webp" alt="School">
-                        <figcaption>
-                            Lycee International De Londres Winston Churchill
-                        </figcaption>
-                    </figure>
-                    <div>
-                        <br>
+                
+                <!-- Text Division -->
+                <div class="project-text">
+                    <!-- Title Division -->
+                    <div class="project-title">
+                        <h3>Lycée International De Londres Winston Churchill</h3>
+                        <div class="read-more">Read More +</div>
+                    </div>
+                    
+                    <!-- Info Division -->
+                    <div class="project-info">
+                        <span>Graduated: 2023</span>
+                    </div>
+                    
+                    <!-- Hidden Description -->
+                    <div class="project-description" style="display: none;">
                         <p>Graduated with <strong>Highest Honours with Committee Praise</strong> in the French Baccalaureate.</p>
                         <ul>
                             <li>A* in Mathematics</li>
@@ -276,18 +226,32 @@ session_start();
                         </ul>
                     </div>
                 </div>
-                <div class="section-box">
-                    <figure class = "figure-container"> 
-                        <img src="/Project/images/about/work/university.png" alt="University">
-                        <figcaption>
-                            Queen Mary University of London 
-                            EECS school (Electronic Engineering and Computer Science)
-                        </figcaption>
-                    </figure>
-                    <div>
-                        <br>
+            </div>
+
+            <!-- Queen Mary University -->
+            <div class="section-box project-container">
+                <!-- Image Division -->
+                <div class="project-image">
+                    <img src="/Project/images/about/work/university.png" alt="University">
+                </div>
+                
+                <!-- Text Division -->
+                <div class="project-text">
+                    <!-- Title Division -->
+                    <div class="project-title">
+                        <h3>Queen Mary University of London</h3>
+                        <h4>EECS (Electronic Engineering and Computer Science)</h4>
+                        <div class="read-more">Read More +</div>
+                    </div>
+                    
+                    <!-- Info Division -->
+                    <div class="project-info">
+                        <span>2023 - Present</span>
+                    </div>
+                    
+                    <!-- Hidden Description -->
+                    <div class="project-description" style="display: none;">
                         <p><strong>Bachelor of Computer Science with Industrial Placement</strong></p>
-                        <br>
                         <p>Currently in my <strong>1st year</strong>, expected to graduate with <strong>First-Class Honours</strong>.</p>
                         <p>Relevant Courses:</p>
                         <ul>
@@ -298,55 +262,78 @@ session_start();
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
 
-    
-            <!-- Right Section: Projects -->
-            <div id = "projects" class="hero-box">
-                <div class = "section-box"> 
-                    <h1>Projects</h1>
-                </div>
-                <div class="section-box" >
-                    <figure class="figure-container"> 
-                        <a id="tetris" class="social-media-link" href="https://github.com/MoArouni/Tetris-project" target="_blank">
-                            <img src="/Project/images/about/work/tetris.png" alt="Tetris">
-                        </a>
-                        <figcaption>
-                            Tetris Enhacement : Open Source Project
-                        </figcaption>
-                        <br>
-                        <div>
-                            <p>Transformed a basic Tetris implementation by introducing a feature-rich menu system and refining gameplay functionalities.</p>
-                            <ul>
-                                <li>Enhanced user experience with an improved interface and upgraded visuals.</li>
-                                <li>Implemented <strong>Object-Oriented Programming</strong> principles for scalability and maintainability.</li>
-                            </ul>
-                        </div>                    
-                    </figure>
-                </div>
 
-                <div class="section-box" style = "flex-direction: column;">
-                    <figure class = "figure-container"> 
-                        <a id = "data-tools" class = "social-media-link" 
-                            href="https://github.com/MoArouni/Data_analysis_tools" 
-                            target="_blank">
-                            <img src="/Project/images/about/work/data-tools.png" alt="Data-tools">
-                        </a>
-                        <figcaption>
-                            Flask Application : Data Analytics for Jewerelly Businesses
-                        </figcaption>
-                    </figure>
-                    <div>
-                        <p>
-                            Developed a <strong>Flask-based web application</strong> for structured data analysis and management, integrating a modular backend and an intuitive user interface.
-                        </p>
+    <div class="intro-section">
+        <h1 style="font-size: 2rem; text-align: center;">Projects</h1>
+    </div>
+
+
+    <section id="projects" class="hero-container2">  
+        <!-- Title Section -->      
+        <div class = "grid">
+            <!-- Tetris Project -->
+            <div class="section-box project-container">
+                <!-- Image Division (70% height, 100% width) -->
+                <div class="project-image">
+                    <img src="/Project/images/about/work/tetris.png" alt="Tetris">
+                </div>
+                
+                <!-- Text Division -->
+                <div class="project-text">
+                    <!-- Title Division with Read More -->
+                    <div class="project-title">
+                        <h3>Tetris Enhancement: Open Source Project</h3>
+                        <div class="read-more">Read More +</div>
+                    </div>
+                    <!-- Info Division (GitHub link/date) -->
+                    <div class="project-info">
+                        <a href="https://github.com/MoArouni/Tetris-project" target="_blank"><small>GitHub Repository</small></a> /
+                        <span>December 2024</span>
+                    </div>
+                    
+                    <!-- Hidden Description (revealed on click) -->
+                    <div class="project-description" style="display: none;">
+                        <p>Transformed a basic Tetris implementation by introducing a feature-rich menu system and refining gameplay functionalities.</p>
+                        <ul>
+                            <li>Enhanced user experience with an improved interface and upgraded visuals.</li>
+                            <li>Implemented <strong>Object-Oriented Programming</strong> principles for scalability and maintainability.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Tools Project -->
+            <div class="section-box project-container">
+                <!-- Image Division -->
+                <div class="project-image">
+                    <img src="/Project/images/about/work/data-tools.png" alt="Data-tools">
+                </div>
+                
+                <!-- Text Division -->
+                <div class="project-text">
+                    <!-- Title Division with Read More -->
+                    <div class="project-title">
+                        <h3>Flask Application: Data Tools</h3>
+                        <div class="read-more">Read More +</div>
+                    </div>
+                    <!-- Info Division -->
+                    <div class="project-info">
+                        <a href="https://github.com/MoArouni/Data_analysis_tools" target="_blank"><small>GitHub Repository</small></a> /
+                        <span>December 2024-Present</span>
+                    </div>
+                    
+                    <!-- Hidden Description -->
+                    <div class="project-description" style="display: none;">
+                        <p>Developed a <strong>Flask-based web application</strong> for structured data analysis and management.</p>
                         <ul>
                             <li><strong>Automated Data Processing:</strong> Utilized Pandas for data cleaning and analysis.</li>
                             <li><strong>Dynamic Frontend Rendering:</strong> Implemented Jinja2 for real-time content updates.</li>
                             <li><strong>Secure & Scalable Backend:</strong> Used Object-Oriented Programming for maintainability.</li>
                             <li><strong>Real-Time Data Updates:</strong> Integrated Google Apps Script for automated database management.</li>
-                            <li><strong>Security & Authentication (In Progress):</strong> Implementing role-based access, SQL storage, and encryption.</li>
-                            <li><strong>Real-Time Data Updates:</strong> Integrated Google Apps Script for automated database management.</li>
-                            <li><strong>Local Deployment:</strong> Used ngrok and Render to host the website locally for testing and demonstrations.</li>
+                            <li><strong>Local Deployment:</strong> Used ngrok and Render to host the website locally.</li>
                         </ul>
                         <p><em>Currently refining authentication and SQL storage for enhanced security.</em></p>
                     </div>
@@ -354,11 +341,12 @@ session_start();
             </div>
         </div>
     </section>
+    <script src = "../js/readMore.js"></script>
 
 
-    <section id="skills" class="intro-section">
+    <div id="skills" class="intro-section">
         <h1 style="font-size: 2rem; text-align: center;">Skills</h1>
-    </section> 
+    </div> 
 
     <section id = "skills"> 
         <div class="hero-container2">
@@ -507,9 +495,9 @@ session_start();
         </div>
     </section>
 
-    <section id="certifications" class="intro-section">
+    <div id="certifications" class="intro-section">
         <h1 style="font-size: 2rem; text-align: center;">Certifications</h1>
-    </section>
+    </div>
     
 
     <section id="certifications">
@@ -537,6 +525,148 @@ session_start();
             </div>        
         </div>
     </section>
+
+    <section id="hobbies" class="hero-container2">
+        <!-- Title Section -->
+        <div class="intro-section">
+            <h1 style="font-size: 2rem; text-align: center;">Hobbies</h1>
+        </div>
+        
+        <!-- Hobbies Grid -->
+        <div class="grid">
+            <!-- Chess -->
+            <div class="section-box project-container">
+                <!-- Image Division -->
+                <div class="project-image">
+                    <img src="/Project/images/about/hobbies/chess.jpg" alt="Chess">
+                </div>
+                
+                <!-- Text Division -->
+                <div class="project-text">
+                    <!-- Title Division -->
+                    <div class="project-title">
+                        <h3>Chess</h3>
+                        <div class="read-more">Read More +</div>
+                    </div>
+                    
+                    <!-- Info Division -->
+                    <div class="project-info">
+                        <span>Chess Regionals Victory round 1</span>
+                    </div>
+                    
+                    <!-- Hidden Description -->
+                    <div class="project-description" style="display: none;">
+                        <p>Chess was a casual pastime for me as a kid, but as I grew older, 
+                        I started playing for hours every day and became advanced in the game.</p>
+                        <ul>
+                            <li>1700 rating</li>
+                            <li>Developed strategic thinking skills</li>
+                            <li>Provides life perspectives through game analogies</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Football -->
+            <div class="section-box project-container">
+                <!-- Image Division -->
+                <div class="project-image">
+                    <img src="/Project/images/about/hobbies/football.jpg" alt="Football">
+                </div>
+                
+                <!-- Text Division -->
+                <div class="project-text">
+                    <!-- Title Division -->
+                    <div class="project-title">
+                        <h3>Football</h3>
+                        <div class="read-more">Read More +</div>
+                    </div>
+                    
+                    <!-- Info Division -->
+                    <div class="project-info">
+                        <span>Hampstead FC Player</span>
+                    </div>
+                    
+                    <!-- Hidden Description -->
+                    <div class="project-description" style="display: none;">
+                        <p>Football has always been a major part of my life. I played in a Sunday league with a football club.</p>
+                        <ul>
+                            <li>Scored winning goal for team promotion</li>
+                            <li>Developed teamwork and leadership skills</li>
+                            <li>Playing since 3 years old</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Swimming -->
+            <div class="section-box project-container">
+                <!-- Image Division -->
+                <div class="project-image">
+                    <img src="/Project/images/about/hobbies/swimming.jpg" alt="Swimming">
+                </div>
+                
+                <!-- Text Division -->
+                <div class="project-text">
+                    <!-- Title Division -->
+                    <div class="project-title">
+                        <h3>Swimming</h3>
+                        <div class="read-more">Read More +</div>
+                    </div>
+                    
+                    <!-- Info Division -->
+                    <div class="project-info">
+                        <span>National Level Competitor</span>
+                    </div>
+                    
+                    <!-- Hidden Description -->
+                    <div class="project-description" style="display: none;">
+                        <p>Competed at national level three times, starting at age five. Trained internationally with twice-daily sessions.</p>
+                        <ul>
+                            <li>Competed in Lebanon, UK, and Saudi Arabia</li>
+                            <li>Developed amazing discipline</li>
+                            <li>Primary sport for 10+ years</li>
+                        </ul>
+                        <figcaption>Nationals 6 and Under In Aramco, Riyadh</figcaption>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Piano -->
+            <div class="section-box project-container">
+                <!-- Image Division -->
+                <div class="project-image">
+                    <img src="/Project/images/about/hobbies/piano.jpg" alt="Piano">
+                </div>
+                
+                <!-- Text Division -->
+                <div class="project-text">
+                    <!-- Title Division -->
+                    <div class="project-title">
+                        <h3>Piano</h3>
+                        <div class="read-more">Read More +</div>
+                    </div>
+                    
+                    <!-- Info Division -->
+                    <div class="project-info">
+                        <span>Grade 8 ABRSM</span> 
+                    </div>
+                    
+                    <!-- Hidden Description -->
+                    <div class="project-description" style="display: none;">
+                        <p>With over 10 years of practice, achieved distinction in grade 8 ABRSM piano performance exam.</p>
+                        <ul>
+                            <li>Provides creative outlet</li>
+                            <li>Develops focus and patience</li>
+                            <li>Helps balance sedentary work life</li>
+                        </ul>
+                        <figcaption>ABRSM grade 8 piano performance</figcaption>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
 
     
     <!-- Contact Section -->

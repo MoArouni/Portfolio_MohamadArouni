@@ -28,7 +28,7 @@ body.dark-mode button {
 body {
     background: var(--background-color);
     color: var(--primary-color);
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Ovo', sans-serif;
     margin: 0;
     padding: 0;
     padding-top: 5rem;
