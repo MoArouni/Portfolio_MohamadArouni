@@ -57,72 +57,27 @@ body.dark-mode footer {
     color: rgb(0, 10, 121);
 }
 
-
-/* DARK MODE TOGGLE */
-.dark-mode-toggle {
-    position: fixed;
-    top: 3.2rem;
-    left: 3rem;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    z-index: 1001;
-}
-
-.dark-mode-toggle input {
-    display: none;
-}
-
-.dark-mode-toggle label {
-    background: rgb(255, 255, 255);
-    border-radius: 1rem;
-    width: 3rem;
-    height: 1.5rem;
-    position: fixed;
-    transition: background 0.3s ease-in-out;
-}
-
-.dark-mode-toggle label::after {
-    content: '';
-    position: absolute;
-    top: 0.25rem;
-    left: 0.25rem;
-    width: 1rem;
-    height: 1rem;
-    background: var(--background-color);
-    border-radius: 50%;
-    transition: transform 0.3s ease-in-out;
-}
-
-.dark-mode-toggle input:checked + label {
-    background: white;
-}
-
-.dark-mode-toggle input:checked + label::after {
-    transform: translateX(1.5rem);
-}
-
-
-
-
-
-
-
-
-/* everything to do with navigation section at the top of the page */
-
+/* NAVIGATION CONTAINER */
 nav {
     position: fixed;
     top: 0;
-    left: 0;
+    right: 0;
     width: 100%;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 1rem 1rem;
-    background: none;
+    padding: 1rem 2rem; /* Adjusted padding */
+    background: transparent;
     backdrop-filter: blur(10px);
     z-index: 1000;
+}
+
+/* DARK MODE TOGGLE */
+#dark-mode-toggle {
+    margin-left: 3rem;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    order: 1; /* Controls position in flex container */
 }
 
 /* NAV LINKS */
@@ -130,58 +85,28 @@ nav {
     list-style: none;
     display: flex;
     margin: 0;
-    padding: 1rem;
-    margin-left: 10rem;
+    padding: 0;
+    order: 2; /* Middle position */
+    flex-grow: 0.5; /* Takes available space */
+    justify-content: center; /* Center the links */
 }
+
 .nav-links li {
     position: relative;
+    display: flex;
+    align-items: center;
 }
+
 .nav-links a {
     text-decoration: none;
     color: var(--primary-color);
     text-transform: uppercase;
     letter-spacing: 0.01rem;
     font-size: 1rem;
-    padding: 1rem;
+    padding: 0.5rem 1rem;
     position: relative;
     transition: color 0.3s ease-in-out;
 }
-body.dark-mode .nav-links a { 
-    color: rgb(0, 10, 121);
-}
-
-/* HOVER EFFECT */
-.nav-links a::after {
-    content: "";
-    position: absolute;
-    bottom: -0.3rem;
-    left: 50%;
-    bottom: 0.3rem;
-    left: 50%;
-    width: 0;
-    height: 0.2rem;
-    background: var(--primary-color);
-    transition: all 0.3s ease-in-out;
-    transform: translateX(-50%);
-}
-body.dark-mode .nav-links a::after { 
-    background-color: rgb(0, 8, 101);
-}
-
-.nav-links a:hover::after {
-    width: 100%;
-}
-.hover-grey {
-    color: var(--primary-color);
-    text-decoration : none;
-    margin-left: 1rem;
-    transition: color 0.3s ease-in-out;
-}
-.hover-grey:hover {
-    color: grey;
-}
-
-
 
 /* HAMBURGER BUTTON */
 .hamburger {
@@ -189,39 +114,95 @@ body.dark-mode .nav-links a::after {
     border: none;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2rem;
+    height: 2rem;
     padding: 0;
     cursor: pointer;
-    z-index: 1002; /* Increased z-index */
-    position: absolute;
-    right: 5rem;
+    z-index: 1002;
+    order: 3; /* Last position */
+    margin-left: auto; /* Pushes to far right */
 }
-.bar {
-    width: 1.5rem;
-    height: 0.2rem;
-    background-color: #ffffff;
-    border-radius: 0.2rem;
-    transition: all 0.3s ease-in-out;
-    margin: 0.2rem 0;
+
+/* ICON ALIGNMENT */
+#dark-mode-toggle svg,
+.hamburger .bar {
+    vertical-align: middle;
 }
-body.dark-mode .bar { 
+#dark-mode-toggle .sun {
+    color: white;
+}
+#dark-mode-toggle .moon {
+    color: rgb(0, 10, 121);
+}
+
+/* DARK MODE COLORS */
+body.dark-mode .nav-links a {
+    color: rgb(0, 10, 121);
+}
+body.dark-mode .nav-links a::after {
+    background-color: rgb(0, 8, 101);
+}
+body.dark-mode .bar {
     background-color: rgb(0, 8, 101);
 }
 
+/* HOVER EFFECTS */
+.nav-links a::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 0.15rem;
+    background: var(--primary-color);
+    transition: all 0.3s ease-in-out;
+    transform: translateX(-50%);
+}
+.nav-links a:hover::after {
+    width: 80%;
+}
 
-/* TOGGLE CROSS EFFECT */
+/* HAMBURGER ANIMATION */
+.bar {
+    width: 1.5rem;
+    height: 0.15rem;
+    background-color: #ffffff;
+    border-radius: 0.2rem;
+    transition: all 0.3s ease-in-out;
+    margin: 0.15rem 0;
+}
+
+/* X TRANSFORMATION */
 .hamburger.open .bar:nth-child(1) {
     opacity: 0;
+    transform: translateY(-0.35rem);
 }
+
 .hamburger.open .bar:nth-child(2) {
-    transform: rotate(45deg) translate(0.34rem, 0.34rem);
+    width: 0.75rem;
+    transform: 
+        translateY(0.25rem)   /* Move up */
+        translateX(0.2rem)    /* Move right */
+        rotate(45deg);
 }
+
 .hamburger.open .bar:nth-child(3) {
-    transform: rotate(-45deg) translate(0.34rem, -0.34rem);
+    width: 0.75rem;
+    transform: 
+        translateY(-0.2rem)   /* Move up */
+        translateX(0.2rem)    /* Move right */
+        rotate(-45deg);
 }
+
+
+
+
+
+
+
+
 
 /* RIGHT-SIDE MENU */
 .right-menu {

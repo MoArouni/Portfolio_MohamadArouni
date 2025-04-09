@@ -94,3 +94,26 @@ button:hover {
     background: var(--hover-effect);
 }
 
+
+
+
+/* register form */
+
+.error-message {
+    color: #ff3333;
+    margin-bottom: 15px;
+}
+
+.register-link, .login-link {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.register-link a, .login-link a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.register-link a:hover, .login-link a:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,79 @@
+:root {
+    --primary-color: white;
+    --background-color: #1a1a2e;
+    --hover-effect: rgba(255, 255, 255, 0.6);
+}
+
+/* Preview Container */
+#previewContainer {
+    width: 50%;
+    margin: 2rem auto;
+    display: none;
+}
+
+/* Preview Actions Container */
+.preview-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Form styling - make it invisible */
+.preview-form {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+
+/* Base Button Style */
+.preview-btn {
+    padding: 1rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+/* Edit Button */
+.preview-btn-edit {
+    background: #ffffff;
+    color:  #1a1a2e;
+}
+/* Publish Button */
+.preview-btn-publish {
+    background: white;
+    color:  #1a1a2e;
+}
+
+.preview-btn-publish:hover {
+    background: #bebfc0;
+}
+
+.preview-btn-edit:hover {
+    background: #bebfc0;
+}
+
+/* Dark Mode Adjustments */
+body.dark-mode .preview-actions {
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+body.dark-mode .preview-btn-edit {
+    background: #ffffff;
+}
+
+body.dark-mode .preview-btn-publish {
+    background: var(--primary-dark-color);
+}
+
+body.dark-mode .preview-btn:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}

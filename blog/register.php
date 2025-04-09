@@ -2,48 +2,65 @@
 require_once __DIR__ . '/includes/db.php';
 session_start();
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php'); // Redirect to login page if not logged in
-    exit();
-}
+$errors = [];
 
-// Handle the form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = $_POST['title'];
-    $content = $_POST['content'];
-    $user_id = $_SESSION['user_id'];
-    $created_at = date('Y-m-d H:i:s'); // Current timestamp in MySQL format
-
-    try {
-        // Insert the post into the database
-        $stmt = $pdo->prepare("INSERT INTO posts (title, content, user_id, created_at) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$title, $content, $user_id, $created_at]);
-        header('Location: viewBlog.php'); // Redirect to the blog view page after success
-        exit();
-    } catch (PDOException $e) {
-        die("Error saving post: " . $e->getMessage());
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    
+    // Validation
+    if (empty($username)) {
+        $errors[] = "Username is required";
+    }
+    
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Valid email is required";
+    }
+    
+    if (strlen($password) < 8) {
+        $errors[] = "Password must be at least 8 characters";
+    }
+    
+    if (empty($errors)) {
+        // Check if email exists
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        
+        if ($stmt->rowCount() > 0) {
+            $errors[] = "Email already registered";
+        } else {
+            // Create new user
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'subscriber')");
+            
+            if ($stmt->execute([$username, $email, $hashed_password])) {
+                $_SESSION['user_id'] = $pdo->lastInsertId();
+                $_SESSION['username'] = $username;
+                $_SESSION['role'] = 'subscriber';
+                header('Location: viewBlog.php');
+                exit();
+            } else {
+                $errors[] = "Registration failed. Please try again.";
+            }
+        }
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Post</title>
+    <title>Register</title>
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/home.css">
     <link rel="stylesheet" href="../css/mobile.css">
-    <link rel="stylesheet" href="../css/blog.css">
     <link rel="stylesheet" href="../css/login.css">
-    <link rel="stylesheet" href="../css/preview.css">
-
 </head>
 <body>
-    <nav>
+<nav>
         <script src="../js/toggle_darkmode.js"></script>
         <div class="dark-mode-toggle">
             <button id="dark-mode-toggle" aria-label="Toggle dark mode">
@@ -63,13 +80,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </svg>
             </button>
         </div>
-
+        
         <ul class="nav-links">
             <li><a href="home.php">Home</a></li>
             <li><a href="home.php#portfolio">Portfolio</a></li>
             <li><a href="home.php#contact">Contact Me</a></li>
             <li><a href="viewBlog.php">Blog</a></li>
-            <li><a href="logout.php">Logout</a></li>
         </ul>
 
         <script src="../js/hamburger_menu.js"></script>
@@ -80,66 +96,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </button>
 
         <div class="right-menu" id="right-menu">
-        <ul>
-                <li><a href="home.php">Home</a></li>
+            <ul>
+                <li><a href="blog/home.php">Home</a></li>
                 <div class="underline2" style="width: 90%;"></div>
-                <li><a href="home.php#portfolio">Portfolio</a></li>
+                <li><a href="blog/home.php#portfolio">Portfolio</a></li>
                 <div class="underline2" style="width: 90%;"></div>
-                <li><a href="home.php#cv">Download CV</a></li>
+                <li><a href="#cv">Download CV</a></li>
                 <div class="underline2" style="width: 90%;"></div>
                 <li><a href="#skills">Skills</a></li>
                 <div class="underline2" style="width: 90%;"></div>
                 <li><a href="#contact">Contact Me</a></li>
                 <div class="underline2" style="width: 90%;"></div>
-                <li><a href="viewBlog.php">Blog</a></li>
-                <div class="underline2" style="width: 90%;"></div>
-                <li><a href="logout.php">Logout</a></li>
+                <li><a href="blog/viewBlog.php">Blog</a></li>
                 <div class="underline2" style="width: 90%;"></div>
             </ul>
         </div>
         <script src="../js/anti-scroll-menu.js"></script>
     </nav>
-
+    
     <section>
-        
-        <form action="addPost.php" method="POST">
-            <h1 style="font-size: 3rem; text-align: center;">Blog</h1>
+        <form action="register.php" method="POST">
+            <h1 style="font-size: 3rem; text-align: center;">Register</h1>
             <br><br>
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title" placeholder="Title" required>
-
-            <label for="content">Content:</label>
-            <textarea id="content" name="content" rows="10" placeholder="Enter your text here"></textarea>
-
+            
+            <?php if (!empty($errors)): ?>
+                <div class="error-message">
+                    <?php foreach ($errors as $error): ?>
+                        <p><?= htmlspecialchars($error) ?></p>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            
+            <label for="password">Password: </label>
+            <input type="password" id="password" name="password" required minlength="8">
+            
             <div class="button">
-                <button type="submit">Post</button>
-                <button type="button" id="previewBtn">Preview</button>
-                <button type="button" id="clearBtn">Clear</button>
+                <button type="submit">Register</button>
+            </div>
+            
+            <div class="login-link">
+                <p>Already have an account? <a href="login.php">Login here</a></p>
             </div>
         </form>
-
-        <div id="previewContainer" class="blog-container">
-            <article class="blog-post" id="previewPost">
-                <small class="date">
-                    <span class="time-icon">🕒</span>
-                    <span id="previewDate">Just now</span>
-                </small>
-                
-                <h2 id="previewTitle"></h2>
-                <div class="underline2"></div>
-                <div id="previewContent" class="blog-content"></div>
-                
-                <div class="preview-actions">
-                    <button id="editBtn" class="preview-btn preview-btn-edit">Edit Post</button>
-                    <button id="publishBtn" class="preview-btn preview-btn-publish">Publish Now</button>
-                </div>
-            </article>
-        </div>
-        <script src="../js/features/preview_blog.js"></script>
-    
     </section>
-    <p id="statusMessage"></p>
-    <script src="../js/blog-clear.js"></script>
+    <script src="../js/features/register.js"></script>
 </body>
 </html>
-

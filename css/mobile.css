@@ -13,11 +13,9 @@
     }
 
     .hamburger { 
-        top: 1.5rem; 
         right: 3rem;
     }
-    .dark-mode-toggle label { 
-        top: 2rem; 
+    .dark-mode-toggle { 
         left: 2rem;
     }
     /* Removed unnecessary margin-right */
