@@ -369,37 +369,37 @@ session_start();
                     <div class="skill-container">
                         <label for="skill">Python</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 80%;"></div> <!-- Fluent -->
+                            <div class="skill-progress" style="width: 90%;"></div> <!-- Fluent -->
                         </div>
                     </div>
                     <div class="skill-container">
                         <label for="skill">Java</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 80%;"></div> <!-- Proficient -->
+                            <div class="skill-progress" style="width: 90%;"></div> <!-- Proficient -->
                         </div>
                     </div>
                     <div class="skill-container">
                         <label for="skill">HTML5</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 85%;"></div> <!-- Proficient -->
+                            <div class="skill-progress" style="width: 100%;"></div> <!-- Proficient -->
                         </div>
                     </div>
                     <div class="skill-container">
                         <label for="skill">CSS3</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 80%;"></div> <!-- Proficient -->
+                            <div class="skill-progress" style="width: 90%;"></div> <!-- Proficient -->
                         </div>
                     </div>
                     <div class="skill-container">
                         <label for="skill">JavaScript</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 30%;"></div> <!-- Proficient -->
+                            <div class="skill-progress" style="width: 80%;"></div> <!-- Proficient -->
                         </div>
                     </div>
                     <div class="skill-container">
                         <label for="skill">SQL</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 30%;"></div> <!-- Intermediate -->
+                            <div class="skill-progress" style="width: 80%;"></div> <!-- Intermediate -->
                         </div>
                     </div>
                     <div class="skill-container">
@@ -412,6 +412,12 @@ session_start();
                         <label for="skill">Data and Statistical Analysis</label>
                         <div class="skill-bar">
                             <div class="skill-progress" style="width: 70%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">PHP</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 60%;"></div> <!-- Proficient -->
                         </div>
                     </div>
                 </div>
@@ -467,15 +473,27 @@ session_start();
                         </div>
                     </div>
                     <div class="skill-container">
+                        <label for="skill">Seaborn</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 70%;"></div> <!-- Proficient -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
                         <label for="skill">Flask</label>
                         <div class="skill-bar">
-                            <div class="skill-progress" style="width: 95%;"></div> <!-- Proficient -->
+                            <div class="skill-progress" style="width: 100%;"></div> <!-- Proficient -->
                         </div>
                     </div>
                     <div class="skill-container">
                         <label for="skill">Pygame</label>
                         <div class="skill-bar">
                             <div class="skill-progress" style="width: 80%;"></div> <!-- Intermediate -->
+                        </div>
+                    </div>
+                    <div class="skill-container">
+                        <label for="skill">Java Swing</label>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 10%;"></div> <!-- Intermediate -->
                         </div>
                     </div>
                     <div class="skill-container">
