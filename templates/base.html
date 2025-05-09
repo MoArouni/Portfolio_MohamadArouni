@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mohamed Kourani's Portfolio Website">
+    <meta name="keywords" content="portfolio, programming, web development, developer">
+    <meta name="author" content="Mohamed Kourani">
+    
+    <title>{% block title %}Mohamed Kourani - Portfolio{% endblock %}</title>
+    
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hero.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/skills.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/timeline.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/contact.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/flip-cards.css') }}">
+    {% if session.role == 'admin' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% endif %}
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+    
+    <header>
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/about/me/mylogo.png') }}" alt="MA Logo">
+            </a>
+        </div>
+        
+        <nav>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('home') }}" class="nav-link" data-text="Home">Home</a></li>
+                <li><a href="{{ url_for('home') }}#projects" class="nav-link" data-text="Projects">Projects</a></li>
+                <li><a href="{{ url_for('home') }}#skills" class="nav-link" data-text="Skills">Skills</a></li>
+                <li><a href="{{ url_for('home') }}#contact" class="nav-link" data-text="Contact">Contact</a></li>
+                <li><a href="{{ url_for('view_blog') }}" class="nav-link" data-text="Blog">Blog</a></li>
+                {% if session.role == 'admin' %}
+                    <li><a href="{{ url_for('admin_dashboard') }}" class="nav-link" data-text="Admin">Admin</a></li>
+                {% endif %}
+                {% if session.user_id %}
+                    <li><a href="{{ url_for('logout') }}" class="nav-link" data-text="Logout">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}" class="nav-link" data-text="Login">Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        
+        <div class="theme-switch">
+            <input type="checkbox" id="theme-toggle" class="theme-toggle">
+            <label for="theme-toggle" class="theme-label">
+                <i class="fas fa-sun"></i>
+                <i class="fas fa-moon"></i>
+                <span class="ball"></span>
+            </label>
+        </div>
+        
+        <div class="menu-btn">
+            <div class="menu-btn__burger"></div>
+        </div>
+
+        <div class="mobile-nav">
+            <ul>
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('home') }}#projects">Projects</a></li>
+                <li><a href="{{ url_for('home') }}#skills">Skills</a></li>
+                <li><a href="{{ url_for('home') }}#contact">Contact</a></li>
+                <li><a href="{{ url_for('view_blog') }}">Blog</a></li>
+                {% if session.role == 'admin' %}
+                    <li><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+                {% endif %}
+                {% if session.user_id %}
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </header>
+
+    <div class="page-transition"></div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-socials">
+                <a href="https://x.com/mo_arouni" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://www.instagram.com/mohamad_arouni/" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.linkedin.com/in/mohamad-arouni-578168293/" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/MoArouni" target="_blank"><i class="fab fa-github"></i></a>
+            </div>
+            <div class="footer-info">
+                <p>Phone: +44 7484239767</p>
+                <p>Email: mohamadarouni5@gmail.com</p>
+                <p>&copy; {{ current_year }} Mohamad Arouni. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

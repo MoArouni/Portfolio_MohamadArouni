@@ -1,0 +1,119 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_title %}CV Analytics{% endblock %}
+
+{% set active_page = 'cv_analytics' %}
+
+{% block admin_header %}CV Analytics{% endblock %}
+{% block admin_description %}Understand how your CV is being accessed{% endblock %}
+
+{% block admin_content %}
+<div class="analytics-content">
+    <!-- Summary cards -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="summary-value total-downloads">
+                {{ analytics.total }}
+            </div>
+            <div class="summary-label">
+                <i class="fas fa-download"></i> Total Downloads
+            </div>
+        </div>
+        
+        <div class="summary-card">
+            <div class="summary-value">
+                {{ analytics.registered }}
+            </div>
+            <div class="summary-label">
+                <i class="fas fa-user"></i> Registered Users
+            </div>
+        </div>
+        
+        <div class="summary-card">
+            <div class="summary-value">
+                {{ analytics.anonymous }}
+            </div>
+            <div class="summary-label">
+                <i class="fas fa-user-secret"></i> Anonymous Users
+            </div>
+        </div>
+    </div>
+
+    <!-- Downloads by reason chart -->
+    <div class="chart-container">
+        <h3>Downloads by Reason</h3>
+        <div class="cv-reasons-chart">
+            <canvas id="reasonsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Recent downloads table -->
+    <div class="analytics-table-container">
+        <h3>Recent Downloads</h3>
+        <table class="analytics-table">
+            <thead>
+                <tr>
+                    <th>Date/Time</th>
+                    <th>User</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for download in analytics.recent %}
+                <tr>
+                    <td>{{ download.created_at }}</td>
+                    <td>
+                        {% if download.is_anonymous %}
+                            <i class="fas fa-user-secret"></i> Anonymous
+                        {% else %}
+                            <i class="fas fa-user"></i> {{ download.username or 'User #' + download.user_id|string }}
+                        {% endif %}
+                    </td>
+                    <td>{{ download.reason }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Chart Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get chart data from backend
+        const reasons = JSON.parse('{{ analytics.by_reason|map(attribute="reason")|list|tojson|safe }}');
+        const counts = JSON.parse('{{ analytics.by_reason|map(attribute="count")|list|tojson|safe }}');
+        
+        // Create the reasons chart
+        const ctx = document.getElementById('reasonsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: reasons,
+                datasets: [{
+                    label: 'Number of Downloads',
+                    data: counts,
+                    backgroundColor: '#4e73df',
+                    borderColor: '#3a56b7',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

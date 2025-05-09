@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - {% block admin_title %}Dashboard{% endblock %}{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <br> 
+    <br>
+    <div class="section-header">
+        <h2 class="section-title">{% block admin_header %}Admin Dashboard{% endblock %}</h2>
+        <div class="section-underline"></div>
+        <p class="section-description">{% block admin_description %}Monitor and manage your portfolio site{% endblock %}</p>
+    </div>
+
+    <div class="dashboard-nav">
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i> Overview
+        </a>
+        <a href="{{ url_for('blog_analytics') }}" class="nav-item {% if active_page == 'blog_analytics' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i> Blog Analytics
+        </a>
+        <a href="{{ url_for('cv_analytics') }}" class="nav-item {% if active_page == 'cv_analytics' %}active{% endif %}">
+            <i class="fas fa-file-alt"></i> CV Analytics
+        </a>
+        <a href="{{ url_for('visitor_analytics') }}" class="nav-item {% if active_page == 'visitor_analytics' %}active{% endif %}">
+            <i class="fas fa-users"></i> Visitor Stats
+        </a>
+        <a href="{{ url_for('add_entry') }}" class="nav-item {% if active_page == 'add_entry' %}active{% endif %}">
+            <i class="fas fa-plus-circle"></i> Add Blog Post
+        </a>
+        <a href="{{ url_for('view_blog') }}" class="nav-item {% if active_page == 'view_blog' %}active{% endif %}">
+            <i class="fas fa-blog"></i> View Blog
+        </a>
+    </div>
+
+    <div class="dashboard-content">
+        {% block admin_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %} 

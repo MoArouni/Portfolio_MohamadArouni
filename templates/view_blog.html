@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Blog Posts{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/blog.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="blog-container" data-logged-in="{{ 1 if session.user_id else 0 }}">
+    <div class="section-header">
+        <br>
+        <br>
+        <div>
+            <h2 class="section-title">Blog</h2>
+            <p class="section-description">Updates and insights from my journey</p>
+        </div>
+    </div>
+
+    <div class="blog-controls">
+        <!-- Month Filter Dropdown -->
+        <div class="month-filter">
+            <form action="{{ url_for('view_blog') }}" method="get">
+                <label for="month-select">Filter by Month:</label>
+                <select name="month" id="month-select" onchange="this.form.submit()">
+                    <option value="">All Posts</option>
+                    {% for month in available_months %}
+                        <option value="{{ month.month_year }}" {% if filter_month == month.month_year %}selected{% endif %}>
+                            {{ month.month_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        {% if session.role == 'admin' %}
+            <a class="new-post-btn" href="{{ url_for('add_entry') }}">
+                <i class="fas fa-plus-circle"></i> Add New Post
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="blog-posts-container">
+        {% if not posts %}
+            <div class="empty-state">
+                <i class="far fa-newspaper empty-icon"></i>
+                <p>No posts found for this period.</p>
+            </div>
+        {% else %}
+            {% for post in posts %}
+                <article class="blog-post" id="post-{{ post.id }}">
+                    <div class="post-header">
+                        <div class="post-meta">
+                            <span class="date">
+                                <i class="far fa-calendar-alt"></i> 
+                                {{ post.created_at.strftime('%B %d, %Y') }}
+                            </span>
+                            <span class="time">
+                                <i class="far fa-clock"></i>
+                                {{ post.created_at.strftime('%I:%M %p') }}
+                            </span>
+                            <span class="views" title="View count">
+                                <i class="far fa-eye"></i>
+                                {{ post.view_count|default(0) }}
+                            </span>
+                        </div>
+                        
+                        {% if session.role == 'admin' %}
+                        <div class="post-actions">
+                            <a href="{{ url_for('edit_post', post_id=post.id) }}" class="edit-post" title="Edit post">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('delete_post', post_id=post.id) }}" class="delete-post" title="Delete post" onclick="return confirm('Are you sure you want to delete this post?')">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h2 class="post-title">{{ post.title }}</h2>
+                    <div class="post-content">
+                        {{ post.content|nl2br|safe }}
+                    </div>
+                    
+                    <!-- Post interactions: likes -->
+                    <div class="post-interactions">
+                        <div class="post-like-container">
+                            <button class="like-button {% if post.user_has_liked %}liked{% endif %}" 
+                                    data-post-id="{{ post.id }}" 
+                                    title="{% if post.user_has_liked %}Unlike this post{% else %}Like this post{% endif %}">
+                                <i class="{% if post.user_has_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+                                <span class="like-count">{{ post.like_count }}</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <h3 class="comments-title">
+                            <i class="far fa-comments"></i> 
+                            Comments ({{ post.comments|length }})
+                        </h3>
+                        
+                        <div class="comments-list">
+                            {% if not post.comments %}
+                                <div class="empty-comments">
+                                    <p><em>Be the first to comment!</em></p>
+                                </div>
+                            {% else %}
+                                {% for comment in post.comments|sort(attribute='created_at', reverse=true) %}
+                                    <div class="comment" id="comment-{{ comment.id }}">
+                                        <div class="comment-header">
+                                            <span class="comment-author">
+                                                <i class="far fa-user"></i>
+                                                {% if comment.is_anonymous %}
+                                                    {{ comment.author_name }} <small>(Guest)</small>
+                                                {% elif comment.username %}
+                                                    {{ comment.username }}
+                                                    {% if comment.liked_by_author %}
+                                                    <span class="author-liked" title="Liked by author">
+                                                        <i class="fas fa-check-circle"></i>
+                                                    </span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    Anonymous
+                                                {% endif %}
+                                            </span>
+                                            <span class="comment-date">
+                                                <i class="far fa-calendar"></i>
+                                                {{ comment.created_at.strftime('%b %d, %Y') }}
+                                            </span>
+                                            
+                                            {% if session.role == 'admin' %}
+                                                <div class="comment-admin-actions">
+                                                    <button class="author-like-button {% if comment.liked_by_author %}active{% endif %}"
+                                                            data-comment-id="{{ comment.id }}"
+                                                            title="{% if comment.liked_by_author %}Remove author like{% else %}Mark as liked by author{% endif %}">
+                                                        <i class="fas fa-check-circle"></i>
+                                                    </button>
+                                                    <a href="{{ url_for('delete_comment', comment_id=comment.id) }}" 
+                                                       class="delete-comment" 
+                                                       title="Delete comment"
+                                                       onclick="return confirm('Are you sure you want to delete this comment?')"
+                                                       data-post-id="{{ post.id }}">
+                                                       <i class="fas fa-times"></i>
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="comment-content">
+                                            {{ comment.content|nl2br|safe }}
+                                        </div>
+                                        
+                                        <div class="comment-interactions">
+                                            <button class="comment-like-button {% if session.user_id and comment.user_has_liked %}liked{% endif %}" 
+                                                    data-comment-id="{{ comment.id }}"
+                                                    {% if not session.user_id %}disabled{% endif %}
+                                                    title="{% if not session.user_id %}Login to like comments{% else %}{% if comment.user_has_liked %}Unlike this comment{% else %}Like this comment{% endif %}{% endif %}">
+                                                <i class="{% if session.user_id and comment.user_has_liked %}fas{% else %}far{% endif %} fa-thumbs-up"></i>
+                                                <span class="comment-like-count">{{ comment.like_count|default(0) }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Comment Form for logged-in subscribers -->
+                        {% if session.role == 'subscriber' %}
+                            <div class="comment-form-container">
+                                <h4 class="comment-form-title">Leave a Comment</h4>
+                                <form class="form-comment" method="POST" action="{{ url_for('add_comment') }}">
+                                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                                    <div class="form-field">
+                                        <label for="content">Your comment</label>
+                                        <textarea name="content" id="content" placeholder="Write your comment here..." required></textarea>
+                                    </div>
+                                    <div class="form-comment-buttons">
+                                        <button class="btn btn-primary" type="submit">Post Comment</button>
+                                    </div>
+                                </form>
+                            </div>
+                        {% elif not session.user_id %}
+                            <div class="comment-form-container">
+                                <h4 class="comment-form-title">Leave a Comment</h4>
+                                <form class="form-comment" method="POST" action="{{ url_for('add_anonymous_comment') }}">
+                                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                                    <div class="form-field">
+                                        <label for="author_name">Your Name</label>
+                                        <input type="text" name="author_name" id="author_name" placeholder="Your name" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="guest_content">Your comment</label>
+                                        <textarea name="content" id="guest_content" placeholder="Write your comment here..." required></textarea>
+                                    </div>
+                                    <div class="form-comment-buttons">
+                                        <button class="btn btn-primary" type="submit">Post Comment</button>
+                                        <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/blog.js') }}"></script>
+{% endblock %} 

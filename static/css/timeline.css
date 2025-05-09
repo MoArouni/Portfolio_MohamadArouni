@@ -1,0 +1,224 @@
+/* Education Section */
+.education-section {
+    position: relative;
+    padding: var(--spacing-xl) 0;
+}
+
+.timeline {
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    padding: 0 var(--spacing-lg);
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 100%;
+    background: var(--gradient-primary);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 4rem;
+    width: 100%;
+}
+
+.timeline-icon {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 50px;
+    background-color: var(--primary);
+    border-radius: var(--radius-round);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 1;
+    box-shadow: var(--shadow-neon);
+}
+
+.timeline-content {
+    position: relative;
+    width: 45%;
+    padding: 2rem;
+    background: var(--gradient-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-small);
+    transition: transform var(--transition-medium);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(5px);
+}
+
+.timeline-item:nth-child(odd) .timeline-content {
+    margin-left: auto;
+}
+
+.timeline-item:nth-child(even) .timeline-content {
+    margin-right: auto;
+}
+
+.timeline-content::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    width: 20px;
+    height: 20px;
+    background-color: var(--bg-secondary);
+    transform: rotate(45deg);
+}
+
+.timeline-item:nth-child(odd) .timeline-content::before {
+    left: -10px;
+}
+
+.timeline-item:nth-child(even) .timeline-content::before {
+    right: -10px;
+}
+
+.timeline-content:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.timeline-img {
+    width: 100%;
+    height: 180px;
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.timeline-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-medium);
+}
+
+.timeline-content:hover .timeline-img img {
+    transform: scale(1.05);
+}
+
+.timeline-content h3 {
+    margin-bottom: var(--spacing-sm);
+    color: var(--primary);
+    font-family: var(--font-secondary);
+    letter-spacing: 0.5px;
+}
+
+.timeline-date {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    background-color: var(--bg-element);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.timeline-description {
+    color: var(--text-secondary);
+    max-height: 80px;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    position: relative;
+}
+
+.timeline-description::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background: linear-gradient(to bottom, transparent, var(--bg-secondary));
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.timeline-content.expanded .timeline-description {
+    max-height: 1000px;
+}
+
+.timeline-content.expanded .timeline-description::after {
+    opacity: 0;
+}
+
+.timeline-details {
+    margin-top: var(--spacing-md);
+}
+
+.timeline-details h4 {
+    margin-bottom: var(--spacing-sm);
+    font-size: 1rem;
+}
+
+.timeline-details ul {
+    list-style-type: disc;
+    margin-left: var(--spacing-lg);
+}
+
+.timeline-details li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.timeline-toggle {
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-element);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    margin-top: var(--spacing-md);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.timeline-toggle:hover {
+    background-color: var(--primary);
+    color: white;
+}
+
+/* Responsive */
+@media screen and (max-width: 1024px) {
+    .timeline-content {
+        width: 80%;
+    }
+    
+    .timeline::before {
+        left: 20px;
+    }
+    
+    .timeline-icon {
+        left: 20px;
+    }
+    
+    .timeline-item:nth-child(odd) .timeline-content,
+    .timeline-item:nth-child(even) .timeline-content {
+        margin-left: 60px;
+        margin-right: 0;
+    }
+    
+    .timeline-item:nth-child(odd) .timeline-content::before,
+    .timeline-item:nth-child(even) .timeline-content::before {
+        left: -10px;
+        right: auto;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .timeline-content {
+        padding: 1.5rem;
+    }
+    
+    .timeline-img {
+        height: 150px;
+    }
+} 

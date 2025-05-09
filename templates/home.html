@@ -1,0 +1,1152 @@
+{% extends 'base.html' %}
+
+{% block title %}Mohamad Arouni | Portfolio{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/skills.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}"> 
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section id="hero" class="hero-section">
+    <div class="glitch-container">
+        <div class="glitch" data-text="Mohamad Arouni">Mohamad Arouni</div>
+    </div>
+    
+    <div class="hero-content">
+        <div class="hero-text">
+            <h2 class="gradient-text">Computer Science Student</h2>
+            <p class="hero-description">Aspiring full-stack developer with a passion for creating elegant solutions to complex problems.</p>
+            <div class="hero-buttons">
+                <a href="#projects" class="btn btn-primary">View Projects</a>
+                <a href="#contact" class="btn btn-secondary">Contact Me</a>
+            </div>
+        </div>
+        
+        <div class="hero-image">
+            <div class="profile-container">
+                <img src="{{ url_for('static', filename='images/about/me/me.jpg') }}" alt="Mohamad Arouni">
+                <div class="profile-outline"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="scroll-indicator">
+        <div class="mouse">
+            <div class="wheel"></div>
+        </div>
+        <div class="arrow-scroll">
+            <span></span>
+            <span></span>
+            <span></span>
+                    </div>
+                </div>
+    
+    <div class="particles-container" id="particles-js"></div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="about-section">
+    <div class="section-header">
+        <h2 class="section-title">About Me</h2>
+        <div class="section-underline"></div>
+                    </div>
+    
+    <div class="about-container">
+        <div class="about-left">
+            <div class="about-card">
+                <div class="card-heading">
+                    <h3>My Mission</h3>
+                </div>
+                <p>I'm here to improve, not impress. Constantly learning and pushing the boundaries of what's possible with code.</p>
+                    </div>
+            
+            <div class="about-card">
+                <div class="card-heading">
+                    <h3>Services</h3>
+                </div>
+                <ul class="services-list">
+                    <li><span class="service-icon"><i class="fas fa-code"></i></span> Full-Stack Web Development</li>
+                    <li><span class="service-icon"><i class="fas fa-chart-line"></i></span> Data Analysis & Visualization</li>
+                    <li><span class="service-icon"><i class="fas fa-robot"></i></span> Machine Learning Model Training</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="about-right">
+            <div class="about-card">
+                <div class="card-heading">
+                    <h3>Languages</h3>
+                </div>
+                <div class="languages-container">
+                    <div class="language">
+                        <span>English</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 100%"></div>
+            </div>
+        </div>
+                    <div class="language">
+                        <span>French</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="language">
+                        <span>Arabic</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="language">
+                        <span>Spanish</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-card">
+                <div class="card-heading">
+                    <h3>Download CV</h3>
+                </div>
+                <div class="cv-download">
+                    <a href="javascript:void(0);" id="downloadButton" class="btn btn-primary">
+                        <i class="fas fa-file-download"></i> Download CV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CV Download Modal -->
+<div id="cvDownloadModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3>Download CV</h3>
+        <p>Please select a reason for downloading the CV:</p>
+        
+        <div class="download-options">
+            <a href="javascript:void(0);" class="download-option" data-reason="Job Application">
+                <div class="download-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="download-details">
+                    <h4>Job Application</h4>
+                    <p>For applying to a job position</p>
+                </div>
+            </a>
+            
+            <a href="javascript:void(0);" class="download-option" data-reason="Freelance Project">
+                <div class="download-icon">
+                    <i class="fas fa-laptop-code"></i>
+                </div>
+                <div class="download-details">
+                    <h4>Freelance Project</h4>
+                    <p>For freelance opportunities</p>
+                </div>
+            </a>
+            
+            <a href="javascript:void(0);" class="download-option" data-reason="Networking">
+                <div class="download-icon">
+                    <i class="fas fa-network-wired"></i>
+                </div>
+                <div class="download-details">
+                    <h4>Networking</h4>
+                    <p>For professional networking</p>
+                </div>
+            </a>
+            
+            <a href="javascript:void(0);" class="download-option" data-reason="Research">
+                <div class="download-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="download-details">
+                    <h4>Research</h4>
+                    <p>For academic or professional research</p>
+                </div>
+            </a>
+        </div>
+        
+        <div class="other-download-option">
+            <h4>Other reason?</h4>
+            <form id="otherReasonForm">
+                <div class="input-group">
+                    <input type="text" id="other-reason-text" placeholder="Specify your reason here">
+                    <button type="submit" class="btn btn-primary">Download</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelDownload">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get modal elements
+        const modal = document.getElementById('cvDownloadModal');
+        const downloadBtn = document.getElementById('downloadButton');
+        const closeBtn = modal.querySelector('.close-modal');
+        const cancelBtn = document.getElementById('cancelDownload');
+        const downloadOptions = document.querySelectorAll('.download-option');
+        const otherReasonForm = document.getElementById('otherReasonForm');
+        const otherReasonText = document.getElementById('other-reason-text');
+        
+        // Open modal when download button is clicked
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.classList.add('active');
+            });
+        }
+        
+        // Function to close modal
+        function closeModal() {
+            modal.classList.remove('active');
+            if (otherReasonForm) otherReasonForm.reset();
+        }
+
+        // Close modal when X button or Cancel is clicked
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', closeModal);
+        }
+        
+        // Close modal when clicking outside the modal content
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Handle download option clicks
+        downloadOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const reason = this.dataset.reason;
+                downloadCV(reason);
+            });
+        });
+        
+        // Handle the "Other" reason form
+        if (otherReasonForm) {
+            otherReasonForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const reason = otherReasonText.value.trim();
+                
+                if (!reason) {
+                    alert('Please specify your reason for downloading the CV.');
+                    return;
+                }
+                
+                downloadCV(reason);
+            });
+        }
+        
+        // Function to handle CV download
+        function downloadCV(reason) {
+            // Create form data to send to server
+            const formData = new FormData();
+            formData.append('reason', reason);
+            
+            // Show loading indicator
+            const loadingMessage = showMessage('Preparing your download...', 'info');
+            
+            // First fetch the CV
+            fetch('{{ url_for("download_cv") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Network response was not ok for CV download.');
+            })
+            .then(blob => {
+                // Create a URL for the blob
+                const url = window.URL.createObjectURL(blob);
+                
+                // Create a temporary download link
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                // Set the filename
+                a.download = 'Mohamad_Arouni_CV.pdf';
+                
+                // Append the link to the document, click it, and clean up
+                document.body.appendChild(a);
+                a.click();
+                
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                // Close modal and show success message
+                closeModal();
+                
+                // Remove loading message if it exists
+                if (loadingMessage && loadingMessage.parentNode) {
+                    document.body.removeChild(loadingMessage);
+                }
+                
+                showMessage('CV downloaded successfully!', 'success');
+            })
+            .catch(error => {
+                console.error('Download failed:', error);
+                
+                // Remove loading message if it exists
+                if (loadingMessage && loadingMessage.parentNode) {
+                    document.body.removeChild(loadingMessage);
+                }
+                
+                showMessage('Failed to download CV. Please try again later.', 'error');
+            });
+        }
+    });
+
+    // Function to show a message to the user
+    function showMessage(message, type) {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = message;
+        messageElement.className = `message-toast ${type}`;
+        document.body.appendChild(messageElement);
+        
+        // Show the message
+        setTimeout(() => {
+            messageElement.classList.add('visible');
+        }, 100);
+        
+        // Hide and remove after 3 seconds (except for loading messages)
+        if (type !== 'info') {
+            setTimeout(() => {
+                messageElement.classList.remove('visible');
+                setTimeout(() => {
+                    if (messageElement.parentNode) {
+                        document.body.removeChild(messageElement);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        return messageElement;
+    }
+</script>
+
+<!-- Education Section -->
+<section id="education" class="education-section">
+    <div class="section-header">
+        <h2 class="section-title">Education & Experience</h2>
+        <div class="section-underline"></div>
+</div>  
+
+    <div class="timeline">
+        <div class="timeline-item">
+            <div class="timeline-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="timeline-content">
+                <div class="timeline-img">
+                    <img src="{{ url_for('static', filename='images/about/work/university.png') }}" alt="Queen Mary University">
+                </div>
+                <h3>Queen Mary University of London</h3>
+                <span class="timeline-date">2024 - Present</span>
+                <div class="timeline-description">
+                    <p><strong>Bachelor of Computer Science with Industrial Placement</strong></p>
+                    <p>Currently in my <strong>1st year</strong>, expected to graduate with <strong>First-Class Honours</strong>.</p>
+                    <div class="timeline-details">
+                        <h4>Relevant Courses:</h4>
+                        <ul>
+                            <li>Procedural & Object-Oriented Programming</li>
+                            <li>Systems & Networks (Computing Context)</li>
+                            <li>Software Engineering & System Architecture</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="timeline-toggle">Read More</button>
+            </div>
+        </div>
+        
+        <div class="timeline-item">
+            <div class="timeline-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <div class="timeline-content">
+                <div class="timeline-img">
+                    <div class="project-slider">
+                        <img src="{{ url_for('static', filename='images/about/projects/website_before.png') }}" class="slider-img active" alt="Website Before">
+                        <img src="{{ url_for('static', filename='images/about/projects/website_after.png') }}" class="slider-img" alt="Website After">
+                        <div class="slider-controls">
+                            <button class="slider-btn prev"><i class="fas fa-chevron-left"></i></button>
+                            <button class="slider-btn next"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <h3>Freelance Web Developer</h3>
+                <span class="timeline-date">2023</span>
+                <div class="timeline-description">
+                    <p><strong>Professional Experience</strong></p>
+                    <p>Worked as a freelance web developer for local businesses, focusing on improving their online presence and user experience.</p>
+                    <div class="timeline-details">
+                        <ul>
+                            <li><strong>Site Redesign:</strong> Transformed outdated websites into modern, responsive platforms (see before/after).</li>
+                            <li><strong>Performance Optimization:</strong> Improved page load times by 60% through image optimization and code refactoring.</li>
+                            <li><strong>SEO Enhancement:</strong> Implemented semantic HTML and metadata strategies to improve search rankings.</li>
+                            <li><strong>Mobile Responsiveness:</strong> Created fluid layouts that work seamlessly across all device sizes.</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="timeline-toggle">Read More</button>
+            </div>
+        </div>
+                    
+        <div class="timeline-item">
+            <div class="timeline-icon">
+                <i class="fas fa-school"></i>
+            </div>
+            <div class="timeline-content">
+                <div class="timeline-img">
+                    <img src="{{ url_for('static', filename='images/about/work/school.webp') }}" alt="Lycée International">
+                </div>
+                <h3>Lycée International De Londres Winston Churchill</h3>
+                <span class="timeline-date">Graduated: June 2024</span>
+                <div class="timeline-description">
+                        <p>Graduated with <strong>Highest Honours with Committee Praise</strong> in the French Baccalaureate.</p>
+                    <div class="timeline-details">
+                        <ul>
+                            <li>A* in Mathematics</li>
+                            <li>A* in Physics & Chemistry</li>
+                            <li>A* in Computer Science</li>
+                            <li>A* in Further Mathematics</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="timeline-toggle">Read More</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="intro-section">
+    <h1 style="font-size: 2rem; text-align: center;">Projects</h1>
+</div>
+
+<!-- Projects Section -->
+<section id="projects" class="projects-section">
+    <div class="section-header">
+        <h2 class="section-title">Projects</h2>
+        <div class="section-underline"></div>
+    </div>
+    
+    <div class="projects-filter">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="web">Web Development</button>
+        <button class="filter-btn" data-filter="game">Game Development</button>
+        <button class="filter-btn" data-filter="data">Data Analysis</button>
+                </div>
+                
+    <div class="projects-grid">
+        <!-- Tetris Project -->
+        <div class="project-card" data-category="game">
+            <div class="project-img">
+                <img src="{{ url_for('static', filename='images/about/projects/tetris.png') }}" alt="Tetris">
+                <div class="project-overlay">
+                    <div class="project-links">
+                        <a href="https://github.com/MoArouni/Tetris-project" target="_blank"><i class="fab fa-github"></i></a>
+                        <a href="#" class="project-details-btn"><i class="fas fa-info-circle"></i></a>
+                    </div>
+                </div>
+            </div>
+                    <div class="project-info">
+                <h3 class="project-title">Tetris Enhancement</h3>
+                <p class="project-category">Open Source Project</p>
+                <div class="project-description">
+                        <p>Transformed a basic Tetris implementation by introducing a feature-rich menu system and refining gameplay functionalities.</p>
+                        <ul>
+                            <li>Enhanced user experience with an improved interface and upgraded visuals.</li>
+                            <li>Implemented <strong>Object-Oriented Programming</strong> principles for scalability and maintainability.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        <!-- Horse Racing Simulator -->
+        <div class="project-card" data-category="game">
+            <div class="project-img">
+                    <img src="{{ url_for('static', filename='images/about/projects/horse_racing.png') }}" alt="Horse Racing Simulator">
+                <div class="project-overlay">
+                    <div class="project-links">
+                        <a href="https://github.com/MoArouni/Horse-Racing-Simulator" target="_blank"><i class="fab fa-github"></i></a>
+                        <a href="#" class="project-details-btn"><i class="fas fa-info-circle"></i></a>
+                    </div>
+                </div>
+                    </div>
+                    <div class="project-info">
+                <h3 class="project-title">Horse Racing Simulator</h3>
+                <p class="project-category">Java Application</p>
+                <div class="project-description">
+                    <p>Developed a Horse Racing Simulator game with a graphical user interface (GUI) using Java Swing, significantly improving my Object-Oriented Programming skills.</p>
+                    <ul>
+                        <li>Mastered advanced OOP concepts through practical implementation</li>
+                        <li>Developed expertise in Java Swing for GUI development</li>
+                        <li>Implemented complex race simulation algorithms and betting systems</li>
+                        <li>Created an intuitive user interface with real-time race visualization</li>
+                        </ul>
+                </div>
+                </div>
+            </div>
+            
+            <!-- Data Tools Project -->
+        <div class="project-card" data-category="web data">
+            <div class="project-img">
+                    <img src="{{ url_for('static', filename='images/about/projects/mylogo.png') }}" alt="Data-tools">
+                <div class="project-overlay">
+                    <div class="project-links">
+                        <a href="https://github.com/MoArouni/Data_analysis_tools" target="_blank"><i class="fab fa-github"></i></a>
+                        <a href="#" class="project-details-btn"><i class="fas fa-info-circle"></i></a>
+                    </div>
+                </div>
+                    </div>
+                    <div class="project-info">
+                <h3 class="project-title">Flask Application: Data Tools</h3>
+                <p class="project-category">Web Development</p>
+                <div class="project-description">
+                        <p>Developed a <strong>Flask-based web application</strong> for structured data analysis and management.</p>
+                        <ul>
+                            <li><strong>Automated Data Processing:</strong> Utilized Pandas for data cleaning and analysis.</li>
+                            <li><strong>Dynamic Frontend Rendering:</strong> Implemented Jinja2 for real-time content updates.</li>
+                            <li><strong>Secure & Scalable Backend:</strong> Used Object-Oriented Programming for maintainability.</li>
+                            <li><strong>Real-Time Data Updates:</strong> Integrated Google Apps Script for automated database management.</li>
+                            <li><strong>Local Deployment:</strong> Used ngrok and Render to host the website locally.</li>
+                        </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Project Details Modal -->
+    <div class="modal" id="project-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Skills Section -->
+<section id="skills" class="skills-section">
+    <div class="section-header">
+        <h2 class="section-title">Skills</h2>
+        <div class="section-underline"></div>
+    </div>
+    
+    <div class="skills-tabs">
+        <div class="tabs-header">
+            <button class="tab-btn active" data-tab="tech">Technical</button>
+            <button class="tab-btn" data-tab="soft">Soft Skills</button>
+            <button class="tab-btn" data-tab="frameworks">Frameworks & Libraries</button>
+        </div>
+        
+        <div class="tabs-content">
+            <div class="tab-panel active" id="tech-tab">
+                <div class="skills-grid">
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-python"></i>
+                        </div>
+                        <h3>Python</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 90%"></div>
+                        </div>
+                        <span class="skill-percent">90%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-java"></i>
+                        </div>
+                        <h3>Java</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 90%"></div>
+                        </div>
+                        <span class="skill-percent">90%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-git-alt"></i>
+                        </div>
+                        <h3>Git</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 90%"></div>
+                        </div>
+                        <span class="skill-percent">90%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-html5"></i>
+                        </div>
+                        <h3>HTML5</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 100%"></div>
+                        </div>
+                        <span class="skill-percent">100%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-css3-alt"></i>
+                        </div>
+                        <h3>CSS3</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 90%"></div>
+                        </div>
+                        <span class="skill-percent">90%</span>
+                    </div>
+
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-js"></i>
+                        </div>
+                        <h3>JavaScript</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 80%"></div>
+                        </div>
+                        <span class="skill-percent">80%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-typescript"></i>
+                        </div>
+                        <h3>TypeScript</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 30%"></div>
+                        </div>
+                        <span class="skill-percent">30%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h3>SQL</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 80%"></div>
+                        </div>
+                        <span class="skill-percent">80%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h3>PostgreSQL</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 30%"></div>
+                        </div>
+                        <span class="skill-percent">30%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h3>SQLite3</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 30%"></div>
+                        </div>
+                        <span class="skill-percent">30%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-php"></i>
+                        </div>
+                        <h3>PHP</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 60%"></div>
+                        </div>
+                        <span class="skill-percent">60%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3>Liquid</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 50%"></div>
+                        </div>
+                        <span class="skill-percent">50%</span>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="tab-panel" id="soft-tab">
+                <div class="skills-grid">
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Collaboration</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 90%"></div>
+                        </div>
+                        <span class="skill-percent">90%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3>Communication</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 100%"></div>
+                        </div>
+                        <span class="skill-percent">100%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-puzzle-piece"></i>
+                        </div>
+                        <h3>Problem Solving</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 100%"></div>
+                        </div>
+                        <span class="skill-percent">100%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Time Management</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 80%"></div>
+                        </div>
+                        <span class="skill-percent">80%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <h3>Adaptability</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 90%"></div>
+                        </div>
+                        <span class="skill-percent">90%</span>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="tab-panel" id="frameworks-tab">
+                <div class="skills-grid">
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-react"></i>
+                        </div>
+                        <h3>React</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 30%"></div>
+                        </div>
+                        <span class="skill-percent">30%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-angular"></i>
+                        </div>
+                        <h3>Angular</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 30%"></div>
+                        </div>
+                        <span class="skill-percent">30%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-python"></i>
+                        </div>
+                        <h3>Flask</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 100%"></div>
+                        </div>
+                        <span class="skill-percent">100%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-python"></i>
+                        </div>
+                        <h3>Django</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 30%"></div>
+                        </div>
+                        <span class="skill-percent">30%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-python"></i>
+                        </div>
+                        <h3>Pandas</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 80%"></div>
+                        </div>
+                        <span class="skill-percent">80%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h3>Matplotlib</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 70%"></div>
+                        </div>
+                        <span class="skill-percent">70%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-chart-area"></i>
+                        </div>
+                        <h3>Seaborn</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 70%"></div>
+                        </div>
+                        <span class="skill-percent">70%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <h3>Pygame</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 80%"></div>
+                        </div>
+                        <span class="skill-percent">80%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fab fa-java"></i>
+                        </div>
+                        <h3>Java Swing</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 90%"></div>
+                        </div>
+                        <span class="skill-percent">90%</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>Scikit Learn</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 20%"></div>
+                        </div>
+                        <span class="skill-percent">20%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Certifications Section -->
+<section id="certifications" class="certifications-section">
+    <div class="section-header">
+        <h2 class="section-title">Certifications</h2>
+        <div class="section-underline"></div>
+    </div>
+
+    <div class="certifications-grid">
+        <!-- Data Analysis Certificate -->
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">
+                    <img src="{{ url_for('static', filename='images/about/work/data-certificate.png') }}" alt="Data Analysis with Python">
+                </div>
+                <div class="flip-card-back">
+                    <h3>Data Analysis with Python</h3>
+                    <p>Comprehensive course covering Python libraries for data analysis including NumPy, Pandas, Matplotlib, and Seaborn.</p>
+                    <div class="card-details">
+                        <span class="card-badge">Python</span>
+                        <span class="card-badge">Data Science</span>
+                        <span class="card-badge">2023</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Web Development Certificate -->
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">
+                    <img src="{{ url_for('static', filename='images/about/work/web-certificate.png') }}" alt="Introduction to Web Development">
+                </div>
+                <div class="flip-card-back">
+                    <h3>Web Development</h3>
+                    <p>Course covering HTML, CSS, JavaScript, and modern web development practices including responsive design and accessibility.</p>
+                    <div class="card-details">
+                        <span class="card-badge">HTML/CSS</span>
+                        <span class="card-badge">JavaScript</span>
+                        <span class="card-badge">2022</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI Certificate -->
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">
+                    <img src="{{ url_for('static', filename='images/about/work/ai-certificate.png') }}" alt="AI for Everyone">
+                </div>
+                <div class="flip-card-back">
+                    <h3>AI for Everyone</h3>
+                    <p>Introduction to artificial intelligence concepts, machine learning fundamentals, and practical applications of AI in business.</p>
+                    <div class="card-details">
+                        <span class="card-badge">AI</span>
+                        <span class="card-badge">Machine Learning</span>
+                        <span class="card-badge">2023</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Interests Section -->
+<section id="interests" class="interests-section">
+    <div class="section-header">
+        <h2 class="section-title">Interests</h2>
+        <div class="section-underline"></div>
+    </div>
+        
+    <div class="interests-grid">
+        <!-- Chess -->
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">
+                    <img src="{{ url_for('static', filename='images/about/hobbies/chess.jpg') }}" alt="Chess">
+                </div>
+                <div class="flip-card-back">
+                    <h3>Chess</h3>
+                    <p>Chess was a casual pastime for me as a kid, but as I grew older, I developed an admiration for its strategy and became really good at it.</p>
+                    <div class="card-details">
+                        <span class="card-badge">1800 rating</span>
+                        <span class="card-badge">Critical thinking</span>
+                        <span class="card-badge">Strategy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Swimming -->
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">
+                    <img src="{{ url_for('static', filename='images/about/hobbies/swimming.jpg') }}" alt="Swimming">
+                </div>
+                <div class="flip-card-back">
+                    <h3>Swimming</h3>
+                    <p>Competed at national level three times, starting at age five. Went to nationals in 2012, 2013, 2014, 2017.</p>
+                    <div class="card-details">
+                        <span class="card-badge">National competitor</span>
+                        <span class="card-badge">Discipline</span>
+                        <span class="card-badge">Leadership</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Piano -->
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">
+                    <img src="{{ url_for('static', filename='images/about/hobbies/piano.jpg') }}" alt="Piano">
+                </div>
+                <div class="flip-card-back">
+                    <h3>Piano</h3>
+                    <p>With over a decade of practice, I achieved a distinction in my grade 8 ABRSM piano performance exam.</p>
+                    <div class="card-details">
+                        <span class="card-badge">ABRSM Grade 8</span>
+                        <span class="card-badge">Creative outlet</span>
+                        <span class="card-badge">Concentration</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Football -->
+        <div class="flip-card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">
+                    <img src="{{ url_for('static', filename='images/about/hobbies/football.jpg') }}" alt="Football">
+                </div>
+                <div class="flip-card-back">
+                    <h3>Football</h3>
+                    <p>Swimming is where I really excelled in sports, but football was always my true passion.</p>
+                    <div class="card-details">
+                        <span class="card-badge">Team player</span>
+                        <span class="card-badge">Communication</span>
+                        <span class="card-badge">Teamwork</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="contact-section">
+    <div class="section-header">
+        <h2 class="section-title">Contact Me</h2>
+        <div class="section-underline"></div>
+    </div>
+    
+    <div class="contact-container">
+        <div class="contact-info">
+            <div class="contact-item">
+                <div class="contact-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="contact-text">
+                    <h3>Location</h3>
+                    <p>London, United Kingdom</p>
+                </div>
+            </div>
+            
+            <div class="contact-item">
+                <div class="contact-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="contact-text">
+                    <h3>Email</h3>
+                    <p>mohamadarouni5@gmail.com</p>
+                </div>
+            </div>
+            
+            <div class="contact-item">
+                <div class="contact-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="contact-text">
+                    <h3>Phone</h3>
+                    <p>+44 7484239767</p>
+            </div>
+        </div>
+            
+            <div class="contact-socials">
+                <a href="https://x.com/mo_arouni" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://www.instagram.com/mohamad_arouni/" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.linkedin.com/in/mohamad-arouni-578168293/" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/MoArouni" target="_blank"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
+
+        <div class="contact-form-container">
+            <form action="https://formspree.io/f/mldgykon" method="POST" class="contact-form" novalidate>
+                <div class="form-group">
+                    <div class="form-field">
+                        <input type="text" id="contact-name" name="name" required placeholder=" ">
+                        <label for="contact-name">Name</label>
+                        <div class="form-field-bar"></div>
+                        <span class="validation-message" aria-live="polite"></span>
+                    </div>
+                    
+                    <div class="form-field">
+                        <input type="email" id="contact-email" name="email" required placeholder=" ">
+                        <label for="contact-email">Email</label>
+                        <div class="form-field-bar"></div>
+                        <span class="validation-message" aria-live="polite"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-field">
+                        <input type="text" id="contact-subject" name="subject" required placeholder=" ">
+                        <label for="contact-subject">Subject</label>
+                        <div class="form-field-bar"></div>
+                        <span class="validation-message" aria-live="polite"></span>
+                    </div>
+                    
+                    <div class="form-field">
+                        <input type="text" id="contact-phone" name="phone" required placeholder=" ">
+                        <label for="contact-phone">Phone</label>
+                        <div class="form-field-bar"></div>
+                        <span class="validation-message" aria-live="polite"></span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary submit-btn">
+                    <span>Send Message</span>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script src="{{ url_for('static', filename='js/readMore.js') }}"></script>
+<script src="{{ url_for('static', filename='js/particles-config.js') }}"></script>
+
+<script>
+    // Animate skill bars on scroll
+    document.addEventListener('DOMContentLoaded', function() {
+        const skillItems = document.querySelectorAll('.skill-item');
+        
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.2
+        };
+        
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const skillItem = entry.target;
+                    const progressBar = skillItem.querySelector('.skill-progress');
+                    const percentValue = skillItem.querySelector('.skill-percent').innerText;
+                    const percent = parseInt(percentValue);
+                    
+                    // Set width based on percentage
+                    progressBar.style.width = `${percent}%`;
+                    
+                    // Stop observing after animation
+                    observer.unobserve(skillItem);
+                }
+            });
+        }, observerOptions);
+        
+        // Start observing each skill item
+        skillItems.forEach(item => {
+            // Reset progress bar width initially
+            const progressBar = item.querySelector('.skill-progress');
+            progressBar.style.width = '0';
+            
+            observer.observe(item);
+        });
+    });
+</script>
+{% endblock %} 

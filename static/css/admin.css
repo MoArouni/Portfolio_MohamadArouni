@@ -1,0 +1,436 @@
+/* ===== ADMIN DASHBOARD STYLES ===== */
+
+/* Container */
+.admin-dashboard {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 0 var(--spacing-lg);
+}
+
+/* Admin Navigation */
+.dashboard-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-nav .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.2rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+
+.dashboard-nav .nav-item:hover {
+    background: rgba(110, 0, 255, 0.1);
+    color: var(--primary);
+}
+
+.dashboard-nav .nav-item.active {
+    background: var(--primary);
+    color: white;
+}
+
+.dashboard-nav .nav-item i {
+    font-size: 1rem;
+}
+
+/* Dashboard Cards */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.stat-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1.2rem;
+    background: var(--bg-element);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stat-card-header i {
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+
+.stat-card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.stat-card-body {
+    padding: 1.5rem;
+    min-height: 120px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.3rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.stat-loading, .stat-error {
+    width: 100%;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.stat-error {
+    color: var(--error);
+}
+
+.stat-card-footer {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.stat-card-footer a {
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.stat-card-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Analytics Charts */
+.chart-container {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-small);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.chart-filters {
+    display: flex;
+    gap: 1rem;
+}
+
+.chart-filter {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-element);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all var(--transition-fast);
+}
+
+.chart-filter:hover {
+    background: rgba(110, 0, 255, 0.1);
+}
+
+.chart-filter.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.chart-body {
+    height: 300px;
+    position: relative;
+}
+
+/* Engagement chart, CV Reasons chart, Daily Views chart styles */
+.engagement-chart, .cv-reasons-chart, .daily-views-chart {
+    height: 300px;
+    position: relative;
+}
+
+/* Tables */
+.data-table, .analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-small);
+}
+
+.data-table th,
+.data-table td,
+.analytics-table th,
+.analytics-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th,
+.analytics-table th {
+    background: var(--bg-element);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.data-table tr:last-child td,
+.analytics-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr,
+.analytics-table tbody tr {
+    transition: background var(--transition-fast);
+}
+
+.data-table tbody tr:hover,
+.analytics-table tbody tr:hover {
+    background: rgba(110, 0, 255, 0.05);
+}
+
+/* Analytics specific styles */
+.analytics-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.analytics-table-container {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-small);
+}
+
+.analytics-table-container h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+/* Summary cards for analytics */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.summary-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-small);
+    transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.summary-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.summary-label {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.summary-label i {
+    color: var(--primary);
+}
+
+/* Blog Analytics specific styles */
+.post-title {
+    font-weight: 500;
+}
+
+.post-title a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.post-title a:hover {
+    text-decoration: underline;
+}
+
+.like-breakdown {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.3rem;
+    display: flex;
+    gap: 0.8rem;
+}
+
+.engagement-rate {
+    font-weight: 600;
+}
+
+/* CV Analytics specific styles */
+.page-path {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.page-views, .percentage {
+    font-weight: 500;
+}
+
+/* Notifications */
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notification {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--primary);
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(110, 0, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-message {
+    margin-bottom: 0.3rem;
+}
+
+.notification-time {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.notification.like {
+    border-left-color: #e74a3b;
+}
+
+.notification.comment {
+    border-left-color: #1cc88a;
+}
+
+.notification.download {
+    border-left-color: #f6c23e;
+}
+
+.notification.view {
+    border-left-color: #4e73df;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+    .dashboard-nav {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .dashboard-cards, .summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .stat-card-body {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .analytics-table {
+        font-size: 0.9rem;
+    }
+    
+    .analytics-table th,
+    .analytics-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .like-breakdown {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+} 

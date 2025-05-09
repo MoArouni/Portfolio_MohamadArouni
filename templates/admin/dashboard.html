@@ -1,0 +1,221 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_title %}Dashboard{% endblock %}
+
+{% set active_page = 'dashboard' %}
+
+{% block admin_content %}
+<div class="admin-dashboard">
+
+    <div class="dashboard-content">
+        <div class="dashboard-cards">
+            <!-- Blog Stats Card -->
+            <div class="stat-card" id="blog-stats">
+                <div class="stat-card-header">
+                    <i class="fas fa-blog"></i>
+                    <h3>Blog Activity</h3>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-loading">Loading...</div>
+                </div>
+                <div class="stat-card-footer">
+                    <a href="{{ url_for('blog_analytics') }}">View Details</a>
+                </div>
+            </div>
+
+            <!-- CV Downloads Card -->
+            <div class="stat-card" id="cv-stats">
+                <div class="stat-card-header">
+                    <i class="fas fa-file-alt"></i>
+                    <h3>CV Downloads</h3>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-loading">Loading...</div>
+                </div>
+                <div class="stat-card-footer">
+                    <a href="{{ url_for('cv_analytics') }}">View Details</a>
+                </div>
+            </div>
+
+            <!-- Visitor Stats Card -->
+            <div class="stat-card" id="visitor-stats">
+                <div class="stat-card-header">
+                    <i class="fas fa-users"></i>
+                    <h3>Visitors</h3>
+                </div>
+                <div class="stat-card-body">
+                    <div class="stat-loading">Loading...</div>
+                </div>
+                <div class="stat-card-footer">
+                    <a href="{{ url_for('visitor_analytics') }}">View Details</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3>Recent Notifications</h3>
+            </div>
+            <div class="notifications-list" id="notifications-container">
+                <div class="stat-loading">Loading notifications...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch blog stats
+        fetch('/admin/blog-analytics')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(html => {
+                // Extract total likes, views, comments from the HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const totalLikes = doc.querySelector('.total-likes')?.textContent || '0';
+                const totalViews = doc.querySelector('.total-views')?.textContent || '0';
+                const totalComments = doc.querySelector('.total-comments')?.textContent || '0';
+                
+                // Update the blog stats card
+                const blogStatsBody = document.querySelector('#blog-stats .stat-card-body');
+                blogStatsBody.innerHTML = `
+                    <div class="stat-item">
+                        <span class="stat-value">${totalLikes}</span>
+                        <span class="stat-label">Likes</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${totalViews}</span>
+                        <span class="stat-label">Views</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${totalComments}</span>
+                        <span class="stat-label">Comments</span>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Error fetching blog stats:', error);
+                document.querySelector('#blog-stats .stat-card-body').innerHTML = 
+                    `<div class="stat-error">Error loading data</div>`;
+            });
+            
+        // Fetch CV stats
+        fetch('/admin/cv-analytics')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const totalDownloads = doc.querySelector('.total-downloads')?.textContent || '0';
+                
+                // Update the CV stats card
+                const cvStatsBody = document.querySelector('#cv-stats .stat-card-body');
+                cvStatsBody.innerHTML = `
+                    <div class="stat-item">
+                        <span class="stat-value">${totalDownloads}</span>
+                        <span class="stat-label">Downloads</span>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Error fetching CV stats:', error);
+                document.querySelector('#cv-stats .stat-card-body').innerHTML = 
+                    `<div class="stat-error">Error loading data</div>`;
+            });
+            
+        // Fetch visitor stats
+        fetch('/admin/visitor-analytics')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const totalViews = doc.querySelector('.total-views')?.textContent || '0';
+                const uniqueVisitors = doc.querySelector('.unique-visitors')?.textContent || '0';
+                
+                // Update the visitor stats card
+                const visitorStatsBody = document.querySelector('#visitor-stats .stat-card-body');
+                visitorStatsBody.innerHTML = `
+                    <div class="stat-item">
+                        <span class="stat-value">${totalViews}</span>
+                        <span class="stat-label">Page Views</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${uniqueVisitors}</span>
+                        <span class="stat-label">Unique Visitors</span>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Error fetching visitor stats:', error);
+                document.querySelector('#visitor-stats .stat-card-body').innerHTML = 
+                    `<div class="stat-error">Error loading data</div>`;
+            });
+            
+        // Load recent notifications
+        // This would be a separate API endpoint in a real app
+        // For now, we'll simulate some notifications
+        setTimeout(() => {
+            const notificationsContainer = document.getElementById('notifications-container');
+            
+            // Sample notifications
+            const notifications = [
+                { type: 'like', message: 'John Doe liked your post "Getting Started with Flask"', time: '2 minutes ago' },
+                { type: 'comment', message: 'New comment from Sarah on "Portfolio Best Practices"', time: '15 minutes ago' },
+                { type: 'download', message: 'Your CV was downloaded by a recruiter', time: '1 hour ago' },
+                { type: 'view', message: 'Your blog post "Python Tips" has 10 new views', time: '3 hours ago' }
+            ];
+            
+            if (notifications.length > 0) {
+                notificationsContainer.innerHTML = '';
+                
+                notifications.forEach(notification => {
+                    const notificationElement = document.createElement('div');
+                    notificationElement.className = `notification ${notification.type}`;
+                    notificationElement.innerHTML = `
+                        <div class="notification-icon">
+                            <i class="fas fa-${notification.type === 'like' ? 'heart' : 
+                                             notification.type === 'comment' ? 'comment' : 
+                                             notification.type === 'download' ? 'download' : 'eye'}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-message">${notification.message}</div>
+                            <div class="notification-time">${notification.time}</div>
+                        </div>
+                    `;
+                    notificationsContainer.appendChild(notificationElement);
+                });
+            } else {
+                notificationsContainer.innerHTML = '<p>No recent notifications</p>';
+            }
+        }, 1000);
+        
+        // Setup chart filters
+        document.querySelectorAll('.chart-filter').forEach(filter => {
+            filter.addEventListener('click', function() {
+                // Remove active class from all filters
+                document.querySelectorAll('.chart-filter').forEach(f => {
+                    f.classList.remove('active');
+                });
+                
+                // Add active class to clicked filter
+                this.classList.add('active');
+                
+                // In a real app, you would update the chart data here
+                console.log(`Changing chart data to ${this.dataset.period}`);
+            });
+        });
+    });
+</script>
+{% endblock %} 
