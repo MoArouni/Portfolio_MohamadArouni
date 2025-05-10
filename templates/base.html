@@ -59,12 +59,10 @@
         </nav>
         
         <div class="theme-switch">
-            <input type="checkbox" id="theme-toggle" class="theme-toggle">
-            <label for="theme-toggle" class="theme-label">
-                <i class="fas fa-sun"></i>
-                <i class="fas fa-moon"></i>
-                <span class="ball"></span>
-            </label>
+            <button id="dark-mode-toggle" aria-label="Toggle dark/light mode">
+                <i class="fas fa-sun sun"></i>
+                <i class="fas fa-moon moon"></i>
+            </button>
         </div>
         
         <div class="menu-btn">
@@ -115,12 +113,14 @@
             <div class="footer-info">
                 <p>Phone: +44 7484239767</p>
                 <p>Email: mohamadarouni5@gmail.com</p>
+                <p>Location: Greater London, UK</p>
                 <p>&copy; {{ current_year }} Mohamad Arouni. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/toggle_darkmode.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html> 

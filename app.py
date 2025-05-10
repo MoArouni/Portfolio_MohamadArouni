@@ -440,27 +440,34 @@ def download_cv():
     return send_from_directory('static/pdf', 'Mohamad_Arouni_CV.pdf')
 
 # Admin dashboard routes
-@app.route('/admin')
+@app.route('/analytics')
 def admin_dashboard():
     """Admin dashboard homepage"""
-    return render_template('admin/dashboard.html')
+    return render_template('analytics/dashboard.html')
 
-@app.route('/admin/blog-analytics')
+@app.route('/analytics/blog-analytics')
 def blog_analytics():
     """Blog post analytics"""
     analytics = Post.get_analytics()
     
+    # Get the total likes count directly from the database
+    total_likes_count = BlogLike.get_total_likes_count()
+    
     # Filter sensitive information for non-admin users
     if not session.get('user_id') or session.get('role') != 'admin':
-        # Remove sensitive fields or modify data as needed
+        # Remove sensitive user information
         for post in analytics:
             # Remove details that should be admin-only
             if 'ip_addresses' in post:
                 del post['ip_addresses']
+            if 'username' in post:
+                post['username'] = 'Anonymous'
+            if 'email' in post:
+                post['email'] = '***@***.***'
     
-    return render_template('admin/blog_analytics.html', analytics=analytics)
+    return render_template('analytics/blog_analytics.html', analytics=analytics, total_likes_count=total_likes_count)
 
-@app.route('/admin/cv-analytics')
+@app.route('/analytics/cv-analytics')
 def cv_analytics():
     """CV download analytics"""
     analytics = CVDownload.get_analytics()
@@ -473,10 +480,14 @@ def cv_analytics():
                 # Mask or remove sensitive fields
                 if 'ip_address' in item:
                     del item['ip_address']
+                if 'username' in item:
+                    item['username'] = 'Anonymous'
+                if 'email' in item:
+                    item['email'] = '***@***.***'
     
-    return render_template('admin/cv_analytics.html', analytics=analytics)
+    return render_template('analytics/cv_analytics.html', analytics=analytics)
 
-@app.route('/admin/visitor-analytics')
+@app.route('/analytics/visitor-analytics')
 def visitor_analytics():
     """Visitor statistics"""
     analytics = VisitorStat.get_analytics()
@@ -486,45 +497,67 @@ def visitor_analytics():
         # Remove IP addresses or other sensitive data
         pass  # Specific filtering based on what's in the analytics
     
-    return render_template('admin/visitor_analytics.html', analytics=analytics)
+    return render_template('analytics/visitor_analytics.html', analytics=analytics)
 
-@app.route('/admin/user-analytics')
+@app.route('/analytics/user-analytics')
+@login_required
+@admin_required
 def user_analytics():
     """User statistics"""
     analytics = User.get_analytics()
+    
+    # Get the most up-to-date user count directly from the database
+    conn = get_db_connection()
+    result = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()
+    current_total_users = result['count'] if result else 0
+    conn.close()
     
     # Handle case when analytics is None
     if analytics is None:
         # Provide default empty analytics data
         analytics = {
-            'total_users': 0,
+            'total_users': current_total_users,
             'by_role': [],
             'recent_users': [],
             'all_users': []
         }
+    else:
+        # Update the total_users with the current count
+        analytics['total_users'] = current_total_users
     
-    # Filter sensitive information for non-admin users
-    if not session.get('user_id') or session.get('role') != 'admin':
-        # For non-admins, only show summary statistics but not user details
-        if 'all_users' in analytics:
-            # Remove email addresses and only show limited information
-            for user in analytics['all_users']:
-                user['email'] = '***@***.***'  # Mask email addresses
-    
-    return render_template('admin/user_analytics.html', analytics=analytics)
+    return render_template('analytics/user_analytics.html', analytics=analytics)
 
 @app.route('/api/notifications')
 def get_notifications():
     """API endpoint to get recent notifications"""
-    # Filter sensitive notifications for non-admins
+    notifications = Notification.get_recent(5)  # Limit to 5 notifications
+    
+    # Filter sensitive information for non-admins
     if not session.get('user_id') or session.get('role') != 'admin':
-        # Get notifications but filter out sensitive ones
-        notifications = Notification.get_recent(10)
-        # Could add additional filtering if needed
-    else:
-        notifications = Notification.get_recent(10)
+        for notification in notifications:
+            # Replace usernames with 'Anonymous' for non-admins
+            if not notification['is_anonymous']:
+                # Keep the notification but anonymize the username if it's a registered user
+                notification['message'] = notification['message'].replace(notification['username'], 'Anonymous User')
+                notification['username'] = 'Anonymous'
     
     return jsonify(notifications)
+
+@app.route('/notifications-history')
+def notifications_history():
+    """Full notifications history page"""
+    notifications = Notification.get_recent(50)  # Get more notifications for the history page
+    
+    # Filter sensitive information for non-admins
+    if not session.get('user_id') or session.get('role') != 'admin':
+        for notification in notifications:
+            # Replace usernames with 'Anonymous' for non-admins
+            if not notification['is_anonymous']:
+                # Keep the notification but anonymize the username if it's a registered user
+                notification['message'] = notification['message'].replace(notification['username'], 'Anonymous User')
+                notification['username'] = 'Anonymous'
+    
+    return render_template('notifications_history.html', notifications=notifications)
 
 if __name__ == '__main__':
     app.run(debug=True) 

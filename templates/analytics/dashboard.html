@@ -1,4 +1,4 @@
-{% extends 'admin/base_admin.html' %}
+{% extends 'analytics/base_admin.html' %}
 
 {% block admin_title %}Dashboard{% endblock %}
 
@@ -65,14 +65,36 @@
             <div class="notifications-list" id="notifications-container">
                 <div class="stat-loading">Loading notifications...</div>
             </div>
+            <div class="view-all-link">
+                <a href="{{ url_for('notifications_history') }}">View Full History</a>
+            </div>
         </div>
     </div>
 </div>
 
+<style>
+    .view-all-link {
+        text-align: right;
+        margin-top: 10px;
+        padding-right: 15px;
+    }
+    
+    .view-all-link a {
+        color: #4e73df;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .view-all-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Fetch blog stats
-        fetch('/admin/blog-analytics')
+        fetch('/analytics/blog-analytics')
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.text();
@@ -82,9 +104,9 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
-                const totalLikes = doc.querySelector('.total-likes')?.textContent || '0';
-                const totalViews = doc.querySelector('.total-views')?.textContent || '0';
-                const totalComments = doc.querySelector('.total-comments')?.textContent || '0';
+                const totalLikes = doc.querySelector('.total-likes')?.textContent.trim() || '0';
+                const totalViews = doc.querySelector('.total-views')?.textContent.trim() || '0';
+                const totalComments = doc.querySelector('.total-comments')?.textContent.trim() || '0';
                 
                 // Update the blog stats card
                 const blogStatsBody = document.querySelector('#blog-stats .stat-card-body');
@@ -110,7 +132,7 @@
             });
             
         // Fetch CV stats
-        fetch('/admin/cv-analytics')
+        fetch('/analytics/cv-analytics')
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.text();
@@ -119,7 +141,7 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
-                const totalDownloads = doc.querySelector('.total-downloads')?.textContent || '0';
+                const totalDownloads = doc.querySelector('.total-downloads')?.textContent.trim() || '0';
                 
                 // Update the CV stats card
                 const cvStatsBody = document.querySelector('#cv-stats .stat-card-body');
@@ -137,7 +159,7 @@
             });
             
         // Fetch visitor stats
-        fetch('/admin/visitor-analytics')
+        fetch('/analytics/visitor-analytics')
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.text();
@@ -146,8 +168,8 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
-                const totalViews = doc.querySelector('.total-views')?.textContent || '0';
-                const uniqueVisitors = doc.querySelector('.unique-visitors')?.textContent || '0';
+                const totalViews = doc.querySelector('.total-views')?.textContent.trim() || '0';
+                const uniqueVisitors = doc.querySelector('.unique-visitors')?.textContent.trim() || '0';
                 
                 // Update the visitor stats card
                 const visitorStatsBody = document.querySelector('#visitor-stats .stat-card-body');

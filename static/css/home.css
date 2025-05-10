@@ -38,7 +38,7 @@ section {
     padding-right: 4rem;
     margin-bottom: auto;
     max-width: 100%; /* 1200px / 16px = 75rem */
-    background: none;
+    background: var(--bg-primary); /* Set consistent background */
     border-radius: 0.5rem;
     transition: background 0.3s ease-in-out;
 }

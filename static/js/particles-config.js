@@ -2,10 +2,19 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize particles.js
     if (document.getElementById('particles-js')) {
+        console.log("Initializing particles.js");
+        
+        // Check if in dark mode (light theme)
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        
+        // Adjust opacity and number of particles based on theme
+        const particleValue = isDarkMode ? 80 : 100;
+        const opacityValue = isDarkMode ? 0.3 : 0.4;
+        
         particlesJS('particles-js', {
             "particles": {
                 "number": {
-                    "value": 50,
+                    "value": particleValue,
                     "density": {
                         "enable": true,
                         "value_area": 800
@@ -25,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 "opacity": {
-                    "value": 0.5,
+                    "value": opacityValue,
                     "random": true,
                     "anim": {
                         "enable": true,
@@ -48,12 +57,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     "enable": true,
                     "distance": 150,
                     "color": "#6e00ff",
-                    "opacity": 0.2,
+                    "opacity": 0.3,
                     "width": 1
                 },
                 "move": {
                     "enable": true,
-                    "speed": 1,
+                    "speed": 1.5,
                     "direction": "none",
                     "random": true,
                     "straight": false,
@@ -67,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             },
             "interactivity": {
-                "detect_on": "canvas",
+                "detect_on": "window",
                 "events": {
                     "onhover": {
                         "enable": true,
@@ -83,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     "grab": {
                         "distance": 140,
                         "line_linked": {
-                            "opacity": 1
+                            "opacity": 0.8
                         }
                     },
                     "bubble": {
@@ -107,5 +116,26 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             "retina_detect": true
         });
+        
+        // Re-initialize on theme change
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('change', function() {
+                setTimeout(function() {
+                    // Clear previous particles
+                    pJSDom[0].pJS.particles.array = [];
+                    
+                    // Reinitialize with adjusted values based on new theme
+                    const isNowDarkMode = document.body.classList.contains('dark-mode');
+                    pJSDom[0].pJS.particles.number.value = isNowDarkMode ? 80 : 100;
+                    pJSDom[0].pJS.particles.opacity.value = isNowDarkMode ? 0.3 : 0.4;
+                    
+                    // Redraw particles
+                    pJSDom[0].pJS.fn.particlesRefresh();
+                }, 100);
+            });
+        }
+    } else {
+        console.error("Particles container not found");
     }
 }); 

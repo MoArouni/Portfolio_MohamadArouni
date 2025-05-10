@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications History{% endblock %}
+
+{% block content %}
+<div class="container">
+    <br>
+    <br>
+    <div class="section-header">
+        <h2 class="section-title">Notifications History</h2>
+        <div class="section-underline"></div>
+        <p class="section-description">View all recent notifications from your site</p>
+    </div>
+
+    <div class="notifications-container">
+        <div class="back-link">
+            <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+        
+        <div class="notifications-list">
+            {% if notifications %}
+                {% for notification in notifications %}
+                <div class="notification {% if notification.type == 'like_post' or notification.type == 'like_comment' %}like
+                        {% elif notification.type == 'comment' %}comment
+                        {% elif notification.type == 'cv_download' %}download
+                        {% elif notification.type == 'view_milestone' %}view
+                        {% elif notification.type == 'new_user' %}user
+                        {% else %}{% endif %}">
+                    <div class="notification-icon">
+                        <i class="fas fa-{% if notification.type == 'like_post' or notification.type == 'like_comment' %}heart
+                                {% elif notification.type == 'comment' %}comment
+                                {% elif notification.type == 'cv_download' %}download
+                                {% elif notification.type == 'view_milestone' %}eye
+                                {% elif notification.type == 'new_user' %}user-plus
+                                {% else %}bell{% endif %}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-message">{{ notification.message }}</div>
+                        <div class="notification-time">{{ notification.relative_time }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No notifications to display</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .notifications-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .back-link {
+        margin-bottom: 20px;
+    }
+    
+    .back-link a {
+        color: #4e73df;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+    
+    .notifications-list {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+    }
+    
+    .notification {
+        display: flex;
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        align-items: center;
+    }
+    
+    .notification:last-child {
+        border-bottom: none;
+    }
+    
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #f8f9fc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    
+    .notification.like .notification-icon {
+        background-color: #ffebee;
+        color: #e74a3b;
+    }
+    
+    .notification.comment .notification-icon {
+        background-color: #e8f5e9;
+        color: #1cc88a;
+    }
+    
+    .notification.download .notification-icon {
+        background-color: #e3f2fd;
+        color: #4e73df;
+    }
+    
+    .notification.view .notification-icon {
+        background-color: #ede7f6;
+        color: #8075d4;
+    }
+    
+    .notification.user .notification-icon {
+        background-color: #fff8e1;
+        color: #f6c23e;
+    }
+    
+    .notification-content {
+        flex-grow: 1;
+    }
+    
+    .notification-message {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 4px;
+    }
+    
+    .notification-time {
+        font-size: 12px;
+        color: #999;
+    }
+    
+    @media (max-width: 767px) {
+        .notifications-container {
+            padding: 10px;
+        }
+        .notification {
+            padding: 10px;
+        }
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+        }
+        .notification-message {
+            font-size: 13px;
+        }
+    }
+</style>
+{% endblock %} 

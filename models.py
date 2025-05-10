@@ -416,6 +416,18 @@ class BlogLike:
         ).fetchone()
         conn.close()
         return result['count'] if result else 0
+    
+    @staticmethod
+    def get_total_likes_count():
+        """Get the total count of all likes in the database"""
+        try:
+            conn = get_db_connection()
+            result = conn.execute('SELECT COUNT(*) as count FROM blog_likes').fetchone()
+            conn.close()
+            return result['count'] if result else 0
+        except Exception as e:
+            print(f"Error getting total likes count: {e}")
+            return 0
 
     @staticmethod
     def create_anonymous(post_id, username='Anonymous', anonymous_id='', ip_address=None):

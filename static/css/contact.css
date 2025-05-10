@@ -75,11 +75,8 @@
 }
 
 .contact-form-container {
-    background: var(--bg-secondary);
     border-radius: var(--radius-lg);
     padding: 2.5rem;
-    box-shadow: var(--shadow-large);
-    border: 1px solid var(--border-color);
     backdrop-filter: blur(5px);
 }
 

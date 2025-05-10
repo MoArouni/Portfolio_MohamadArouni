@@ -57,6 +57,11 @@
     --z-tooltips: 10;
     --z-fixed: 100;
     --z-modal: 1000;
+
+    /* skills section */ 
+    --bg-card: linear-gradient(135deg, #8c40ff13, #40e9ff18);
+    /* elegant quote background */
+    --bg-quote: linear-gradient(135deg, #5200bd1e, #8c40ff13);
 }
 
 /* Dark/Light Mode Variables */
@@ -282,69 +287,57 @@ body.light-mode .nav-link:hover {
 /* Theme Switch */
 .theme-switch {
     position: relative;
-    width: 60px;
-    height: 30px;
     margin-left: 1rem;
 }
 
-.theme-toggle {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.theme-label {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--gray);
-    border-radius: 30px;
+#dark-mode-toggle {
+    background: none;
+    border: none;
     cursor: pointer;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     transition: background-color var(--transition-fast);
 }
 
-.theme-label .ball {
-    position: absolute;
-    top: 0.125rem;
-    left: 0.125rem;
-    width: 1.625rem;
-    height: 1.625rem;
-    border-radius: 50%;
-    background-color: var(--bg-primary);
-    transition: transform var(--transition-fast);
+#dark-mode-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-.theme-toggle:checked + .theme-label .ball {
-    transform: translateX(30px);
+body.light-mode #dark-mode-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .fa-sun, .fa-moon {
     position: absolute;
-    top: 6px;
-    font-size: 16px;
-    transition: opacity var(--transition-fast);
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
 
 .fa-sun {
-    left: 8px;
     color: var(--warning);
     opacity: 0;
+    transform: scale(0);
 }
 
 .fa-moon {
-    right: 8px;
     color: var(--light);
     opacity: 1;
+    transform: scale(1);
 }
 
-.theme-toggle:checked + .theme-label .fa-sun {
+body.light-mode .fa-sun {
     opacity: 1;
+    transform: scale(1);
 }
 
-.theme-toggle:checked + .theme-label .fa-moon {
+body.light-mode .fa-moon {
     opacity: 0;
+    transform: scale(0);
 }
 
 /* Mobile Menu */
@@ -940,4 +933,19 @@ footer {
         left: 1rem;
     text-align: center;
     }
-} 
+}
+
+/* Add CSS for skill progress bar animations */
+.animate-progress {
+    transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.skill-percentage {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--primary);
+    transition: opacity 0.5s ease;
+    text-align: center;
+}
+

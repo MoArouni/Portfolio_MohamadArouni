@@ -9,31 +9,26 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Check local storage for dark mode preference
     if (localStorage.getItem("darkMode") === "enabled") {
-        body.classList.add("dark-mode");
-        sunIcon.style.display = "none";
-        moonIcon.style.display = "inline";
+        body.classList.remove("light-mode");
         console.log("Applied dark mode on load");
     } else {
-        console.log("Keeping light mode on load");
+        body.classList.add("light-mode");
+        console.log("Applied light mode on load");
     }
 
     toggleButton.addEventListener("click", () => {
-        if (body.classList.contains("dark-mode")) {
-            body.classList.remove("dark-mode");
-            localStorage.setItem("darkMode", "disabled");
-            sunIcon.style.display = "inline";
-            moonIcon.style.display = "none";
-            console.log("Switched to light mode");
-        } else {
-            body.classList.add("dark-mode");
+        if (body.classList.contains("light-mode")) {
+            body.classList.remove("light-mode");
             localStorage.setItem("darkMode", "enabled");
-            sunIcon.style.display = "none";
-            moonIcon.style.display = "inline";
             console.log("Switched to dark mode");
+        } else {
+            body.classList.add("light-mode");
+            localStorage.setItem("darkMode", "disabled");
+            console.log("Switched to light mode");
         }
         
         // Debugging
         console.log("Current darkMode value:", localStorage.getItem("darkMode"));
-        console.log("Body has dark-mode class:", body.classList.contains("dark-mode"));
+        console.log("Body has light-mode class:", body.classList.contains("light-mode"));
     });
 });

@@ -1,4 +1,4 @@
-{% extends 'admin/base_admin.html' %}
+{% extends 'analytics/base_admin.html' %}
 
 {% block admin_title %}Blog Analytics{% endblock %}
 
@@ -26,11 +26,7 @@
         
         <div class="summary-card">
             <div class="summary-value total-likes">
-                {% set total_likes = 0 %}
-                {% for post in analytics %}
-                    {% set total_likes = total_likes + post.total_likes %}
-                {% endfor %}
-                {{ total_likes }}
+                {{ total_likes_count }}
             </div>
             <div class="summary-label">
                 <i class="fas fa-heart"></i> Total Likes
@@ -61,7 +57,6 @@
                     <th>Views</th>
                     <th>Likes</th>
                     <th>Comments</th>
-                    <th>Engagement</th>
                     <th>Date</th>
                 </tr>
             </thead>
@@ -82,14 +77,6 @@
                         </div>
                     </td>
                     <td>{{ post.comment_count }}</td>
-                    <td class="engagement-rate">
-                        {% if post.view_count > 0 %}
-                            {% set engagement = ((post.total_likes + post.comment_count) / post.view_count * 100) | round(1) %}
-                            {{ engagement }}%
-                        {% else %}
-                            0%
-                        {% endif %}
-                    </td>
                     <td>{{ post.created_at }}</td>
                 </tr>
                 {% endfor %}

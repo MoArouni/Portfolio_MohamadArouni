@@ -389,7 +389,9 @@ function initSkillProgressBars() {
     
     skillItems.forEach(item => {
         const progressBar = item.querySelector('.skill-progress');
-        const percentValue = item.querySelector('.skill-percent').textContent;
+        // Store the original width from inline style
+        const originalWidth = progressBar.style.width;
+        progressBar.setAttribute('data-width', originalWidth);
         
         // Set the width to 0 initially and animate when visible
         progressBar.style.width = '0%';
@@ -406,13 +408,16 @@ function initSkillProgressBars() {
         if (sectionTop < windowHeight * 0.75) {
             skillItems.forEach(item => {
                 const progressBar = item.querySelector('.skill-progress');
-                const percentValue = item.querySelector('.skill-percent').textContent;
-                
-                // Extract percentage value from text
-                const percent = percentValue.replace('%', '').trim();
+                // Get the original width from the data attribute or style
+                const originalWidth = progressBar.getAttribute('data-width') || 
+                                     progressBar.style.width || 
+                                     (progressBar.getAttribute('style') && 
+                                      progressBar.getAttribute('style').match(/width:\s*(\d+)%/) ? 
+                                      progressBar.getAttribute('style').match(/width:\s*(\d+)%/)[1] + '%' : 
+                                      '0%');
                 
                 // Animate the progress bar
-                progressBar.style.width = percent + '%';
+                progressBar.style.width = originalWidth;
             });
             
             // Remove the scroll event listener once animated

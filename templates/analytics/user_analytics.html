@@ -1,4 +1,4 @@
-{% extends 'admin/base_admin.html' %}
+{% extends 'analytics/base_admin.html' %}
 
 {% block admin_title %}User Analytics{% endblock %}
 
@@ -9,12 +9,6 @@
 
 {% block admin_content %}
 <div class="analytics-content">
-    {% if not session.user_id or session.role != 'admin' %}
-    <div class="access-notice">
-        <i class="fas fa-info-circle"></i> You're viewing a limited version of this data. <span class="admin-only">Some information is only visible to administrators.</span>
-    </div>
-    {% endif %}
-
     <!-- Summary cards -->
     <div class="summary-cards">
         <div class="summary-card">
@@ -55,13 +49,7 @@
                 {% for user in analytics.all_users %}
                 <tr>
                     <td>{{ user.username }}</td>
-                    <td>
-                        {% if session.user_id and session.role == 'admin' %}
-                            {{ user.email }}
-                        {% else %}
-                            <span class="masked-data" title="Email hidden for privacy">{{ user.email }}</span>
-                        {% endif %}
-                    </td>
+                    <td>{{ user.email }}</td>
                     <td>
                         <span class="user-role {% if user.role == 'admin' %}admin{% else %}subscriber{% endif %}">
                             {{ user.role|capitalize }}
