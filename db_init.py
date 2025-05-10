@@ -42,10 +42,15 @@ def create_admin_user(conn):
 
 def get_db_connection():
     """Get a database connection with row factory"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute('PRAGMA foreign_keys = ON')
-    return conn
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        conn.execute('PRAGMA foreign_keys = ON')
+        return conn
+    except sqlite3.Error as e:
+        print(f"Database connection error: {e}")
+        # Re-raise to let the caller handle it
+        raise
 
 # Execute script directly
 if __name__ == '__main__':

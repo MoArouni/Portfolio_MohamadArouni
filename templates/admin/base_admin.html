@@ -25,9 +25,14 @@
         <a href="{{ url_for('visitor_analytics') }}" class="nav-item {% if active_page == 'visitor_analytics' %}active{% endif %}">
             <i class="fas fa-users"></i> Visitor Stats
         </a>
+        <a href="{{ url_for('user_analytics') }}" class="nav-item {% if active_page == 'user_analytics' %}active{% endif %}">
+            <i class="fas fa-user-friends"></i> User Analytics
+        </a>
+        {% if session.user_id and session.role == 'admin' %}
         <a href="{{ url_for('add_entry') }}" class="nav-item {% if active_page == 'add_entry' %}active{% endif %}">
             <i class="fas fa-plus-circle"></i> Add Blog Post
         </a>
+        {% endif %}
         <a href="{{ url_for('view_blog') }}" class="nav-item {% if active_page == 'view_blog' %}active{% endif %}">
             <i class="fas fa-blog"></i> View Blog
         </a>

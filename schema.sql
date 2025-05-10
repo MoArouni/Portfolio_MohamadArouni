@@ -16,7 +16,8 @@ CREATE TABLE users (
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    role TEXT DEFAULT 'subscriber' CHECK (role IN ('admin', 'subscriber'))
+    role TEXT DEFAULT 'subscriber' CHECK (role IN ('admin', 'subscriber')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Posts table
@@ -90,6 +91,19 @@ CREATE TABLE visitor_stats (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Notifications table
+CREATE TABLE notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL,
+    message TEXT NOT NULL,
+    user_id INTEGER,
+    username TEXT,
+    is_anonymous BOOLEAN DEFAULT 1,
+    is_read BOOLEAN DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- Create indexes for faster queries
 CREATE INDEX idx_posts_user_id ON posts(user_id);
 CREATE INDEX idx_comments_post_id ON comments(post_id);
@@ -101,6 +115,8 @@ CREATE INDEX idx_comment_likes_user_id ON comment_likes(user_id);
 CREATE INDEX idx_cv_downloads_user_id ON cv_downloads(user_id);
 CREATE INDEX idx_visitor_stats_ip_address ON visitor_stats(ip_address);
 CREATE INDEX idx_visitor_stats_page_visited ON visitor_stats(page_visited);
+CREATE INDEX idx_notifications_type ON notifications(type);
+CREATE INDEX idx_notifications_created_at ON notifications(created_at);
 
 -- Optional: Insert a default admin user (password should be hashed in production)
 -- INSERT INTO users (username, email, password, role) 

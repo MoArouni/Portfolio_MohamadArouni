@@ -99,6 +99,8 @@ python app.py
 - `db_init.py` - Script to initialize the database
 - `models.py` - Python classes for database operations
 - `app.py` - Flask application
+- `templates` - Pages displayed to the User.
+- `static`- Styling files for the pages (templates).
 
 ## Database Relationships
 

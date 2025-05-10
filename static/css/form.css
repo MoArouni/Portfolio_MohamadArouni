@@ -2,6 +2,8 @@
 
 /* Form Container */
 section {
+    padding-top: 10rem;
+    margin-top: 5rem;
     max-width: 900px;
     margin: 4rem auto;
     padding: 0 var(--spacing-lg);
@@ -14,6 +16,13 @@ form {
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-small);
     margin-bottom: var(--spacing-xl);
+    display: block;
+    transition: opacity 0.3s ease;
+}
+
+/* Hidden class for toggle functionality */
+form.hidden {
+    display: none;
 }
 
 /* Form Title */
@@ -154,13 +163,19 @@ button[type="button"]:hover {
 
 /* Preview Container */
 #previewContainer {
-    display: none;
     margin-top: var(--spacing-xl);
+    display: none;
+    transition: opacity 0.3s ease;
 }
 
 #previewContainer.active {
     display: block;
     animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .blog-container {

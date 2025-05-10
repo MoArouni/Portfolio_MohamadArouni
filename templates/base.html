@@ -18,9 +18,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/contact.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flip-cards.css') }}">
-    {% if session.role == 'admin' %}
+    <!-- Always include admin CSS since analytics is available to everyone -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-    {% endif %}
     {% block extra_css %}{% endblock %}
     
     <!-- Font Awesome -->
@@ -50,9 +49,7 @@
                 <li><a href="{{ url_for('home') }}#skills" class="nav-link" data-text="Skills">Skills</a></li>
                 <li><a href="{{ url_for('home') }}#contact" class="nav-link" data-text="Contact">Contact</a></li>
                 <li><a href="{{ url_for('view_blog') }}" class="nav-link" data-text="Blog">Blog</a></li>
-                {% if session.role == 'admin' %}
-                    <li><a href="{{ url_for('admin_dashboard') }}" class="nav-link" data-text="Admin">Admin</a></li>
-                {% endif %}
+                <li><a href="{{ url_for('admin_dashboard') }}" class="nav-link" data-text="Analytics">Analytics</a></li>
                 {% if session.user_id %}
                     <li><a href="{{ url_for('logout') }}" class="nav-link" data-text="Logout">Logout</a></li>
                 {% else %}
@@ -81,9 +78,7 @@
                 <li><a href="{{ url_for('home') }}#skills">Skills</a></li>
                 <li><a href="{{ url_for('home') }}#contact">Contact</a></li>
                 <li><a href="{{ url_for('view_blog') }}">Blog</a></li>
-                {% if session.role == 'admin' %}
-                    <li><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
-                {% endif %}
+                <li><a href="{{ url_for('admin_dashboard') }}">Analytics</a></li>
                 {% if session.user_id %}
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 {% else %}

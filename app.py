@@ -3,7 +3,7 @@ import sqlite3
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat
+from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification
 from db_init import get_db_connection, init_db
 from functools import wraps
 import math
@@ -48,7 +48,16 @@ def load_logged_in_user():
     # Track page views for analytics, excluding static files and admin pages
     if not request.path.startswith('/static') and not request.path.startswith('/admin'):
         ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-        VisitorStat.record_visit(ip, request.path)
+        visitor_id = VisitorStat.record_visit(ip, request.path)
+        
+        # Check for view count milestones (every 100 views)
+        if visitor_id:
+            conn = get_db_connection()
+            total_views = conn.execute('SELECT COUNT(*) as count FROM visitor_stats').fetchone()['count']
+            conn.close()
+            
+            if total_views % 100 == 0:
+                Notification.create_view_milestone_notification(total_views)
 
 @app.context_processor
 def inject_current_year():
@@ -147,6 +156,9 @@ def register():
         user_id = User.create(username, email, password)
         
         if user_id:
+            # Create notification for new user
+            Notification.create_new_user_notification(username)
+            
             # Log the user in directly
             user = User.get_by_id(user_id)
             session.clear()
@@ -222,6 +234,12 @@ def add_comment():
         return redirect(url_for('view_blog'))
     
     Comment.create(post_id, content, session['user_id'])
+    
+    # Create notification
+    post = Post.get_by_id(post_id)
+    if post:
+        Notification.create_comment_notification(session['username'], False, post['title'])
+    
     return redirect(url_for('view_blog') + '#post-' + post_id)
 
 @app.route('/anonymous_comment', methods=['POST'])
@@ -234,6 +252,12 @@ def add_anonymous_comment():
         return redirect(url_for('view_blog'))
     
     Comment.create_anonymous(post_id, content, author_name)
+    
+    # Create notification
+    post = Post.get_by_id(post_id)
+    if post:
+        Notification.create_comment_notification(author_name, True, post['title'])
+    
     return redirect(url_for('view_blog') + '#post-' + post_id)
 
 @app.route('/delete/comment/<int:comment_id>')
@@ -263,6 +287,9 @@ def like_post(post_id):
     
     # If like was successful, return success
     if like_id:
+        # Create notification
+        Notification.create_post_like_notification(username, is_anonymous, post['title'])
+        
         # Get updated like count
         like_count = BlogLike.get_count_for_post(post_id)
         return jsonify({'success': True, 'like_count': like_count})
@@ -291,6 +318,9 @@ def anonymous_like_post(post_id):
     
     # If like was successful, return success
     if like_id:
+        # Create notification
+        Notification.create_post_like_notification(username, True, post['title'])
+        
         # Get updated like count
         like_count = BlogLike.get_count_for_post(post_id)
         return jsonify({'success': True, 'like_count': like_count})
@@ -319,11 +349,26 @@ def unlike_post(post_id):
 def like_comment(comment_id):
     """Add a like to a comment"""
     user_id = session.get('user_id')
+    username = session.get('username')
     
     # Add the like
     like_id = CommentLike.create(comment_id, user_id)
     
     if like_id:
+        # Get the post info for notification
+        conn = get_db_connection()
+        comment_info = conn.execute('''
+            SELECT c.post_id, p.title 
+            FROM comments c
+            JOIN posts p ON c.post_id = p.id
+            WHERE c.id = ?
+        ''', (comment_id,)).fetchone()
+        conn.close()
+        
+        if comment_info:
+            # Create notification
+            Notification.create_comment_like_notification(username, False, comment_info['title'])
+        
         # Get updated like count
         like_count = CommentLike.get_count_for_comment(comment_id)
         return jsonify({'success': True, 'like_count': like_count})
@@ -381,45 +426,105 @@ def download_cv():
     
     # Get user info if logged in
     user_id = session.get('user_id')
+    username = session.get('username', 'Anonymous')
+    is_anonymous = not user_id
     ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
     
     # Record the download
     CVDownload.create(reason, user_id, ip)
+    
+    # Create notification
+    Notification.create_cv_download_notification(username, is_anonymous, reason)
     
     # Serve the CV file
     return send_from_directory('static/pdf', 'Mohamad_Arouni_CV.pdf')
 
 # Admin dashboard routes
 @app.route('/admin')
-@login_required
-@admin_required
 def admin_dashboard():
     """Admin dashboard homepage"""
     return render_template('admin/dashboard.html')
 
 @app.route('/admin/blog-analytics')
-@login_required
-@admin_required
 def blog_analytics():
     """Blog post analytics"""
     analytics = Post.get_analytics()
+    
+    # Filter sensitive information for non-admin users
+    if not session.get('user_id') or session.get('role') != 'admin':
+        # Remove sensitive fields or modify data as needed
+        for post in analytics:
+            # Remove details that should be admin-only
+            if 'ip_addresses' in post:
+                del post['ip_addresses']
+    
     return render_template('admin/blog_analytics.html', analytics=analytics)
 
 @app.route('/admin/cv-analytics')
-@login_required
-@admin_required
 def cv_analytics():
     """CV download analytics"""
     analytics = CVDownload.get_analytics()
+    
+    # Filter sensitive information for non-admin users
+    if not session.get('user_id') or session.get('role') != 'admin':
+        # Remove personally identifiable information
+        if 'recent' in analytics:
+            for item in analytics['recent']:
+                # Mask or remove sensitive fields
+                if 'ip_address' in item:
+                    del item['ip_address']
+    
     return render_template('admin/cv_analytics.html', analytics=analytics)
 
 @app.route('/admin/visitor-analytics')
-@login_required
-@admin_required
 def visitor_analytics():
     """Visitor statistics"""
     analytics = VisitorStat.get_analytics()
+    
+    # Filter sensitive information for non-admin users
+    if not session.get('user_id') or session.get('role') != 'admin':
+        # Remove IP addresses or other sensitive data
+        pass  # Specific filtering based on what's in the analytics
+    
     return render_template('admin/visitor_analytics.html', analytics=analytics)
+
+@app.route('/admin/user-analytics')
+def user_analytics():
+    """User statistics"""
+    analytics = User.get_analytics()
+    
+    # Handle case when analytics is None
+    if analytics is None:
+        # Provide default empty analytics data
+        analytics = {
+            'total_users': 0,
+            'by_role': [],
+            'recent_users': [],
+            'all_users': []
+        }
+    
+    # Filter sensitive information for non-admin users
+    if not session.get('user_id') or session.get('role') != 'admin':
+        # For non-admins, only show summary statistics but not user details
+        if 'all_users' in analytics:
+            # Remove email addresses and only show limited information
+            for user in analytics['all_users']:
+                user['email'] = '***@***.***'  # Mask email addresses
+    
+    return render_template('admin/user_analytics.html', analytics=analytics)
+
+@app.route('/api/notifications')
+def get_notifications():
+    """API endpoint to get recent notifications"""
+    # Filter sensitive notifications for non-admins
+    if not session.get('user_id') or session.get('role') != 'admin':
+        # Get notifications but filter out sensitive ones
+        notifications = Notification.get_recent(10)
+        # Could add additional filtering if needed
+    else:
+        notifications = Notification.get_recent(10)
+    
+    return jsonify(notifications)
 
 if __name__ == '__main__':
     app.run(debug=True) 

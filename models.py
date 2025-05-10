@@ -53,6 +53,63 @@ class User:
         if user and check_password_hash(user['password'], password):
             return user
         return None
+        
+    @staticmethod
+    def get_analytics():
+        """Get analytics data for users"""
+        conn = None
+        try:
+            conn = get_db_connection()
+            
+            # Total users
+            result = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()
+            total_users = result['count'] if result else 0
+            
+            # Users by role
+            by_role_query = '''
+                SELECT role, COUNT(*) as count 
+                FROM users 
+                GROUP BY role 
+                ORDER BY count DESC
+            '''
+            by_role = conn.execute(by_role_query).fetchall()
+            
+            # Recent users
+            recent_users_query = '''
+                SELECT id, username, email, role, created_at 
+                FROM users 
+                ORDER BY created_at DESC 
+                LIMIT 10
+            '''
+            recent_users = conn.execute(recent_users_query).fetchall()
+            
+            # All users for the table view
+            all_users_query = '''
+                SELECT id, username, email, role, created_at 
+                FROM users 
+                ORDER BY created_at DESC
+            '''
+            all_users = conn.execute(all_users_query).fetchall()
+            
+            # Build and return the analytics dictionary
+            return {
+                'total_users': total_users,
+                'by_role': [dict(r) for r in by_role] if by_role else [],
+                'recent_users': [dict(u) for u in recent_users] if recent_users else [],
+                'all_users': [dict(u) for u in all_users] if all_users else []
+            }
+        except Exception as e:
+            print(f"Error getting user analytics: {e}")
+            # Return empty data structure instead of None
+            return {
+                'total_users': 0,
+                'by_role': [],
+                'recent_users': [],
+                'all_users': []
+            }
+        finally:
+            if conn:
+                conn.close()
 
 class Post:
     """Post model for blog post operations"""
@@ -623,4 +680,141 @@ class VisitorStat:
         except Exception as e:
             print(f"Error getting visitor analytics: {e}")
             conn.close()
-            return None 
+            return None
+
+class Notification:
+    """Notification model for admin dashboard notifications"""
+    
+    # Notification types
+    TYPE_COMMENT = 'comment'
+    TYPE_LIKE_POST = 'like_post'
+    TYPE_LIKE_COMMENT = 'like_comment'
+    TYPE_CV_DOWNLOAD = 'cv_download'
+    TYPE_VIEW_MILESTONE = 'view_milestone'
+    TYPE_NEW_USER = 'new_user'
+    
+    @staticmethod
+    def create(type, message, user_id=None, username=None, is_anonymous=True):
+        """Create a new notification"""
+        conn = get_db_connection()
+        try:
+            cursor = conn.execute(
+                'INSERT INTO notifications (type, message, user_id, username, is_anonymous, is_read) VALUES (?, ?, ?, ?, ?, ?)',
+                (type, message, user_id, username, 1 if is_anonymous else 0, 0)
+            )
+            notification_id = cursor.lastrowid
+            conn.commit()
+            return notification_id
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+            return None
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def mark_as_read(notification_id):
+        """Mark a notification as read"""
+        conn = get_db_connection()
+        try:
+            conn.execute(
+                'UPDATE notifications SET is_read = 1 WHERE id = ?',
+                (notification_id,)
+            )
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error marking notification as read: {e}")
+            return False
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def get_recent(limit=10):
+        """Get recent notifications"""
+        conn = get_db_connection()
+        try:
+            notifications = conn.execute('''
+                SELECT 
+                    id,
+                    type,
+                    message,
+                    username,
+                    is_anonymous,
+                    is_read,
+                    created_at
+                FROM notifications
+                ORDER BY created_at DESC
+                LIMIT ?
+            ''', (limit,)).fetchall()
+            
+            conn.close()
+            
+            # Convert to list of dicts with relative time
+            result = []
+            for notification in notifications:
+                notification_dict = dict(notification)
+                
+                # Calculate relative time
+                created_at = datetime.strptime(notification_dict['created_at'], '%Y-%m-%d %H:%M:%S')
+                now = datetime.now()
+                diff = now - created_at
+                
+                if diff.days > 0:
+                    relative_time = f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+                elif diff.seconds >= 3600:
+                    hours = diff.seconds // 3600
+                    relative_time = f"{hours} hour{'s' if hours > 1 else ''} ago"
+                elif diff.seconds >= 60:
+                    minutes = diff.seconds // 60
+                    relative_time = f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+                else:
+                    relative_time = "just now"
+                
+                notification_dict['relative_time'] = relative_time
+                result.append(notification_dict)
+            
+            return result
+        except Exception as e:
+            print(f"Error getting recent notifications: {e}")
+            conn.close()
+            return []
+            
+    @staticmethod
+    def create_comment_notification(username, is_anonymous, post_title):
+        """Create a notification for a new comment"""
+        user_display = 'Anonymous' if is_anonymous else username
+        message = f"{user_display} posted a comment on '{post_title}'!"
+        return Notification.create(Notification.TYPE_COMMENT, message, username=username, is_anonymous=is_anonymous)
+    
+    @staticmethod
+    def create_post_like_notification(username, is_anonymous, post_title):
+        """Create a notification for a post like"""
+        user_display = 'Anonymous' if is_anonymous else username
+        message = f"{user_display} liked your post '{post_title}'!"
+        return Notification.create(Notification.TYPE_LIKE_POST, message, username=username, is_anonymous=is_anonymous)
+    
+    @staticmethod
+    def create_comment_like_notification(username, is_anonymous, post_title):
+        """Create a notification for a comment like"""
+        user_display = 'Anonymous' if is_anonymous else username
+        message = f"{user_display} liked a comment on '{post_title}'!"
+        return Notification.create(Notification.TYPE_LIKE_COMMENT, message, username=username, is_anonymous=is_anonymous)
+    
+    @staticmethod
+    def create_cv_download_notification(username, is_anonymous, reason):
+        """Create a notification for a CV download"""
+        user_display = 'Anonymous' if is_anonymous else username
+        message = f"{user_display} downloaded your CV for {reason}!"
+        return Notification.create(Notification.TYPE_CV_DOWNLOAD, message, username=username, is_anonymous=is_anonymous)
+    
+    @staticmethod
+    def create_view_milestone_notification(count):
+        """Create a notification for a view milestone"""
+        message = f"Your website got viewed {count} times!"
+        return Notification.create(Notification.TYPE_VIEW_MILESTONE, message)
+    
+    @staticmethod
+    def create_new_user_notification(username):
+        """Create a notification for a new registered user"""
+        message = f"{username} is now a registered user!"
+        return Notification.create(Notification.TYPE_NEW_USER, message, username=username, is_anonymous=False) 

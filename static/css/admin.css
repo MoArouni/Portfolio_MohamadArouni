@@ -394,7 +394,66 @@
 }
 
 .notification.view {
+    border-left-color: #36b9cc;
+}
+
+.notification.user {
     border-left-color: #4e73df;
+}
+
+/* Access Restriction Notice */
+.access-notice {
+    background-color: rgba(245, 198, 68, 0.1);
+    border-left: 4px solid #f6c23e;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--text-primary);
+}
+
+.access-notice i {
+    color: #f6c23e;
+    font-size: 1.2rem;
+}
+
+.admin-only {
+    font-weight: 500;
+    color: #e74a3b;
+}
+
+.masked-data {
+    color: #858796;
+    text-decoration: line-through;
+    cursor: help;
+}
+
+.notification-error-message {
+    color: #858796;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+/* User analytics styles */
+.user-role {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.user-role.admin {
+    background-color: rgba(78, 115, 223, 0.2);
+    color: #4e73df;
+}
+
+.user-role.subscriber {
+    background-color: rgba(28, 200, 138, 0.2);
+    color: #1cc88a;
 }
 
 /* Responsive styles */
