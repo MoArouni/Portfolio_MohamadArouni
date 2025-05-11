@@ -8,7 +8,8 @@
 <div class="admin-dashboard">
     {% if not session.user_id or session.role != 'admin' %}
     <div class="access-notice">
-        <i class="fas fa-info-circle"></i> You're viewing analytics with limited access. <span class="admin-only">Some features and sensitive information are only available to administrators.</span>
+        <i class="fas fa-info-circle"></i> You're viewing analytics with limited access. <span class="admin-only">Some features and sensitive information 
+            like user data and user analytics are only available to administrators.</span>
     </div>
     {% endif %}
 
