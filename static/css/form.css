@@ -109,12 +109,47 @@ textarea:focus {
     box-shadow: 0 0 0 2px rgba(110, 0, 255, 0.2);
 }
 
-/* Error Messages */
-.error-message {
+/* Form validation styling */
+.form-field.error input,
+.form-field.error textarea {
+    border-color: var(--error);
+    background-color: rgba(255, 61, 113, 0.05);
+}
+
+.form-field.success input,
+.form-field.success textarea {
+    border-color: var(--success);
+    background-color: rgba(0, 184, 148, 0.05);
+}
+
+.validation-message {
     color: var(--error);
-    font-size: 0.9rem;
-    margin-top: -0.5rem;
-    margin-bottom: var(--spacing-md);
+    font-size: 0.85rem;
+    padding-left: 2px;
+    display: none;
+}
+
+/* Form status message */
+.form-status-message {
+    text-align: center;
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.form-status-message.error {
+    background-color: rgba(255, 61, 113, 0.1);
+    color: var(--error);
+}
+
+.form-status-message.success {
+    background-color: rgba(0, 184, 148, 0.1);
+    color: var(--success);
+}
+
+.form-status-message.hidden {
     display: none;
 }
 
@@ -225,14 +260,6 @@ button[type="button"]:hover {
     white-space: pre-wrap;
 }
 
-/* Status Message */
-#statusMessage {
-    text-align: center;
-    color: var(--success);
-    margin-top: var(--spacing-md);
-    font-weight: 500;
-}
-
 /* Responsive */
 @media screen and (max-width: 768px) {
     form {
@@ -248,16 +275,16 @@ button[type="button"]:hover {
     }
     
     #previewTitle {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
     }
 }
 
 @media screen and (max-width: 480px) {
     section {
-        margin: 2rem auto;
+        padding: 0 var(--spacing-md);
     }
     
     form h1 {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
 } 

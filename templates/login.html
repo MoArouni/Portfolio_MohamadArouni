@@ -8,7 +8,7 @@
 
 {% block content %}
 <div class="auth-container">
-    <form class="auth-form" action="{{ url_for('login') }}" method="POST">
+    <form class="auth-form" action="{{ url_for('login') }}" method="POST" id="loginForm" novalidate>
         <h2 class="auth-title">Login</h2>
         
         <div class="form-field">
@@ -16,6 +16,7 @@
             <div class="input-container">
                 <input type="email" id="email" name="email" required placeholder="Enter your email">
             </div>
+            <div class="validation-message"></div>
         </div>
         
         <div class="form-field">
@@ -23,27 +24,162 @@
             <div class="input-container">
                 <input type="password" id="password" name="password" required placeholder="Enter your password">
             </div>
+            <div class="validation-message"></div>
         </div>
     
         <div class="form-buttons">
             <button class="btn btn-primary" type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
-    </div>
+        </div>
     
         <div class="auth-link">
-        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
-    </div>
+            <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+        </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div id="statusMessage" class="{{ category }}">
-                        {% if category == 'error' %}<i class="fas fa-exclamation-circle"></i>{% endif %}
-                        {% if category == 'success' %}<i class="fas fa-check-circle"></i>{% endif %}
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-</form>
+        <div id="loginMessage" class="auth-message hidden"></div>
+    </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginMessage = document.getElementById('loginMessage');
+    
+    // Show validation error
+    function showError(input, message) {
+        const field = input.closest('.form-field');
+        field.classList.add('error');
+        field.classList.remove('success');
+        const validationMessage = field.querySelector('.validation-message');
+        validationMessage.textContent = message;
+        validationMessage.style.display = 'block';
+    }
+    
+    // Show validation success
+    function showSuccess(input) {
+        const field = input.closest('.form-field');
+        field.classList.remove('error');
+        field.classList.add('success');
+        const validationMessage = field.querySelector('.validation-message');
+        validationMessage.textContent = '';
+        validationMessage.style.display = 'none';
+    }
+    
+    // Clear validation states
+    function clearValidation() {
+        const fields = document.querySelectorAll('.form-field');
+        fields.forEach(field => {
+            field.classList.remove('error', 'success');
+            const message = field.querySelector('.validation-message');
+            if (message) {
+                message.textContent = '';
+                message.style.display = 'none';
+            }
+        });
+        loginMessage.classList.add('hidden');
+    }
+    
+    // Validate email format
+    function isValidEmail(email) {
+        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+    
+    // Form submission handling
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearValidation();
+        
+        let isValid = true;
+        
+        // Email validation
+        if (emailInput.value.trim() === '') {
+            showError(emailInput, 'Email is required');
+            isValid = false;
+        } else if (!isValidEmail(emailInput.value.trim())) {
+            showError(emailInput, 'Please enter a valid email address');
+            isValid = false;
+        } else {
+            showSuccess(emailInput);
+        }
+        
+        // Password validation
+        if (passwordInput.value.trim() === '') {
+            showError(passwordInput, 'Password is required');
+            isValid = false;
+        } else {
+            showSuccess(passwordInput);
+        }
+        
+        if (isValid) {
+            // Submit form
+            const formData = new FormData(loginForm);
+            
+            fetch("{{ url_for('login') }}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.error) {
+                    loginMessage.textContent = data.error;
+                    loginMessage.className = 'auth-message error';
+                    loginMessage.classList.remove('hidden');
+                } else if (data && data.success) {
+                    // Redirect to the URL with auth params for popup
+                    window.location.href = data.redirect;
+                }
+            })
+            .catch(error => {
+                loginMessage.textContent = 'Invalid email or password';
+                loginMessage.className = 'auth-message error';
+                loginMessage.classList.remove('hidden');
+            });
+        }
+    });
+    
+    // Real-time validation
+    emailInput.addEventListener('blur', function() {
+        if (this.value.trim() === '') {
+            showError(this, 'Email is required');
+        } else if (!isValidEmail(this.value.trim())) {
+            showError(this, 'Please enter a valid email address');
+        } else {
+            showSuccess(this);
+        }
+    });
+    
+    passwordInput.addEventListener('blur', function() {
+        if (this.value.trim() === '') {
+            showError(this, 'Password is required');
+        } else {
+            showSuccess(this);
+        }
+    });
+    
+    // Clear validation messages when user starts typing
+    const inputs = [emailInput, passwordInput];
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            const field = this.closest('.form-field');
+            field.classList.remove('error', 'success');
+            const validationMessage = field.querySelector('.validation-message');
+            validationMessage.textContent = '';
+            validationMessage.style.display = 'none';
+        });
+    });
+});
+</script>
 {% endblock %} 

@@ -949,3 +949,50 @@ footer {
     text-align: center;
 }
 
+/* ===== AUTH POPUP ===== */
+.auth-popup {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    padding: 15px 25px;
+    background: var(--bg-element);
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-medium);
+    z-index: var(--z-modal);
+    transform: translateX(calc(100% + 20px));
+    opacity: 0;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+    max-width: 350px;
+}
+
+.auth-popup.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.auth-popup-content {
+    display: flex;
+    align-items: center;
+}
+
+.auth-popup-icon {
+    margin-right: 15px;
+    font-size: 24px;
+    color: var(--primary);
+}
+
+.auth-popup-message {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.auth-popup.logout {
+    border-left-color: var(--secondary);
+}
+
+.auth-popup.logout .auth-popup-icon {
+    color: var(--secondary);
+}
+

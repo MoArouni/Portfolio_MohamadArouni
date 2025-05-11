@@ -1229,12 +1229,14 @@ section {
     <div class="contact-container">
 
         <div class="contact-form-container">
-            <form action="https://formspree.io/f/mldgykon" method="POST" class="contact-form" novalidate>
+            <form id="contactForm" class="contact-form" novalidate>
                 <div class="form-group">
                     <div class="form-field">
                         <input type="text" id="contact-name" name="name" required placeholder=" ">
                         <label for="contact-name">Name</label>
                         <div class="form-field-bar"></div>
+                        <br>
+                        <br>
                         <span class="validation-message" aria-live="polite"></span>
                     </div>
                     
@@ -1248,8 +1250,8 @@ section {
                 
                 <div class="form-group">
                     <div class="form-field">
-                        <input type="text" id="contact-subject" name="subject" required placeholder=" ">
-                        <label for="contact-subject">Subject</label>
+                        <input type="text" id="contact-message" name="message" required placeholder=" ">
+                        <label for="contact-message">Message</label>
                         <div class="form-field-bar"></div>
                         <span class="validation-message" aria-live="polite"></span>
                     </div>
@@ -1261,6 +1263,8 @@ section {
                         <span class="validation-message" aria-live="polite"></span>
                     </div>
                 </div>
+
+                <div id="contactFormStatus" class="form-status-message hidden"></div>
                 
                 <button type="submit" class="btn btn-primary submit-btn">
                     <span>Send Message</span>
@@ -1336,5 +1340,244 @@ section {
         const legend = document.getElementById('skillsLegend');
         legend.classList.toggle('active');
     }
+
+    // Contact form validation and submission
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactForm = document.getElementById('contactForm');
+        const nameInput = document.getElementById('contact-name');
+        const emailInput = document.getElementById('contact-email');
+        const subjectInput = document.getElementById('contact-subject');
+        const phoneInput = document.getElementById('contact-phone');
+        const messageInput = document.getElementById('contact-message');
+        const formStatus = document.getElementById('contactFormStatus');
+        
+        if (!contactForm) return;
+        
+        // Show validation error
+        function showError(input, message) {
+            const field = input.closest('.form-field');
+            field.classList.add('error');
+            field.classList.remove('success');
+            const validationMessage = field.querySelector('.validation-message');
+            validationMessage.textContent = message;
+            validationMessage.style.display = 'block';
+        }
+        
+        // Show validation success
+        function showSuccess(input) {
+            const field = input.closest('.form-field');
+            field.classList.remove('error');
+            field.classList.add('success');
+            const validationMessage = field.querySelector('.validation-message');
+            validationMessage.textContent = '';
+            validationMessage.style.display = 'none';
+        }
+        
+        // Clear all validation states
+        function clearValidation() {
+            const fields = document.querySelectorAll('.form-field');
+            fields.forEach(field => {
+                field.classList.remove('error', 'success');
+                const validationMessage = field.querySelector('.validation-message');
+                if (validationMessage) {
+                    validationMessage.textContent = '';
+                    validationMessage.style.display = 'none';
+                }
+            });
+            formStatus.classList.add('hidden');
+        }
+        
+        // Validate email format
+        function isValidEmail(email) {
+            const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
+        
+        // Validate phone number format
+        function isValidPhone(phone) {
+            const re = /^[\d\s\-\+\(\)]{7,20}$/;
+            return re.test(phone);
+        }
+        
+        // Form submission handling
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            clearValidation();
+            
+            let isValid = true;
+            
+            // Name validation
+            if (nameInput.value.trim() === '') {
+                showError(nameInput, 'Name is required');
+                isValid = false;
+            } else if (nameInput.value.trim().length < 2) {
+                showError(nameInput, 'Name must be at least 2 characters');
+                isValid = false;
+            } else {
+                showSuccess(nameInput);
+            }
+            
+            // Email validation
+            if (emailInput.value.trim() === '') {
+                showError(emailInput, 'Email is required');
+                isValid = false;
+            } else if (!isValidEmail(emailInput.value.trim())) {
+                showError(emailInput, 'Please enter a valid email address');
+                isValid = false;
+            } else {
+                showSuccess(emailInput);
+            }
+            
+            // Subject validation
+            if (subjectInput.value.trim() === '') {
+                showError(subjectInput, 'Subject is required');
+                isValid = false;
+            } else if (subjectInput.value.trim().length < 3) {
+                showError(subjectInput, 'Subject must be at least 3 characters');
+                isValid = false;
+            } else {
+                showSuccess(subjectInput);
+            }
+            
+            // Phone validation
+            if (phoneInput.value.trim() === '') {
+                showError(phoneInput, 'Phone number is required');
+                isValid = false;
+            } else if (!isValidPhone(phoneInput.value.trim())) {
+                showError(phoneInput, 'Please enter a valid phone number');
+                isValid = false;
+            } else {
+                showSuccess(phoneInput);
+            }
+            
+            // Message validation
+            if (messageInput.value.trim() === '') {
+                showError(messageInput, 'Message is required');
+                isValid = false;
+            } else if (messageInput.value.trim().length < 10) {
+                showError(messageInput, 'Message must be at least 10 characters');
+                isValid = false;
+            } else {
+                showSuccess(messageInput);
+            }
+            
+            if (isValid) {
+                // Send the form data to a server-side route instead
+                const formData = new FormData(contactForm);
+                
+                // Fall back to Formspree as a secure way to handle form submissions
+                // In a real app, you'd have your own API endpoint to handle this
+                fetch('https://formspree.io/f/mldgykon', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Show success message
+                        formStatus.textContent = 'Your message has been sent successfully! I will contact you soon.';
+                        formStatus.className = 'form-status-message success';
+                        formStatus.classList.remove('hidden');
+                        
+                        // Reset the form
+                        contactForm.reset();
+                        
+                        // Remove success styling after a few seconds
+                        setTimeout(() => {
+                            clearValidation();
+                        }, 5000);
+                    } else {
+                        // Show error message
+                        formStatus.textContent = 'There was a problem sending your message. Please try again.';
+                        formStatus.className = 'form-status-message error';
+                        formStatus.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    formStatus.textContent = 'There was a problem sending your message. Please try again.';
+                    formStatus.className = 'form-status-message error';
+                    formStatus.classList.remove('hidden');
+                });
+            }
+        });
+        
+        // Real-time validation for input fields
+        const inputs = [nameInput, emailInput, subjectInput, phoneInput, messageInput];
+        
+        inputs.forEach(input => {
+            // Validate on blur (when user leaves the field)
+            input.addEventListener('blur', function() {
+                // Skip validation if the field is empty and user hasn't interacted yet
+                if (this.value.trim() === '' && !this.classList.contains('interacted')) {
+                    return;
+                }
+                
+                this.classList.add('interacted');
+                
+                switch(this.id) {
+                    case 'contact-name':
+                        if (this.value.trim() === '') {
+                            showError(this, 'Name is required');
+                        } else if (this.value.trim().length < 2) {
+                            showError(this, 'Name must be at least 2 characters');
+                        } else {
+                            showSuccess(this);
+                        }
+                        break;
+                        
+                    case 'contact-email':
+                        if (this.value.trim() === '') {
+                            showError(this, 'Email is required');
+                        } else if (!isValidEmail(this.value.trim())) {
+                            showError(this, 'Please enter a valid email address');
+                        } else {
+                            showSuccess(this);
+                        }
+                        break;
+                        
+                    case 'contact-subject':
+                        if (this.value.trim() === '') {
+                            showError(this, 'Subject is required');
+                        } else if (this.value.trim().length < 3) {
+                            showError(this, 'Subject must be at least 3 characters');
+                        } else {
+                            showSuccess(this);
+                        }
+                        break;
+                        
+                    case 'contact-phone':
+                        if (this.value.trim() === '') {
+                            showError(this, 'Phone number is required');
+                        } else if (!isValidPhone(this.value.trim())) {
+                            showError(this, 'Please enter a valid phone number');
+                        } else {
+                            showSuccess(this);
+                        }
+                        break;
+                        
+                    case 'contact-message':
+                        if (this.value.trim() === '') {
+                            showError(this, 'Message is required');
+                        } else if (this.value.trim().length < 10) {
+                            showError(this, 'Message must be at least 10 characters');
+                        } else {
+                            showSuccess(this);
+                        }
+                        break;
+                }
+            });
+            
+            // Clear error on input
+            input.addEventListener('input', function() {
+                const field = this.closest('.form-field');
+                field.classList.remove('error');
+                const validationMessage = field.querySelector('.validation-message');
+                validationMessage.textContent = '';
+                validationMessage.style.display = 'none';
+            });
+        });
+    });
 </script>
 {% endblock %} 

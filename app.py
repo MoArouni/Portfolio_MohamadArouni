@@ -130,12 +130,24 @@ def login():
             session['username'] = user['username']
             session['role'] = user['role']
             
-            if user['role'] == 'admin':
-                return redirect(url_for('admin_dashboard'))
+            # For AJAX requests, return a success indicator
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                if user['role'] == 'admin':
+                    return jsonify({'success': True, 'redirect': url_for('admin_dashboard', auth_event='login', username=user['username'])})
+                else:
+                    return jsonify({'success': True, 'redirect': url_for('view_blog', auth_event='login', username=user['username'])})
             else:
-                return redirect(url_for('view_blog'))
+                # For regular form submissions, redirect as before
+                if user['role'] == 'admin':
+                    return redirect(url_for('admin_dashboard', auth_event='login', username=user['username']))
+                else:
+                    return redirect(url_for('view_blog', auth_event='login', username=user['username']))
         
-        return redirect(url_for('login'))
+        # Handle failed login
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'error': 'Invalid email or password'})
+        else:
+            return redirect(url_for('login'))
     
     return render_template('login.html')
 
@@ -146,13 +158,36 @@ def register():
         email = request.form['email']
         password = request.form['password']
         
-        if not username or not email or not password:
-            return render_template('register.html')
+        # Field validation
+        errors = {}
+        if not username:
+            errors['username'] = 'Username is required'
+        elif len(username) < 3:
+            errors['username'] = 'Username must be at least 3 characters'
+            
+        if not email:
+            errors['email'] = 'Email is required'
+            
+        if not password:
+            errors['password'] = 'Password is required'
+        elif len(password) < 6:
+            errors['password'] = 'Password must be at least 6 characters'
+            
+        # Check if username or email already exists
+        if not errors:
+            if User.exists_with_username(username):
+                errors['username'] = 'Username already taken'
+            if User.exists_with_email(email):
+                errors['email'] = 'Email already registered'
         
-        if len(password) < 6:
-            return render_template('register.html')
+        # If there are validation errors
+        if errors:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'errors': errors})
+            else:
+                return render_template('register.html')
         
-        # Default role is subscriber
+        # Create user
         user_id = User.create(username, email, password)
         
         if user_id:
@@ -165,16 +200,19 @@ def register():
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
-            return redirect(url_for('view_blog'))
-        else:
-            return render_template('register.html')
+            
+            # Return success response or redirect
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': True, 'redirect': url_for('view_blog', auth_event='login', username=username)})
+            else:
+                return redirect(url_for('view_blog', auth_event='login', username=username))
     
     return render_template('register.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('home'))
+    return redirect(url_for('home', auth_event='logout'))
 
 @app.route('/add', methods=['GET'])
 @login_required

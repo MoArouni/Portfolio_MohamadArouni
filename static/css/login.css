@@ -62,7 +62,12 @@
 .form-field {
     position: relative;
     margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
 }
+
 
 .form-field .input-container {
     margin-top: 15px;
@@ -70,12 +75,11 @@
 }
 
 .form-field label {
-    display: block;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0;
     font-size: 1.05rem;
     transition: all var(--transition-fast);
+    position: relative;
 }
 
 .form-field input {
@@ -100,6 +104,25 @@
 .form-field input::placeholder {
     color: var(--text-tertiary);
     opacity: 0.6;
+}
+
+/* Form validation styling */
+.form-field.error input {
+    border-color: var(--error);
+    background-color: rgba(255, 61, 113, 0.05);
+}
+
+.form-field.success input {
+    border-color: var(--success);
+    background-color: rgba(0, 184, 148, 0.05);
+}
+
+.validation-message {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin-top: 6px;
+    padding-left: 2px;
+    display: none;
 }
 
 /* Form Buttons */
@@ -171,62 +194,28 @@
     width: 100%;
 }
 
-/* Error Messages */
-.error-message {
-    color: var(--error);
-    font-size: 0.9rem;
-    margin-top: var(--spacing-xs);
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
-
-.error-message i {
-    font-size: 0.8rem;
-}
-
-/* Success Message */
-.success-message {
-    color: var(--success);
-    font-size: 0.9rem;
-    margin-top: var(--spacing-xs);
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
-
-.success-message i {
-    font-size: 0.8rem;
-}
-
-/* Form Validation Styling */
-.form-field.error input {
-    border-color: var(--error);
-    background-color: rgba(255, 61, 113, 0.05);
-}
-
-.form-field.success input {
-    border-color: var(--success);
-    background-color: rgba(0, 184, 148, 0.05);
-}
-
-/* Status Message */
-#statusMessage {
-    text-align: center;
+/* Auth Message */
+.auth-message {
     margin-top: var(--spacing-md);
     padding: var(--spacing-sm);
     border-radius: var(--radius-sm);
     font-weight: 500;
+    text-align: center;
+    transition: all 0.3s ease;
 }
 
-#statusMessage.error {
+.auth-message.error {
     background-color: rgba(255, 61, 113, 0.1);
     color: var(--error);
 }
 
-#statusMessage.success {
+.auth-message.success {
     background-color: rgba(0, 184, 148, 0.1);
     color: var(--success);
+}
+
+.auth-message.hidden {
+    display: none;
 }
 
 /* Password Strength Indicator */
@@ -248,21 +237,20 @@
     color: var(--success);
 }
 
-/* Strength Indicator Animation */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
 #password-strength span {
-    animation: fadeIn 0.3s ease-in-out;
     display: inline-block;
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Responsive Styles */
+/* Responsive */
 @media screen and (max-width: 768px) {
     .auth-container {
-        padding: var(--spacing-md);
+        padding: var(--spacing-lg);
     }
     
     .auth-form {
@@ -284,6 +272,6 @@
     }
     
     .form-field input {
-        padding: 10px 14px;
+        padding: 12px 14px;
     }
 } 

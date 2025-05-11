@@ -9,20 +9,22 @@
 {% block content %}
 <br>
 <section>
-    <form action="{{ url_for('update_post', post_id=post.id) }}" method="POST" id="blogForm">
+    <form action="{{ url_for('update_post', post_id=post.id) }}" method="POST" id="blogForm" novalidate>
         <h1>Edit Blog Post</h1>
         
         <div class="form-field">
             <label for="title">Title</label>
-        <input type="text" id="title" name="title" value="{{ post.title }}" required>
-        <span class="error-message" id="titleError"></span>
+            <input type="text" id="title" name="title" value="{{ post.title }}" required>
+            <div class="validation-message" aria-live="polite"></div>
         </div>
 
         <div class="form-field">
             <label for="content">Content</label>
-        <textarea id="content" name="content" rows="10" required>{{ post.content }}</textarea>
-        <span class="error-message" id="contentError"></span>
+            <textarea id="content" name="content" rows="10" required>{{ post.content }}</textarea>
+            <div class="validation-message" aria-live="polite"></div>
         </div>
+        
+        <div class="form-status-message hidden"></div>
 
         <div class="button"> 
             <button class="cta-button" type="submit">
@@ -67,5 +69,114 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/features/preview_blog.js') }}"></script>
-<script src="{{ url_for('static', filename='js/preventDefault.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const blogForm = document.getElementById('blogForm');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content');
+    const formStatusMessage = document.querySelector('.form-status-message');
+    
+    // Form validation
+    function showError(input, message) {
+        const field = input.closest('.form-field');
+        field.classList.add('error');
+        field.classList.remove('success');
+        const validationMessage = field.querySelector('.validation-message');
+        validationMessage.textContent = message;
+        validationMessage.style.display = 'block';
+        input.setAttribute('aria-invalid', 'true');
+    }
+    
+    function showSuccess(input) {
+        const field = input.closest('.form-field');
+        field.classList.remove('error');
+        field.classList.add('success');
+        const validationMessage = field.querySelector('.validation-message');
+        validationMessage.textContent = '';
+        validationMessage.style.display = 'none';
+        input.setAttribute('aria-invalid', 'false');
+    }
+    
+    function clearValidation() {
+        const fields = document.querySelectorAll('.form-field');
+        fields.forEach(field => {
+            field.classList.remove('error', 'success');
+            const validationMessage = field.querySelector('.validation-message');
+            if (validationMessage) {
+                validationMessage.textContent = '';
+                validationMessage.style.display = 'none';
+            }
+        });
+        formStatusMessage.classList.add('hidden');
+    }
+    
+    // Form submission validation
+    blogForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearValidation();
+        
+        let isValid = true;
+        
+        // Title validation
+        if (titleInput.value.trim() === '') {
+            showError(titleInput, 'Title is required');
+            isValid = false;
+        } else if (titleInput.value.trim().length < 3) {
+            showError(titleInput, 'Title must be at least 3 characters');
+            isValid = false;
+        } else {
+            showSuccess(titleInput);
+        }
+        
+        // Content validation
+        if (contentInput.value.trim() === '') {
+            showError(contentInput, 'Content is required');
+            isValid = false;
+        } else if (contentInput.value.trim().length < 10) {
+            showError(contentInput, 'Content must be at least 10 characters');
+            isValid = false;
+        } else {
+            showSuccess(contentInput);
+        }
+        
+        // If valid, submit the form
+        if (isValid) {
+            this.submit();
+        }
+    });
+    
+    // Real-time validation
+    titleInput.addEventListener('blur', function() {
+        if (this.value.trim() === '') {
+            showError(this, 'Title is required');
+        } else if (this.value.trim().length < 3) {
+            showError(this, 'Title must be at least 3 characters');
+        } else {
+            showSuccess(this);
+        }
+    });
+    
+    contentInput.addEventListener('blur', function() {
+        if (this.value.trim() === '') {
+            showError(this, 'Content is required');
+        } else if (this.value.trim().length < 10) {
+            showError(this, 'Content must be at least 10 characters');
+        } else {
+            showSuccess(this);
+        }
+    });
+    
+    // Clear validation messages when typing
+    const inputs = [titleInput, contentInput];
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            const field = this.closest('.form-field');
+            field.classList.remove('error', 'success');
+            const validationMessage = field.querySelector('.validation-message');
+            validationMessage.textContent = '';
+            validationMessage.style.display = 'none';
+        });
+    });
+});
+</script>
 {% endblock %} 

@@ -47,6 +47,24 @@ class User:
         return dict(user) if user else None
     
     @staticmethod
+    def exists_with_username(username):
+        """Check if a user with the given username exists"""
+        conn = get_db_connection()
+        result = conn.execute('SELECT COUNT(*) as count FROM users WHERE username = ?', (username,)).fetchone()
+        exists = result['count'] > 0 if result else False
+        conn.close()
+        return exists
+        
+    @staticmethod
+    def exists_with_email(email):
+        """Check if a user with the given email exists"""
+        conn = get_db_connection()
+        result = conn.execute('SELECT COUNT(*) as count FROM users WHERE email = ?', (email,)).fetchone()
+        exists = result['count'] > 0 if result else False
+        conn.close()
+        return exists
+    
+    @staticmethod
     def authenticate(email, password):
         """Authenticate user with email and password"""
         user = User.get_by_email(email)

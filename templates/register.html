@@ -8,13 +8,14 @@
 
 {% block content %}
 <div class="auth-container">
-    <form class="auth-form" action="{{ url_for('register') }}" method="POST">
+    <form class="auth-form" action="{{ url_for('register') }}" method="POST" id="registerForm" novalidate>
         <h2 class="auth-title">Create Account</h2>
         
         <div class="form-field">
-            <label for="username"></i> Username</label>
+            <label for="username">Username</label>
             <div class="input-container">
                 <input type="text" id="username" name="username" required placeholder="Choose a username">
+                <div class="validation-message"></div>
             </div>
         </div>
         
@@ -22,13 +23,15 @@
             <label for="email">Email</label>
             <div class="input-container">
                 <input type="email" id="email" name="email" required placeholder="Enter your email">
+                <div class="validation-message"></div>
             </div>
         </div>
         
         <div class="form-field">
-            <label for="password"> Password</label>
+            <label for="password">Password</label>
             <div class="input-container">
                 <input type="password" id="password" name="password" required minlength="6" placeholder="Create a password (min. 6 characters)">
+                <div class="validation-message"></div>
             </div>
             <div id="password-strength"></div>
         </div>
@@ -41,54 +44,221 @@
             <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div id="statusMessage" class="{{ category }}">
-                        {% if category == 'error' %}<i class="fas fa-exclamation-circle"></i>{% endif %}
-                        {% if category == 'success' %}<i class="fas fa-check-circle"></i>{% endif %}
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        <div id="registerMessage" class="auth-message hidden"></div>
     </form>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Simple password strength indicator
-    const passwordInput = document.getElementById('password');
-    const strengthIndicator = document.getElementById('password-strength');
-    
-    passwordInput.addEventListener('input', function() {
-        const value = this.value;
-        let strength = 0;
-        let status = '';
+    document.addEventListener('DOMContentLoaded', function() {
+        const registerForm = document.getElementById('registerForm');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const strengthIndicator = document.getElementById('password-strength');
+        const registerMessage = document.getElementById('registerMessage');
         
-        if (value.length >= 6) strength += 1;
-        if (value.length >= 10) strength += 1;
-        if (/[A-Z]/.test(value)) strength += 1;
-        if (/[0-9]/.test(value)) strength += 1;
-        if (/[^A-Za-z0-9]/.test(value)) strength += 1;
-        
-        switch(strength) {
-            case 0:
-            case 1:
-                status = '<span class="weak">Weak</span>';
-                break;
-            case 2:
-            case 3:
-                status = '<span class="medium">Medium</span>';
-                break;
-            case 4:
-            case 5:
-                status = '<span class="strong">Strong</span>';
-                break;
+        // Show validation error
+        function showError(input, message) {
+            const field = input.closest('.form-field');
+            field.classList.add('error');
+            field.classList.remove('success');
+            const validationMessage = field.querySelector('.validation-message');
+            validationMessage.textContent = message;
+            validationMessage.style.display = 'block';
         }
         
-        strengthIndicator.innerHTML = value.length > 0 ? `Password strength: ${status}` : '';
+        // Show validation success
+        function showSuccess(input) {
+            const field = input.closest('.form-field');
+            field.classList.remove('error');
+            field.classList.add('success');
+            const validationMessage = field.querySelector('.validation-message');
+            validationMessage.textContent = '';
+            validationMessage.style.display = 'none';
+        }
+        
+        // Clear validation states
+        function clearValidation() {
+            const fields = document.querySelectorAll('.form-field');
+            fields.forEach(field => {
+                field.classList.remove('error', 'success');
+                const message = field.querySelector('.validation-message');
+                if (message) {
+                    message.textContent = '';
+                    message.style.display = 'none';
+                }
+            });
+            registerMessage.classList.add('hidden');
+        }
+        
+        // Validate email format
+        function isValidEmail(email) {
+            const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
+        
+        // Password strength indicator
+        passwordInput.addEventListener('input', function() {
+            const value = this.value;
+            let strength = 0;
+            let status = '';
+            
+            if (value.length >= 6) strength += 1;
+            if (value.length >= 10) strength += 1;
+            if (/[A-Z]/.test(value)) strength += 1;
+            if (/[0-9]/.test(value)) strength += 1;
+            if (/[^A-Za-z0-9]/.test(value)) strength += 1;
+            
+            switch(strength) {
+                case 0:
+                case 1:
+                    status = '<span class="weak">Weak</span>';
+                    break;
+                case 2:
+                case 3:
+                    status = '<span class="medium">Medium</span>';
+                    break;
+                case 4:
+                case 5:
+                    status = '<span class="strong">Strong</span>';
+                    break;
+            }
+            
+            strengthIndicator.innerHTML = value.length > 0 ? `Password strength: ${status}` : '';
+        });
+        
+        // Form submission handling
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            clearValidation();
+            
+            let isValid = true;
+            
+            // Username validation
+            if (usernameInput.value.trim() === '') {
+                showError(usernameInput, 'Username is required');
+                isValid = false;
+            } else if (usernameInput.value.trim().length < 3) {
+                showError(usernameInput, 'Username must be at least 3 characters');
+                isValid = false;
+            } else {
+                showSuccess(usernameInput);
+            }
+            
+            // Email validation
+            if (emailInput.value.trim() === '') {
+                showError(emailInput, 'Email is required');
+                isValid = false;
+            } else if (!isValidEmail(emailInput.value.trim())) {
+                showError(emailInput, 'Please enter a valid email address');
+                isValid = false;
+            } else {
+                showSuccess(emailInput);
+            }
+            
+            // Password validation
+            if (passwordInput.value.trim() === '') {
+                showError(passwordInput, 'Password is required');
+                isValid = false;
+            } else if (passwordInput.value.length < 6) {
+                showError(passwordInput, 'Password must be at least 6 characters');
+                isValid = false;
+            } else {
+                showSuccess(passwordInput);
+            }
+            
+            if (isValid) {
+                // Submit form
+                const formData = new FormData(registerForm);
+                
+                fetch("{{ url_for('register') }}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    if (data && data.errors) {
+                        // Handle field-specific errors
+                        if (data.errors.username) {
+                            showError(usernameInput, data.errors.username);
+                        }
+                        if (data.errors.email) {
+                            showError(emailInput, data.errors.email);
+                        }
+                        if (data.errors.password) {
+                            showError(passwordInput, data.errors.password);
+                        }
+                        
+                        // Show general error message if needed
+                        registerMessage.textContent = 'Please fix the errors above.';
+                        registerMessage.className = 'auth-message error';
+                        registerMessage.classList.remove('hidden');
+                    } else if (data && data.success) {
+                        // Redirect to the URL with auth params for popup
+                        window.location.href = data.redirect;
+                    }
+                })
+                .catch(error => {
+                    registerMessage.textContent = 'Registration failed. Please try again.';
+                    registerMessage.className = 'auth-message error';
+                    registerMessage.classList.remove('hidden');
+                });
+            }
+        });
+        
+        // Real-time validation
+        usernameInput.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                showError(this, 'Username is required');
+            } else if (this.value.trim().length < 3) {
+                showError(this, 'Username must be at least 3 characters');
+            } else {
+                showSuccess(this);
+            }
+        });
+        
+        emailInput.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                showError(this, 'Email is required');
+            } else if (!isValidEmail(this.value.trim())) {
+                showError(this, 'Please enter a valid email address');
+            } else {
+                showSuccess(this);
+            }
+        });
+        
+        passwordInput.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                showError(this, 'Password is required');
+            } else if (this.value.length < 6) {
+                showError(this, 'Password must be at least 6 characters');
+            } else {
+                showSuccess(this);
+            }
+        });
+        
+        // Clear validation messages when user starts typing
+        const inputs = [usernameInput, emailInput, passwordInput];
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                const field = this.closest('.form-field');
+                field.classList.remove('error', 'success');
+                const validationMessage = field.querySelector('.validation-message');
+                validationMessage.textContent = '';
+                validationMessage.style.display = 'none';
+            });
+        });
     });
 </script>
 {% endblock %} 

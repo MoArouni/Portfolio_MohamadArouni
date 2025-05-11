@@ -35,6 +35,18 @@
     <div class="cursor"></div>
     <div class="cursor-follower"></div>
     
+    <!-- Auth Popup Message -->
+    <div id="authPopup" class="auth-popup">
+        <div class="auth-popup-content">
+            <div class="auth-popup-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div id="authPopupMessage" class="auth-popup-message">
+                <!-- Message will be inserted here -->
+            </div>
+        </div>
+    </div>
+    
     <header>
         <div class="logo">
             <a href="{{ url_for('home') }}">
@@ -121,6 +133,54 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/toggle_darkmode.js') }}"></script>
+    
+    <script>
+        // Auth popup handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for login or logout event
+            const urlParams = new URLSearchParams(window.location.search);
+            const authEvent = urlParams.get('auth_event');
+            const username = urlParams.get('username');
+            
+            if (authEvent === 'logout') {
+                showAuthPopup('You have been logged out', true);
+                
+                // Remove the query parameters after showing the popup
+                history.replaceState(null, '', window.location.pathname);
+            } else if (authEvent === 'login' && username) {
+                showAuthPopup(`Welcome back, ${username}!`, false);
+                
+                // Remove the query parameters after showing the popup
+                history.replaceState(null, '', window.location.pathname);
+            }
+            
+            function showAuthPopup(message, isLogout) {
+                const popup = document.getElementById('authPopup');
+                const popupMessage = document.getElementById('authPopupMessage');
+                
+                // Set the message
+                popupMessage.textContent = message;
+                
+                // Apply the appropriate class
+                if (isLogout) {
+                    popup.classList.add('logout');
+                    popup.querySelector('.auth-popup-icon i').className = 'fas fa-sign-out-alt';
+                } else {
+                    popup.classList.remove('logout');
+                    popup.querySelector('.auth-popup-icon i').className = 'fas fa-user-check';
+                }
+                
+                // Show the popup
+                popup.classList.add('show');
+                
+                // Hide after 5 seconds
+                setTimeout(function() {
+                    popup.classList.remove('show');
+                }, 5000);
+            }
+        });
+    </script>
+    
     {% block scripts %}{% endblock %}
 </body>
 </html> 
