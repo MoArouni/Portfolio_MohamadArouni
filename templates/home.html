@@ -5,122 +5,47 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/skills.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}"> 
-<style>
-/* Style for particles to cover entire page */
-#particles-js {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
-    pointer-events: none;
-}
-
-/* Add subtle background to sections for better content visibility */
-section {
-    background-color: rgba(var(--bg-primary-rgb), 0.7) !important;
-    backdrop-filter: blur(5px);
-}
-
-
-/* Quote styling */
-.quote-container {
-    margin: 2rem auto;
-    text-align: center;
-    max-width: 50%;
-    padding: 1.5rem;
-    border-left: 4px solid var(--primary);
-    background: var(--bg-quote);
-    border-radius: 0.5rem;
-}
-
-.quote-text {
-    font-size: 1.2rem;
-    font-style: italic;
-    margin-bottom: 0.5rem;
-}
-
-.quote-author {
-    font-weight: 600;
-    text-align: right;
-}
-
-/* Add CSS for the colored dots */
-.dot { display:inline-block; width:0.85em; height:0.85em; border-radius:50%; margin:0 0.2em; vertical-align:middle; }
-.dot.blue { background:#3498db; }
-.dot.green { background:#27ae60; }
-.dot.yellow { background:#f1c40f; }
-
-</style>
 {% endblock %}
 
 {% block content %}
 <!-- Particles container for the entire page -->
 <div id="particles-js"></div>
 
-<!-- Hero Section -->
-<section id="hero" class="hero-section">
-    <div class="glitch-container">
-        <div class="glitch" data-text="Mohamad Arouni">Mohamad Arouni</div>
-    </div>
-    
-    <div class="hero-content">
-        <div class="hero-text">
-            <h2 class="gradient-text">Computer Science Student</h2>
-            <p class="hero-description">Aspiring full-stack developer with a passion for creating elegant solutions to complex problems.</p>
-            <div class="hero-buttons">
-                <a href="#projects" class="btn btn-primary">View Projects</a>
-                <a href="#contact" class="btn btn-secondary">Contact Me</a>
-            </div>
-        </div>
-        
-        <div class="hero-image">
-            <div class="profile-container">
-                <img src="{{ url_for('static', filename='images/about/me/me.jpg') }}" alt="Mohamad Arouni">
-            </div>
-        </div>
-    </div>
-    
-    <div class="scroll-indicator">
-        <div class="mouse">
-            <div class="wheel"></div>
-        </div>
-        <div class="arrow-scroll">
-            <span></span>
-            <span></span>
-            <span></span>
-                    </div>
-                </div>
-</section>
-
-<!-- About Section -->
-<section id="about" class="about-section">
-    <div class="section-header">
-        <h2 class="section-title">About Me</h2>
-        <div class="section-underline"></div>
-                    </div>
+<!-- Combined Hero & About Section -->
+<section id="hero-about" class="hero-about-section">
     
     <div class="quote-container">
         <p class="quote-text">"What is now proved was once only imagined."</p>
         <p class="quote-author">— William Blake</p>
-                    </div>
+        </div>
+        
+    <div class="hero-about-container">
+        <!-- Left Side: Name, Profile, Description and Buttons -->
+        <div class="hero-about-left">
+            <!-- Profile Image -->
+            <div class="profile-container">
+                <img src="{{ url_for('static', filename='images/about/me/me.png') }}" alt="Mohamad Arouni">
+    </div>
     
-    <div class="about-container">
-        <div class="about-left">
-            <div class="about-card">
-                <div class="card-heading">
-                    <h3>My Mission</h3>
+            <h2 class="gradient-text">Mohamad Arouni</h2>
+            
+    
+            <!-- Description & Buttons -->
+            <div class="hero-description-container">
+                <p class="hero-description">Aspiring full-stack / Software Engineer</p>
+                
+                <div class="hero-buttons">
+                    <a href="javascript:void(0);" id="downloadButton" class="btn btn-primary">
+                        <i class="fas fa-file-download"></i> Download CV
+                    </a>
+                    <a href="#projects" class="btn btn-secondary">View Projects</a>
                 </div>
-                <p>I'm here to improve, not impress. 
-                    <br>
-                    Every project is a chance to grow, expand my thinking, and make a meaningful impact through my work. 
-                    <br> 
-                    My goal is to contribute with purpose and keep evolving.</p>
+            </div>
                     </div>
             
+        <!-- Right Side with Services and Languages stacked -->
+        <div class="hero-about-right">
+            <!-- Services Card -->
             <div class="about-card">
                 <div class="card-heading">
                     <h3>Services</h3>
@@ -128,12 +53,11 @@ section {
                 <ul class="services-list">
                     <li><span class="service-icon"><i class="fas fa-code"></i></span> Full-Stack Web Development</li>
                     <li><span class="service-icon"><i class="fas fa-chart-line"></i></span> Data Analysis & Visualization</li>
-                    <li><span class="service-icon"><i class="fas fa-robot"></i></span> Machine Learning Model Training</li>
+                    <li><span class="service-icon"><i class="fas fa-cogs"></i></span> Software Engineering</li>
                 </ul>
-            </div>
         </div>
 
-        <div class="about-right">
+            <!-- Languages Card -->
             <div class="about-card">
                 <div class="card-heading">
                     <h3>Languages</h3>
@@ -165,18 +89,20 @@ section {
                     </div>
                 </div>
             </div>
-
-            <div class="about-card">
-                <div class="card-heading">
-                    <h3>Download CV</h3>
                 </div>
-                <div class="cv-download">
-                    <a href="javascript:void(0);" id="downloadButton" class="btn btn-primary">
-                        <i class="fas fa-file-download"></i> Download CV
-                    </a>
                 </div>
+    
+    <div class="scroll-indicator">
+        <a href="#education" class="scroll-link">
+            <div class="mouse">
+                <div class="wheel"></div>
             </div>
+            <div class="arrow-scroll">
+                <span></span>
+                <span></span>
+                <span></span>
         </div>
+        </a>
     </div>
 </section>
 
@@ -245,131 +171,9 @@ section {
     </div>
 </div>
 
+<script src = "{{ url_for('static', filename='js/download_cv.js') }}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get modal elements
-        const modal = document.getElementById('cvDownloadModal');
-        const downloadBtn = document.getElementById('downloadButton');
-        const closeBtn = modal.querySelector('.close-modal');
-        const cancelBtn = document.getElementById('cancelDownload');
-        const downloadOptions = document.querySelectorAll('.download-option');
-        const otherReasonForm = document.getElementById('otherReasonForm');
-        const otherReasonText = document.getElementById('other-reason-text');
-        
-        // Open modal when download button is clicked
-        if (downloadBtn) {
-            downloadBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                modal.classList.add('active');
-            });
-        }
-        
-        // Function to close modal
-        function closeModal() {
-            modal.classList.remove('active');
-            if (otherReasonForm) otherReasonForm.reset();
-        }
-
-        // Close modal when X button or Cancel is clicked
-        if (closeBtn) {
-            closeBtn.addEventListener('click', closeModal);
-        }
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', closeModal);
-        }
-        
-        // Close modal when clicking outside the modal content
-        window.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                closeModal();
-            }
-        });
-        
-        // Handle download option clicks
-        downloadOptions.forEach(option => {
-            option.addEventListener('click', function(e) {
-                e.preventDefault();
-                const reason = this.dataset.reason;
-                downloadCV(reason);
-            });
-        });
-        
-        // Handle the "Other" reason form
-        if (otherReasonForm) {
-            otherReasonForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const reason = otherReasonText.value.trim();
-                
-                if (!reason) {
-                    alert('Please specify your reason for downloading the CV.');
-                    return;
-                }
-                
-                downloadCV(reason);
-            });
-        }
-        
-        // Function to handle CV download
-        function downloadCV(reason) {
-            // Create form data to send to server
-            const formData = new FormData();
-            formData.append('reason', reason);
-            
-            // Show loading indicator
-            const loadingMessage = showMessage('Preparing your download...', 'info');
-            
-            // First fetch the CV
-            fetch('{{ url_for("download_cv") }}', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.blob();
-                }
-                throw new Error('Network response was not ok for CV download.');
-            })
-            .then(blob => {
-                // Create a URL for the blob
-                const url = window.URL.createObjectURL(blob);
-                
-                // Create a temporary download link
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                
-                // Set the filename
-                a.download = 'Mohamad_Arouni_CV.pdf';
-                
-                // Append the link to the document, click it, and clean up
-                document.body.appendChild(a);
-                a.click();
-                
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                // Close modal and show success message
-                closeModal();
-                
-                // Remove loading message if it exists
-                if (loadingMessage && loadingMessage.parentNode) {
-                    document.body.removeChild(loadingMessage);
-                }
-                
-                showMessage('CV downloaded successfully!', 'success');
-            })
-            .catch(error => {
-                console.error('Download failed:', error);
-                
-                // Remove loading message if it exists
-                if (loadingMessage && loadingMessage.parentNode) {
-                    document.body.removeChild(loadingMessage);
-                }
-                
-                showMessage('Failed to download CV. Please try again later.', 'error');
-            });
-        }
-    });
+    
 
     // Function to show a message to the user
     function showMessage(message, type) {
@@ -492,10 +296,6 @@ section {
         </div>
     </div>
 </section>
-
-<div class="intro-section">
-    <h1 style="font-size: 2rem; text-align: center;">Projects</h1>
-</div>
 
 <!-- Projects Section -->
 <section id="projects" class="projects-section">
@@ -861,11 +661,11 @@ section {
                         <div class="skill-top">
                             <span style="font-size:1.2em;">🛠️</span>
                             <span class="dot green"></span>
-                        </div>
+                </div>
                         <h3>SQLAlchemy</h3>
                         <div class="skill-bottom">
                             <i class="fas fa-database"></i>
-                        </div>
+            </div>
                     </div>
                     <div class="skill-item">
                         <div class="skill-top">
@@ -921,11 +721,11 @@ section {
                         <div class="skill-top">
                             <span style="font-size:1.2em;">🧠</span>
                             <span class="dot blue"></span>
-                        </div>
+                </div>
                         <h3>Java Swing</h3>
                         <div class="skill-bottom">
                             <i class="fab fa-java"></i>
-                        </div>
+            </div>
                     </div>
                 </div>
             </div>
@@ -1041,7 +841,7 @@ section {
                         <div class="skill-top">
                             <span style="font-size:1.2em;">🧠</span>
                             <span class="dot blue"></span>
-                        </div>
+                </div>
                         <h3>Communication</h3>
                         <div class="skill-bottom">
                             <i class="fas fa-comments"></i>
@@ -1093,7 +893,8 @@ section {
                     <div class="card-details">
                         <span class="card-badge">Python</span>
                         <span class="card-badge">Data Science</span>
-                        <span class="card-badge">2023</span>
+                        <span class="card-badge">Predictions and Machine Learning</span>
+                        <span class="card-badge">August 2023</span>
                     </div>
                 </div>
             </div>
@@ -1111,7 +912,7 @@ section {
                     <div class="card-details">
                         <span class="card-badge">HTML/CSS</span>
                         <span class="card-badge">JavaScript</span>
-                        <span class="card-badge">2022</span>
+                        <span class="card-badge">August 2023</span>
                     </div>
                 </div>
             </div>
@@ -1129,7 +930,7 @@ section {
                     <div class="card-details">
                         <span class="card-badge">AI</span>
                         <span class="card-badge">Machine Learning</span>
-                        <span class="card-badge">2023</span>
+                        <span class="card-badge">August 2023</span>
                     </div>
                 </div>
             </div>
@@ -1227,7 +1028,6 @@ section {
     </div>
     
     <div class="contact-container">
-
         <div class="contact-form-container">
             <form id="contactForm" class="contact-form" novalidate>
                 <div class="form-group">

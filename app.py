@@ -142,7 +142,7 @@ def login():
                     return redirect(url_for('admin_dashboard', auth_event='login', username=user['username']))
                 else:
                     return redirect(url_for('view_blog', auth_event='login', username=user['username']))
-        
+    
         # Handle failed login
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'success': False, 'error': 'Invalid email or password'})
@@ -185,7 +185,7 @@ def register():
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'success': False, 'errors': errors})
             else:
-                return render_template('register.html')
+                return render_template('register.html', errors=errors)
         
         # Create user
         user_id = User.create(username, email, password)
@@ -204,7 +204,7 @@ def register():
             # Return success response or redirect
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'success': True, 'redirect': url_for('view_blog', auth_event='login', username=username)})
-            else:
+        else:
                 return redirect(url_for('view_blog', auth_event='login', username=username))
     
     return render_template('register.html')
@@ -542,26 +542,60 @@ def visitor_analytics():
 @admin_required
 def user_analytics():
     """User statistics"""
-    analytics = User.get_analytics()
-    
-    # Get the most up-to-date user count directly from the database
+    # Get fresh data directly from the database to ensure accuracy
     conn = get_db_connection()
-    result = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()
-    current_total_users = result['count'] if result else 0
-    conn.close()
     
-    # Handle case when analytics is None
-    if analytics is None:
-        # Provide default empty analytics data
-        analytics = {
-            'total_users': current_total_users,
-            'by_role': [],
-            'recent_users': [],
-            'all_users': []
-        }
+    # Get total users count
+    result = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()
+    total_users = result['count'] if result else 0
+    
+    # Get users by role
+    by_role_query = '''
+        SELECT role, COUNT(*) as count 
+        FROM users 
+        GROUP BY role 
+        ORDER BY count DESC
+    '''
+    by_role = conn.execute(by_role_query).fetchall()
+    
+    # First check which columns exist in the users table
+    table_info = conn.execute("PRAGMA table_info(users)").fetchall()
+    columns = [col['name'] for col in table_info]
+    
+    # Get all users for the table view with most recent first
+    # Determine if created_at exists, otherwise use registration_date or id as fallback
+    if 'created_at' in columns:
+        order_by = 'created_at DESC'
+        all_users_query = f'''
+            SELECT id, username, email, role, created_at 
+            FROM users 
+            ORDER BY {order_by}
+        '''
     else:
-        # Update the total_users with the current count
-        analytics['total_users'] = current_total_users
+        # Fallback to ordering by ID if created_at doesn't exist
+        order_by = 'id DESC'
+        all_users_query = f'''
+            SELECT id, username, email, role
+            FROM users 
+            ORDER BY {order_by}
+        '''
+    
+    all_users = conn.execute(all_users_query).fetchall()
+    all_users_list = [dict(u) for u in all_users] if all_users else []
+    
+    # If created_at doesn't exist in the result, add a placeholder
+    if all_users_list and 'created_at' not in all_users_list[0]:
+        for user in all_users_list:
+            user['created_at'] = 'Not recorded'
+    
+    # Build the analytics dictionary
+    analytics = {
+        'total_users': total_users,
+        'by_role': [dict(r) for r in by_role] if by_role else [],
+        'all_users': all_users_list
+    }
+    
+    conn.close()
     
     return render_template('analytics/user_analytics.html', analytics=analytics)
 

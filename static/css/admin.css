@@ -373,8 +373,10 @@
 }
 
 .notification-message {
+    color: white;
     margin-bottom: 0.3rem;
-}
+}   
+
 
 .notification-time {
     font-size: 0.8rem;
