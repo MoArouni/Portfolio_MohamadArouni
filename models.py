@@ -175,6 +175,17 @@ class Post:
         return [Post._convert_post_timestamps(dict(post)) for post in posts]
     
     @staticmethod
+    def get_latest(limit=2):
+        """Get the latest n blog posts"""
+        conn = get_db_connection()
+        query = 'SELECT * FROM posts ORDER BY created_at DESC LIMIT ?'
+        posts = conn.execute(query, (limit,)).fetchall()
+        conn.close()
+        
+        # Convert to list of dicts and convert timestamps
+        return [Post._convert_post_timestamps(dict(post)) for post in posts]
+    
+    @staticmethod
     def get_by_id(post_id):
         """Get post by ID"""
         conn = get_db_connection()

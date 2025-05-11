@@ -373,7 +373,7 @@
 }
 
 .notification-message {
-    color: white;
+    color: var(--text-primary);
     margin-bottom: 0.3rem;
 }   
 

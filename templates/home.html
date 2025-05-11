@@ -4,7 +4,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/skills.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}"> 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/blog.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hero.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -98,8 +99,6 @@
                 <div class="wheel"></div>
             </div>
             <div class="arrow-scroll">
-                <span></span>
-                <span></span>
                 <span></span>
         </div>
         </a>
@@ -1020,6 +1019,64 @@
     </div>
 </section>
 
+<!-- Latest Blogs Section -->
+<section id="latest-blogs" class="latest-blogs-section">
+    <div class="section-header">
+        <h2 class="section-title">Latest Blogs</h2>
+        <div class="section-underline"></div>
+    </div>
+    
+    <div class="latest-blogs-container">
+        {% if latest_posts %}
+            <div class="latest-blogs-grid">
+                {% for post in latest_posts %}
+                    <div class="blog-preview-card">
+                        <div class="blog-preview-header">
+                            <div class="blog-preview-meta">
+                                <span class="date">
+                                    <i class="far fa-calendar-alt"></i> 
+                                    {{ post.created_at.strftime('%B %d, %Y') }}
+                                </span>
+                                <span class="views">
+                                    <i class="far fa-eye"></i>
+                                    {{ post.view_count|default(0) }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <h3 class="blog-preview-title">{{ post.title }}</h3>
+                        
+                        <div class="blog-preview-content">
+                            {% set content_preview = post.content[:150] + '...' if post.content|length > 150 else post.content %}
+                            {{ content_preview|nl2br|safe }}
+                        </div>
+                        
+                        <div class="blog-preview-footer">
+                            <div class="blog-preview-stats">
+                                <span class="comments">
+                                    <i class="far fa-comments"></i> {{ post.comments|length }}
+                                </span>
+                                <span class="likes">
+                                    <i class="far fa-heart"></i> {{ post.like_count }}
+                                </span>
+                            </div>
+                            <a href="{{ url_for('view_post', post_id=post.id) }}" class="btn btn-secondary">Read More</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-blogs">
+                <p>No blog posts found. Check back soon!</p>
+            </div>
+        {% endif %}
+        
+        <div class="view-all-blogs">
+            <a href="{{ url_for('view_blog') }}" class="btn btn-primary">View All Blogs</a>
+        </div>
+    </div>
+</section>
+
 <!-- Contact Section -->
 <section id="contact" class="contact-section">
     <div class="section-header">
@@ -1050,8 +1107,8 @@
                 
                 <div class="form-group">
                     <div class="form-field">
-                        <input type="text" id="contact-message" name="message" required placeholder=" ">
-                        <label for="contact-message">Message</label>
+                        <input type="text" id="contact-subject" name="subject" required placeholder=" ">
+                        <label for="contact-subject">Subject</label>
                         <div class="form-field-bar"></div>
                         <span class="validation-message" aria-live="polite"></span>
                     </div>
@@ -1059,6 +1116,15 @@
                     <div class="form-field">
                         <input type="text" id="contact-phone" name="phone" required placeholder=" ">
                         <label for="contact-phone">Phone</label>
+                        <div class="form-field-bar"></div>
+                        <span class="validation-message" aria-live="polite"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-field">
+                        <input type="text" id="contact-message" name="message" required placeholder=" ">
+                        <label for="contact-message">Message</label>
                         <div class="form-field-bar"></div>
                         <span class="validation-message" aria-live="polite"></span>
                     </div>

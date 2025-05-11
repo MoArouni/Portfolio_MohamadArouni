@@ -66,7 +66,15 @@ def inject_current_year():
 # Routes
 @app.route('/')
 def home():
-    return render_template('home.html')
+    # Get the latest blog posts
+    latest_posts = Post.get_latest(2)
+    
+    # Get comments and like count for each post
+    for post in latest_posts:
+        post['comments'] = Comment.get_for_post(post['id'])
+        post['like_count'] = BlogLike.get_count_for_post(post['id'])
+        
+    return render_template('home.html', latest_posts=latest_posts)
 
 @app.route('/blog')
 def view_blog():
@@ -89,6 +97,11 @@ def view_blog():
             post['user_has_liked'] = BlogLike.has_user_liked(post['id'], g.user['id'])
         else:
             post['user_has_liked'] = False
+    
+    # If a specific post is highlighted in the query parameters, increment its view count
+    highlighted_post_id = request.args.get('post_id')
+    if highlighted_post_id and highlighted_post_id.isdigit():
+        Post.increment_view_count(int(highlighted_post_id))
     
     return render_template('view_blog.html', posts=posts, 
                           available_months=available_months,

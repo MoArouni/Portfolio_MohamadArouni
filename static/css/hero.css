@@ -97,8 +97,9 @@
     margin: 0 auto;
     overflow: hidden;
     border-radius: 50%;
+    background: none;
     box-shadow: var(--shadow-medium);
-    border: 5px solid var(--primary);
+    border: 2px solid var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -134,8 +135,7 @@
 .scroll-indicator {
     position: absolute;
     bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -296,3 +296,297 @@
     }
     
 } 
+
+
+
+
+
+
+
+
+
+
+/* Style for particles to cover entire page */
+#particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Add subtle background to sections for better content visibility */
+section {
+    background-color: rgba(var(--bg-primary-rgb), 0.7) !important;
+    backdrop-filter: blur(3px);
+}
+
+/* Quote styling */
+.quote-container {
+    position: relative;
+    padding-top: 3rem;
+    margin-bottom: 3rem;
+}
+
+.quote-text {
+    font-size: 1.5rem;
+    font-style: italic;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.quote-author {
+    font-weight: 600;
+    text-align: right;
+    margin-right: 1.5rem;
+    align-self: flex-end;
+    color: var(--primary);
+}
+
+/* Combined hero-about section */
+.hero-about-section {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    padding-top: 0;
+    position: relative;
+}
+
+.hero-about-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+}
+
+.hero-about-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    max-width: 500px;
+}
+
+.hero-about-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 400px;
+}
+
+/* Profile container */
+.profile-container {
+    width: 20rem;
+    height: auto;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.profile-container:hover {
+    transform: scale(1.05);
+}
+
+.profile-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+/* Gradient text */
+.gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+/* Description container */
+.hero-description-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+.hero-description {
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+/* About card styling */
+.about-card {
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    background-color: inherit;
+    border: 2px dashed var(--primary);
+    transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+    width: 100%;
+}
+
+.about-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.card-heading {
+    margin-bottom: 1.2rem;
+    position: relative;
+}
+
+.card-heading h3 {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+/* Remove the after pseudo-element from h3 */
+.card-heading h3:after {
+    content: none;
+}
+
+/* Hero section specific card styling */
+.hero-about-right .card-heading::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background-color: var(--primary);
+    border-radius: var(--radius-pill);
+}
+
+/* Languages section styling */
+.languages-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.language {
+    display: flex;
+    flex-direction: column;
+}
+
+.language span {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: rgba(110, 0, 255, 0.1);
+    border-radius: var(--radius-pill);
+}
+
+.progress {
+    height: 100%;
+    background-color: var(--primary);
+    border-radius: var(--radius-pill);
+}
+
+/* Service icon styling */
+.service-icon {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary);
+    color: white;
+    border-radius: var(--radius-round);
+    margin-right: 0.8rem;
+    font-size: 1rem;
+    box-shadow: 0 3px 8px rgba(110, 0, 255, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Services list styling */
+.services-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+
+}
+
+.services-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    transition: transform 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.services-list li:hover {
+    transform: translateX(5px);
+}
+
+/* Add CSS for the colored dots */
+.dot { display:inline-block; width:0.85em; height:0.85em; border-radius:50%; margin:0 0.2em; vertical-align:middle; }
+.dot.blue { background:#3498db; }
+.dot.green { background:#27ae60; }
+.dot.yellow { background:#f1c40f; }
+
+/* Scroll indicator */
+.scroll-indicator {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.scroll-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.mouse {
+    width: 30px;
+    height: 50px;
+    border: 2px solid var(--text-secondary);
+    border-radius: 20px;
+    position: relative;
+}
+
+
+.content-block {
+    margin-bottom: var(--spacing-xl);
+}
