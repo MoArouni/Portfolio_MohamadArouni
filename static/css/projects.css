@@ -218,6 +218,7 @@
 
 .modal.active .modal-content {
     transform: scale(1);
+    z-index: 1000;
 }
 
 .close-modal {
