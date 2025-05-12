@@ -1162,10 +1162,11 @@
     // Simple one-time progress bar animation
     document.addEventListener('DOMContentLoaded', function() {
         const skillItems = document.querySelectorAll('.skill-item');
+        let hasAnimated = false; // Track animation state
         
         // Function to animate the skill bars
         function animateSkillBars() {
-            if (animated) return;
+            if (hasAnimated) return; // Skip if already animated
             
             const skillsSection = document.getElementById('skills');
             if (!skillsSection) return;
@@ -1174,24 +1175,27 @@
             const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
             
             if (isVisible) {
-                animated = true;
+                hasAnimated = true; // Set animation state
         
                 // Animate each skill bar
                 skillItems.forEach((item, index) => {
                     setTimeout(() => {
-            const progressBar = item.querySelector('.skill-progress');
+                        const progressBar = item.querySelector('.skill-progress');
+                        if (!progressBar) return; // Skip if no progress bar found
+                        
                         const percentEl = item.querySelector('.skill-percentage');
-                        const targetWidth = progressBar.getAttribute('data-width');
+                        const targetWidth = progressBar.getAttribute('data-width') || '0%';
                         
                         // Add animation class
                         progressBar.classList.add('animate-progress');
                         progressBar.style.width = targetWidth;
                         
-                        // Show percentage
-                        percentEl.style.opacity = "1";
+                        // Show percentage if element exists
+                        if (percentEl) {
+                            percentEl.style.opacity = "1";
+                        }
                     }, index * 25);
                 });
-                
             }
         }
         
@@ -1200,7 +1204,6 @@
 
         // Check immediately in case skills section is already visible
         animateSkillBars();
-        
     });
 
     // Toggle function for the skills legend sidebar

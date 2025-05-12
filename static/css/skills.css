@@ -315,9 +315,8 @@
 /* Style for the skills legend sidebar */
 .skills-legend-toggle {
     position: absolute;
-    right: auto;
-    left: calc(50% + 150px);
-    top: 50px;
+    right: 1rem;
+    top: 20px;
     font-size: 1.5rem;
     cursor: pointer;
     background-color: var(--bg-card);

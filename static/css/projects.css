@@ -46,9 +46,44 @@
     backdrop-filter: blur(5px);
 }
 
-.project-card:hover {
+/* Remove hover transform for mobile */
+@media (hover: hover) {
+    .project-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-medium);
+    }
+    
+    .project-card:hover .project-img img {
+        transform: scale(1.05);
+    }
+    
+    .project-card:hover .project-overlay {
+        opacity: 1;
+    }
+    
+    .project-card:hover .project-links a {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Add active state for mobile */
+.project-card.active {
     transform: translateY(-10px);
     box-shadow: var(--shadow-medium);
+}
+
+.project-card.active .project-img img {
+    transform: scale(1.05);
+}
+
+.project-card.active .project-overlay {
+    opacity: 1;
+}
+
+.project-card.active .project-links a {
+    transform: translateY(0);
+    opacity: 1;
 }
 
 .project-img {
@@ -64,10 +99,6 @@
     transition: transform var(--transition-medium);
 }
 
-.project-card:hover .project-img img {
-    transform: scale(1.05);
-}
-
 .project-overlay {
     position: absolute;
     top: 0;
@@ -80,30 +111,29 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.project-card:hover .project-overlay {
-    opacity: 1;
+    cursor: pointer; /* Add cursor pointer to indicate clickable */
 }
 
 .project-links {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
 }
 
 .project-links a {
-    width: 45px;
-    height: 45px;
+    width: 3.5rem;
+    height: 3.5rem;
     border-radius: var(--radius-round);
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     transition: all var(--transition-fast);
     transform: translateY(20px);
     opacity: 0;
+    backdrop-filter: blur(4px);
+    cursor: pointer; /* Add cursor pointer */
 }
 
 .project-card:hover .project-links a {
@@ -113,6 +143,7 @@
 
 .project-links a:hover {
     background-color: var(--primary);
+    transform: translateY(-5px);
 }
 
 .project-links a:nth-child(1) {
@@ -270,6 +301,77 @@
     background-color: var(--primary);
     color: #fff;
     transform: translateY(-5px);
+}
+
+/* Mobile Responsive Styles */
+@media screen and (max-width: 480px) {
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 1rem;
+    }
+
+    .project-card {
+        margin: 0;
+    }
+
+    .project-img {
+        height: 200px;
+    }
+
+    .project-links {
+        gap: 1rem;
+    }
+
+    .project-links a {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.25rem;
+        /* Remove opacity and transform for mobile */
+        opacity: 1;
+        transform: translateY(0);
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    /* Add touch feedback */
+    .project-links a:active {
+        transform: scale(0.95);
+        background-color: var(--primary);
+    }
+
+    .project-title {
+        font-size: 1.2rem;
+    }
+
+    .project-category {
+        font-size: 0.85rem;
+    }
+
+    .project-info {
+        padding: 1.25rem;
+    }
+
+    .modal-content {
+        padding: 1.25rem;
+        margin: 0.5rem;
+        max-height: 85vh; /* Ensure modal doesn't take full screen height */
+    }
+
+    .modal-project-img {
+        max-height: 200px; /* Smaller image on mobile */
+    }
+
+    .modal-project-title {
+        font-size: 1.4rem;
+    }
+
+    .modal-project-category {
+        font-size: 0.9rem;
+    }
+
+    .modal-project-description {
+        font-size: 0.95rem;
+    }
 }
 
 /* Responsive */

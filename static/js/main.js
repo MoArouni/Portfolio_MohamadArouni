@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize project modals
     initProjectModals();
 
+    // Initialize project cards for mobile
+    initProjectCards();
+
     // Initialize scroll indicator
     initScrollIndicator();
     
@@ -387,20 +390,24 @@ function initScrollIndicator() {
 function initSkillProgressBars() {
     const skillItems = document.querySelectorAll('.skill-item');
     
+    if (!skillItems.length) return; // Exit if no skill items found
+    
     skillItems.forEach(item => {
         const progressBar = item.querySelector('.skill-progress');
-        // Store the original width from inline style
-        const originalWidth = progressBar.style.width;
+        if (!progressBar) return; // Skip if no progress bar found
+        
+        // Store the original width from inline style or data attribute
+        const originalWidth = progressBar.style.width || progressBar.getAttribute('data-width') || '0%';
         progressBar.setAttribute('data-width', originalWidth);
         
-        // Set the width to 0 initially and animate when visible
+        // Set the width to 0 initially
         progressBar.style.width = '0%';
     });
     
     // Function to animate progress bars when visible
     function animateProgressBars() {
         const skillsSection = document.getElementById('skills');
-        if (!skillsSection) return;
+        if (!skillsSection) return; // Exit if skills section not found
         
         const sectionTop = skillsSection.getBoundingClientRect().top;
         const windowHeight = window.innerHeight;
@@ -408,15 +415,13 @@ function initSkillProgressBars() {
         if (sectionTop < windowHeight * 0.75) {
             skillItems.forEach(item => {
                 const progressBar = item.querySelector('.skill-progress');
-                // Get the original width from the data attribute or style
-                const originalWidth = progressBar.getAttribute('data-width') || 
-                                     progressBar.style.width || 
-                                     (progressBar.getAttribute('style') && 
-                                      progressBar.getAttribute('style').match(/width:\s*(\d+)%/) ? 
-                                      progressBar.getAttribute('style').match(/width:\s*(\d+)%/)[1] + '%' : 
-                                      '0%');
+                if (!progressBar) return; // Skip if no progress bar found
                 
-                // Animate the progress bar
+                // Get the original width from data attribute or default to 0%
+                const originalWidth = progressBar.getAttribute('data-width') || '0%';
+                
+                // Add animation class and set the width
+                progressBar.classList.add('animate-progress');
                 progressBar.style.width = originalWidth;
             });
             
@@ -666,6 +671,48 @@ function initCustomFormValidations() {
             validationMessageSpan.style.display = 'none';
         }
     }
+}
+
+// Initialize project cards for mobile interaction
+function initProjectCards() {
+    const projectCards = document.querySelectorAll('.project-card');
+    
+    projectCards.forEach(card => {
+        const overlay = card.querySelector('.project-overlay');
+        const links = card.querySelectorAll('.project-links a');
+        
+        // Handle card click
+        overlay.addEventListener('click', (e) => {
+            // Don't toggle if clicking on a link
+            if (e.target.closest('.project-links a')) {
+                return;
+            }
+            
+            // Toggle active state
+            card.classList.toggle('active');
+            
+            // Close other cards
+            projectCards.forEach(otherCard => {
+                if (otherCard !== card) {
+                    otherCard.classList.remove('active');
+                }
+            });
+        });
+        
+        // Handle link clicks
+        links.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card toggle when clicking links
+            });
+        });
+        
+        // Close card when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!card.contains(e.target)) {
+                card.classList.remove('active');
+            }
+        });
+    });
 }
 
 // Note: particles.js configuration moved to separate file as requested
