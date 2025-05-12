@@ -4,8 +4,9 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification
-from db_init import get_db_connection, init_db
+from db_init import get_db_connection, init_db, create_admin_user
 from functools import wraps
+from dotenv import load_dotenv
 import math
 
 # Configure app
@@ -138,6 +139,7 @@ def login():
         user = User.authenticate(email, password)
         
         if user:
+            # Debug prints
             session.clear()
             session['user_id'] = user['id']
             session['username'] = user['username']

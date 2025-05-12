@@ -2,9 +2,32 @@ import sqlite3
 import os
 from werkzeug.security import generate_password_hash
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
+
+username = os.getenv('username')
+email = os.getenv('email')
+password = os.getenv('password')
+
+# Debug prints to verify environment variables
+print("Environment variables loaded:")
+print(f"Username: {username}")
+print(f"Email: {email}")
+print(f"Password: {'*' * len(password) if password else None}")
 
 # Database file path
 DB_PATH = 'blog.db'
+
+def update_admin_user(conn):
+    """Update the existing admin user"""
+    hashed_password = generate_password_hash(password)
+    conn.execute(
+        'UPDATE users SET username = ?, email = ?, password = ? WHERE role = ?',
+        ('MoArouni', email, hashed_password, 'admin')
+    )
+    print("Admin user updated")
+    print(f"Username: {username}")
 
 def init_db():
     """Initialize the database with schema"""
@@ -18,6 +41,17 @@ def init_db():
     # Enable foreign keys
     conn.execute('PRAGMA foreign_keys = ON')
     
+    # If database exists, check and update current admin user
+    if db_exists:
+        admin_user = conn.execute('SELECT username, email, role FROM users WHERE role = ?', ('admin',)).fetchone()
+        if admin_user:
+            print("\nCurrent admin user in database:")
+            print(f"Username: {admin_user['username']}")
+            print(f"Email: {admin_user['email']}")
+            print(f"Role: {admin_user['role']}")
+            # Update the admin user
+
+    
     # Create tables from schema file
     with open('schema.sql', 'r') as f:
         conn.executescript(f.read())
@@ -25,19 +59,23 @@ def init_db():
     # If this is a new database, add a default admin user
     if not db_exists:
         create_admin_user(conn)
+        update_admin_user(conn)
     
     conn.commit()
     conn.close()
     
-    print(f"Database initialized at {DB_PATH}")
+    print(f"\nDatabase initialized at {DB_PATH}")
 
 def create_admin_user(conn):
     """Create a default admin user"""
-    hashed_password = generate_password_hash('admin123')
+    hashed_password = generate_password_hash(password)
     conn.execute(
         'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
-        ('admin', 'admin@example.com', hashed_password, 'admin')
+        ('MoArouni', email, hashed_password, 'admin')
     )
+    print(f"Username: {username}")
+    print(f"Email: {email}")
+    print(f"Password: {'*' * len(password) if password else None}")
     print("Default admin user created")
 
 def get_db_connection():
