@@ -331,14 +331,31 @@ function initProjectModals() {
     if (!modal || !closeBtn || !modalBody || detailsBtns.length === 0) return;
     
     // Close modal when clicking on X
-    closeBtn.addEventListener('click', () => {
+    closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         modal.classList.remove('active');
+        // Enable scrolling on body
+        document.body.style.overflow = '';
     });
     
     // Close modal when clicking outside
     window.addEventListener('click', (e) => {
         if (e.target === modal) {
+            e.preventDefault();
+            e.stopPropagation();
             modal.classList.remove('active');
+            // Enable scrolling on body
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+            // Enable scrolling on body
+            document.body.style.overflow = '';
         }
     });
     
@@ -346,6 +363,7 @@ function initProjectModals() {
     detailsBtns.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             
             // Get project details
             const projectCard = this.closest('.project-card');
@@ -368,6 +386,15 @@ function initProjectModals() {
             
             // Add active class to open modal
             modal.classList.add('active');
+            
+            // Prevent body scrolling when modal is open
+            document.body.style.overflow = 'hidden';
+            
+            // Ensure modal is at the top level of the stacking context
+            modal.style.zIndex = '9999';
+            
+            // Force browser to recalculate layout (helps with mobile rendering)
+            void modal.offsetWidth;
         });
     });
 }
