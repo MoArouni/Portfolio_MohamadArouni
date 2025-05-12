@@ -4,7 +4,7 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification
-from db_init import get_db_connection, init_db, create_admin_user
+from db_init import get_db_connection, init_db, create_admin_user1
 from functools import wraps
 from dotenv import load_dotenv
 import math
@@ -140,10 +140,19 @@ def login():
         
         if user:
             # Debug prints
+            print("\nLogin successful:")
+            print(f"User from database - Username: {user['username']}")
+            print(f"User from database - Role: {user['role']}")
+            
             session.clear()
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
+            
+            # Debug prints after session update
+            print("\nSession after update:")
+            print(f"Session username: {session.get('username')}")
+            print(f"Session role: {session.get('role')}")
             
             # For AJAX requests, return a success indicator
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
