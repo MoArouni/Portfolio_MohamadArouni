@@ -370,13 +370,9 @@ function initProjectModals() {
             const projectTitle = projectCard.querySelector('.project-title').textContent;
             const projectCategory = projectCard.querySelector('.project-category').textContent;
             const projectDescription = projectCard.querySelector('.project-description').innerHTML;
-            const projectImage = projectCard.querySelector('.project-img img').getAttribute('src');
             
             // Populate modal
             modalBody.innerHTML = `
-                <div class="modal-project-img">
-                    <img src="${projectImage}" alt="${projectTitle}">
-                </div>
                 <h2 class="modal-project-title">${projectTitle}</h2>
                 <p class="modal-project-category">${projectCategory}</p>
                 <div class="modal-project-description">
