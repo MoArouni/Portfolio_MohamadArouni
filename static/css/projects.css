@@ -179,6 +179,7 @@
 .modal.active {
     opacity: 1;
     visibility: visible;
+    z-index: 1000;
 }
 
 .modal-content {
@@ -192,6 +193,7 @@
     overflow-y: auto;
     transform: scale(0.8);
     transition: transform var(--transition-medium);
+    z-index: 1000;
 }
 
 .modal.active .modal-content {
