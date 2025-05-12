@@ -45,24 +45,6 @@
     border: 1px solid var(--border-color);
     backdrop-filter: blur(5px);
 }
-/* Add active state for mobile */
-.project-card.active {
-    transform: translateY(-10px);
-    box-shadow: var(--shadow-medium);
-}
-
-.project-card.active .project-img img {
-    transform: scale(1.05);
-}
-
-.project-card.active .project-overlay {
-    opacity: 1;
-}
-
-.project-card.active .project-links a {
-    transform: translateY(0);
-    opacity: 1;
-}
 
 .project-img {
     position: relative;
