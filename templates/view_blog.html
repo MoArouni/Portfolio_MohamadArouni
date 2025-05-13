@@ -55,10 +55,6 @@
                                 <i class="far fa-calendar-alt"></i> 
                                 {{ post.created_at.strftime('%B %d, %Y') }}
                             </span>
-                            <span class="time">
-                                <i class="far fa-clock"></i>
-                                {{ post.created_at.strftime('%I:%M %p') }}
-                            </span>
                         </div>
                         
                         {% if session.role == 'admin' %}
