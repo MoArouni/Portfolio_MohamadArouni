@@ -69,3 +69,6 @@ htmlcov/
 ._*
 
 
+temporary/
+
+migrations/

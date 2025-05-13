@@ -720,10 +720,9 @@ def send_verification_link():
     # Create verification link
     verification_link = url_for('verify_download', token=token, _external=True)
     
-    # Fallback for local development
+    # Fallback for environments where _external=True doesn't generate absolute URLs
     if not verification_link.startswith(('http://', 'https://')):
-        # Use request.host_url which includes the schema (http:// or https://)
-        base_url = request.host_url.rstrip('/')
+        base_url = get_app_base_url()
         relative_path = url_for('verify_download', token=token).lstrip('/')
         verification_link = f"{base_url}/{relative_path}"
     
@@ -801,6 +800,22 @@ def verify_download():
     except Exception as e:
         print(f"Error verifying download: {e}")
         return redirect(url_for('home', error='An error occurred while processing your request'))
+
+# Helper function to get application URL
+def get_app_base_url():
+    """Get the base URL for the application based on the environment"""
+    # Check for Railway environment variables
+    railway_env = os.environ.get('RAILWAY_ENVIRONMENT')
+    if railway_env:
+        # If on Railway, use the provided domain
+        return f"https://{os.environ.get('RAILWAY_PUBLIC_DOMAIN', 'your-domain.up.railway.app')}"
+    
+    # Fallback to request.host_url for local development
+    if request and hasattr(request, 'host_url'):
+        return request.host_url.rstrip('/')
+    
+    # Final fallback - shouldn't reach here if configured correctly
+    return "http://localhost:5000"
 
 if __name__ == '__main__':
     app.run(debug=True) 
