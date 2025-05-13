@@ -32,7 +32,7 @@
     <div class="quote-container">
         <p class="quote-text">"What is now proved was once only imagined."</p>
         <p class="quote-author">— William Blake</p>
-    </div>
+        </div>
         
     <!-- Main Content -->
     <div class="hero-about-container">
@@ -41,7 +41,7 @@
             <!-- Profile Image -->
             <div class="profile-container">
                 <img src="{{ url_for('static', filename='images/about/me/me.png') }}" alt="Mohamad Arouni">
-            </div>
+    </div>
     
             <h2 class="gradient-text">Mohamad Arouni</h2>
             
@@ -54,9 +54,9 @@
                         <i class="fas fa-file-download"></i> Download CV
                     </a>
                     <a href="#projects" class="btn btn-secondary">View Projects</a>
+                    </div>
                 </div>
-            </div>
-        </div>
+                    </div>
             
         <!-- Right Side with Services and Languages stacked -->
         <div class="hero-about-right">
@@ -70,7 +70,7 @@
                     <li><span class="service-icon"><i class="fas fa-chart-line"></i></span> Data Analysis & Visualization</li>
                     <li><span class="service-icon"><i class="fas fa-cogs"></i></span> Software Engineering</li>
                 </ul>
-            </div>
+        </div>
 
             <!-- Languages Card -->
             <div class="about-card">
@@ -82,8 +82,8 @@
                         <span>English</span>
                         <div class="progress-bar">
                             <div class="progress" style="width: 100%"></div>
-                        </div>
-                    </div>
+            </div>
+        </div>
                     <div class="language">
                         <span>French</span>
                         <div class="progress-bar">
@@ -104,8 +104,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+                </div>
+                </div>
     
 </section>
 
@@ -184,7 +184,7 @@
                 <label for="cv-email">Email Address <span class="required-indicator">*</span></label>
                 <input type="email" id="cv-email" placeholder="Enter your email address" required>
                 <span class="validation-message"></span>
-            </div>
+                </div>
             
             <div class="verification-button-container">
                 <button id="sendVerificationBtn" class="btn btn-primary verification-btn">
@@ -239,31 +239,31 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Function to show message toasts
-        function showMessage(message, type) {
-            const messageElement = document.createElement('div');
-            messageElement.textContent = message;
-            messageElement.className = `message-toast ${type}`;
-            document.body.appendChild(messageElement);
-            
-            // Show the message
+    function showMessage(message, type) {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = message;
+        messageElement.className = `message-toast ${type}`;
+        document.body.appendChild(messageElement);
+        
+        // Show the message
+        setTimeout(() => {
+            messageElement.classList.add('visible');
+        }, 100);
+        
+        // Hide and remove after 3 seconds (except for loading messages)
+        if (type !== 'info') {
             setTimeout(() => {
-                messageElement.classList.add('visible');
-            }, 100);
-            
-            // Hide and remove after 3 seconds (except for loading messages)
-            if (type !== 'info') {
+                messageElement.classList.remove('visible');
                 setTimeout(() => {
-                    messageElement.classList.remove('visible');
-                    setTimeout(() => {
-                        if (messageElement.parentNode) {
-                            document.body.removeChild(messageElement);
-                        }
-                    }, 300);
-                }, 3000);
-            }
-            
-            return messageElement;
+                    if (messageElement.parentNode) {
+                        document.body.removeChild(messageElement);
+                    }
+                }, 300);
+            }, 3000);
         }
+        
+        return messageElement;
+    }
         
         // Close alert buttons
         document.querySelectorAll('.alert-close').forEach(button => {
@@ -947,7 +947,7 @@
                         <div class="skill-top">
                             <span style="font-size:1.2em;">🧠</span>
                             <span class="dot blue"></span>
-                        </div>
+                </div>
                         <h3>Teamwork</h3>
                         <div class="skill-bottom">
                             <i class="fas fa-user-friends"></i>
@@ -1158,16 +1158,16 @@
                                     <i class="far fa-eye"></i>
                                     {{ post.view_count|default(0) }}
                                 </span>
-                            </div>
-                        </div>
+                </div>
+                </div>
                         
                         <h3 class="blog-preview-title">{{ post.title }}</h3>
                         
                         <div class="blog-preview-content">
                             {% set content_preview = post.content[:150] + '...' if post.content|length > 150 else post.content %}
                             {{ content_preview|nl2br|safe }}
-                        </div>
-                        
+            </div>
+            
                         <div class="blog-preview-footer">
                             <div class="blog-preview-stats">
                                 <span class="comments">
@@ -1176,12 +1176,12 @@
                                 <span class="likes">
                                     <i class="far fa-heart"></i> {{ post.like_count }}
                                 </span>
-                            </div>
+                </div>
                             <a href="{{ url_for('view_post', post_id=post.id) }}" class="btn btn-secondary">Read More</a>
-                        </div>
-                    </div>
-                {% endfor %}
+                </div>
             </div>
+                {% endfor %}
+                </div>
         {% else %}
             <div class="empty-blogs">
                 <p>No blog posts found. Check back soon!</p>
@@ -1190,8 +1190,8 @@
         
         <div class="view-all-blogs">
             <a href="{{ url_for('view_blog') }}" class="btn btn-primary">View All Blogs</a>
+            </div>
         </div>
-    </div>
 </section>
 
 <!-- Contact Section -->
@@ -1567,4 +1567,4 @@
     });
 </script>
 
-{% endblock %}
+{% endblock %} 
