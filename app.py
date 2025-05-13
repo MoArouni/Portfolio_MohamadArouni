@@ -743,9 +743,6 @@ def send_verification_link():
         # Send email
         mail.send(msg)
         
-        # Create notification for admin
-        Notification.create('cv_verification', f"Verification link sent to {email} for {reason}", is_anonymous=True)
-        
         return jsonify({
             'success': True,
             'message': 'Verification link sent. Please check your email to continue.'
