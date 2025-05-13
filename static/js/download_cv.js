@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const downloadOptions = document.querySelectorAll('.download-option');
     const otherReasonForm = document.getElementById('otherReasonForm');
     const otherReasonInput = document.getElementById('other-reason-text');
+    const emailInput = document.getElementById('cv-email');
+    const emailValidationMessage = document.querySelector('.email-input-container .validation-message');
 
     if (!modal || !downloadBtn) return;
 
@@ -17,24 +19,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close modal when X button or Cancel is clicked
     closeBtn.addEventListener('click', function() {
         modal.classList.remove('active');
+        resetForm();
     });
 
     cancelBtn.addEventListener('click', function() {
         modal.classList.remove('active');
+        resetForm();
     });
 
     // Close modal when clicking outside the modal content
     window.addEventListener('click', function(event) {
         if (event.target === modal) {
             modal.classList.remove('active');
+            resetForm();
         }
+    });
+
+    // Validate email input
+    emailInput.addEventListener('input', function() {
+        validateEmail();
     });
 
     // Handle download option clicks
     downloadOptions.forEach(option => {
         option.addEventListener('click', function() {
             const reason = this.getAttribute('data-reason');
-            downloadCV(reason);
+            if (validateEmail()) {
+                downloadCV(reason, emailInput.value);
+            }
         });
     });
 
@@ -42,15 +54,49 @@ document.addEventListener('DOMContentLoaded', function() {
     otherReasonForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const reason = otherReasonInput.value.trim();
+        
+        if (!validateEmail()) {
+            return;
+        }
+        
         if (reason) {
-            downloadCV(reason);
+            downloadCV(reason, emailInput.value);
         } else {
             showMessage('Please specify a reason for downloading', 'error');
         }
     });
 
+    // Function to validate email
+    function validateEmail() {
+        const email = emailInput.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!email) {
+            emailInput.classList.add('invalid');
+            emailValidationMessage.textContent = 'Email address is required';
+            return false;
+        } else if (!emailRegex.test(email)) {
+            emailInput.classList.add('invalid');
+            emailValidationMessage.textContent = 'Please enter a valid email address';
+            return false;
+        } else {
+            emailInput.classList.remove('invalid');
+            emailInput.classList.add('valid');
+            emailValidationMessage.textContent = '';
+            return true;
+        }
+    }
+
+    // Function to reset form
+    function resetForm() {
+        emailInput.value = '';
+        otherReasonInput.value = '';
+        emailInput.classList.remove('invalid', 'valid');
+        emailValidationMessage.textContent = '';
+    }
+
     // Function to handle CV download
-    function downloadCV(reason) {
+    function downloadCV(reason, email) {
         // Show loading message
         const loadingMessage = showMessage('Preparing download...', 'info');
 
@@ -60,7 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ reason: reason })
+            body: JSON.stringify({ 
+                reason: reason,
+                email: email
+            })
         })
         .then(response => {
             if (!response.ok) {
@@ -84,6 +133,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Close the modal
             modal.classList.remove('active');
+            
+            // Reset the form
+            resetForm();
 
             // Show success message
             showMessage('CV downloaded successfully!', 'success');

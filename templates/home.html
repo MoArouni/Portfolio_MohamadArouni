@@ -14,23 +14,23 @@
 
 <!-- Combined Hero & About Section -->
 <section id="hero-about" class="hero-about-section">
-    
+    <!-- Quote at the top -->
     <div class="quote-container">
         <p class="quote-text">"What is now proved was once only imagined."</p>
         <p class="quote-author">— William Blake</p>
-        </div>
+    </div>
         
+    <!-- Main Content -->
     <div class="hero-about-container">
         <!-- Left Side: Name, Profile, Description and Buttons -->
         <div class="hero-about-left">
             <!-- Profile Image -->
             <div class="profile-container">
                 <img src="{{ url_for('static', filename='images/about/me/me.png') }}" alt="Mohamad Arouni">
-    </div>
+            </div>
     
             <h2 class="gradient-text">Mohamad Arouni</h2>
             
-    
             <!-- Description & Buttons -->
             <div class="hero-description-container">
                 <p class="hero-description">Aspiring full-stack / Software Engineer</p>
@@ -42,7 +42,7 @@
                     <a href="#projects" class="btn btn-secondary">View Projects</a>
                 </div>
             </div>
-                    </div>
+        </div>
             
         <!-- Right Side with Services and Languages stacked -->
         <div class="hero-about-right">
@@ -56,7 +56,7 @@
                     <li><span class="service-icon"><i class="fas fa-chart-line"></i></span> Data Analysis & Visualization</li>
                     <li><span class="service-icon"><i class="fas fa-cogs"></i></span> Software Engineering</li>
                 </ul>
-        </div>
+            </div>
 
             <!-- Languages Card -->
             <div class="about-card">
@@ -68,8 +68,8 @@
                         <span>English</span>
                         <div class="progress-bar">
                             <div class="progress" style="width: 100%"></div>
-            </div>
-        </div>
+                        </div>
+                    </div>
                     <div class="language">
                         <span>French</span>
                         <div class="progress-bar">
@@ -90,19 +90,9 @@
                     </div>
                 </div>
             </div>
-                </div>
-                </div>
-    
-    <div class="scroll-indicator">
-        <a href="#education" class="scroll-link">
-            <div class="mouse">
-                <div class="wheel"></div>
-            </div>
-            <div class="arrow-scroll">
-                <span></span>
         </div>
-        </a>
     </div>
+    
 </section>
 
 <!-- CV Download Modal -->
@@ -111,6 +101,13 @@
         <span class="close-modal">&times;</span>
         <h3>Download CV</h3>
         <p>Please select a reason for downloading the CV:</p>
+        
+        <!-- Email input field (required for all downloads) -->
+        <div class="form-group email-input-container">
+            <label for="cv-email">Email Address <span class="required-indicator">*</span></label>
+            <input type="email" id="cv-email" placeholder="Enter your email address" required>
+            <span class="validation-message"></span>
+        </div>
         
         <div class="download-options">
             <a href="javascript:void(0);" class="download-option" data-reason="Job Application">

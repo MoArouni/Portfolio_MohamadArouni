@@ -62,6 +62,7 @@
     max-width: 1200px;
     margin-top: var(--spacing-xl);
     padding: 0 var(--spacing-lg);
+    position: relative;
 }
 
 .hero-text {
@@ -135,12 +136,24 @@
 .scroll-indicator {
     position: absolute;
     bottom: 2rem;
+    left: 50%;
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
     cursor: pointer;
+    z-index: 10;
+}
+
+.scroll-link {
+    text-decoration: none;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
 }
 
 .mouse {
@@ -164,10 +177,11 @@
 }
 
 .arrow-scroll {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
 }
 
 .arrow-scroll span {
@@ -328,16 +342,18 @@ section {
 /* Quote styling */
 .quote-container {
     position: relative;
-    padding-top: 3rem;
-    margin-bottom: 3rem;
+    top: 3rem;
+    text-align: center;
+    width: 90%;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .quote-text {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-style: italic;
-    margin-bottom: 1rem;
     color: var(--text-primary);
-    line-height: 1;
+    line-height: 1.6;
 }
 
 .quote-author {
@@ -350,24 +366,30 @@ section {
 
 /* Combined hero-about section */
 .hero-about-section {
-    height: 100vh;
+    min-height: 100vh;
+    height: 100vh; /* Set fixed height to ensure vertical centering */
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 2rem;
-    padding-top: 0;
-    position: relative;
+    width: 100%;
+    padding: 0 2rem;
+    overflow: hidden;
 }
 
 .hero-about-container {
     display: flex;
-    align-items: center;
+    flex-direction: row;
     justify-content: center;
-    max-width: 1400px;
-    width: 100%;
+    align-items: center;
+    width: 90%;
+    max-width: 1100px;
     margin: 0 auto;
+    gap: 3rem;
+    padding: 2rem;
     position: relative;
+    z-index: 2;
 }
 
 .hero-about-left {
@@ -375,7 +397,7 @@ section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2rem;
+    gap: 1.5rem;
     max-width: 500px;
 }
 
@@ -384,7 +406,7 @@ section {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    max-width: 400px;
+    max-width: 500px;
 }
 
 /* Profile container */
@@ -560,33 +582,172 @@ section {
 .dot.green { background:#27ae60; }
 .dot.yellow { background:#f1c40f; }
 
-/* Scroll indicator */
-.scroll-indicator {
-    position: absolute;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-}
-
-.scroll-link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    color: inherit;
-}
-
-.mouse {
-    width: 30px;
-    height: 50px;
-    border: 2px solid var(--text-secondary);
-    border-radius: 20px;
-    position: relative;
-}
-
-
 .content-block {
     margin-bottom: var(--spacing-xl);
+}
+
+/* Add media queries for mobile responsiveness */
+@media screen and (min-width: 769px) and (max-width: 992px) {
+    .hero-about-container {
+        flex-direction: column;
+        gap: 3rem;
+        padding: 1rem;
+    }
+    
+    .hero-about-left, .hero-about-right {
+        max-width: 600px;
+        width: 100%;
+        align-items: center;
+    }
+    
+    .hero-about-right {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .quote-container {
+        top: 5rem;
+    }
+    
+    .hero-about-section {
+        padding-top: 0;
+        padding-bottom: 0;
+        height: auto;
+        min-height: 100vh;
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .hero-about-section {
+        padding: 0 2rem;
+        justify-content: center;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .quote-container {
+        margin-top: 3rem;
+        width: 90%;
+    }
+    
+    .hero-about-container {
+        flex-direction: column;
+        gap: 3rem;
+        padding: 1rem;
+        margin-top: 6rem;
+        margin-bottom: 3rem;
+    }
+    
+    .hero-about-left, .hero-about-right {
+        max-width: 600px;
+        width: 100%;
+        align-items: center;
+    }
+    
+    .hero-about-right {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .profile-container {
+        width: 16rem;
+    }
+
+    .scroll-indicator {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .hero-about-right {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-about-section {
+        padding: 0 1.5rem;
+    }
+    
+    .hero-about-container {
+        width: 100%;
+        margin-top: 8rem;
+    }
+    
+    .quote-text {
+        font-size: 1.1rem;
+    }
+    
+    .gradient-text {
+        font-size: 2rem;
+    }
+    
+    .hero-buttons {
+        width: 30%;
+        flex-direction: column;
+    }
+    
+    .hero-buttons a {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .languages-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .scroll-indicator {
+        position: absolute;
+        bottom: 1rem;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .hero-about-section {
+        padding: 0 1rem;
+        justify-content: center;
+        min-height: 100vh;
+    }
+    
+    .quote-container {
+        top: 4rem;
+        width: 95%;
+    }
+    
+    .hero-about-container {
+        width: 100%;
+        padding: 0;
+        margin-top: 7rem;
+    }
+    
+    .profile-container {
+        width: 12rem;
+    }
+    
+    .quote-text {
+        font-size: 1.1rem;
+    }
+    
+    .gradient-text {
+        font-size: 2rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .hero-buttons a {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .languages-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .scroll-indicator {
+        position: absolute;
+        bottom: 1rem;
+    }
 }
