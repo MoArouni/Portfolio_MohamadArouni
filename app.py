@@ -8,6 +8,7 @@ from db_init import get_db_connection, init_db, create_admin_user1
 from functools import wraps
 from dotenv import load_dotenv
 import math
+from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
