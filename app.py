@@ -720,6 +720,13 @@ def send_verification_link():
     # Create verification link
     verification_link = url_for('verify_download', token=token, _external=True)
     
+    # Fallback for local development
+    if not verification_link.startswith(('http://', 'https://')):
+        # Use request.host_url which includes the schema (http:// or https://)
+        base_url = request.host_url.rstrip('/')
+        relative_path = url_for('verify_download', token=token).lstrip('/')
+        verification_link = f"{base_url}/{relative_path}"
+    
     # Create email message
     msg = Message(
         subject="Verify Your CV Download - Mohamad Arouni",
