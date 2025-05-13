@@ -59,10 +59,6 @@
                                 <i class="far fa-clock"></i>
                                 {{ post.created_at.strftime('%I:%M %p') }}
                             </span>
-                            <span class="views" title="View count">
-                                <i class="far fa-eye"></i>
-                                {{ post.view_count|default(0) }}
-                            </span>
                         </div>
                         
                         {% if session.role == 'admin' %}
