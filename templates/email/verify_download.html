@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Your CV Download</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            color: #6e00ff;
+            margin-bottom: 5px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .cta-button {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .cta-button a {
+            color: white;
+        }
+        .button {
+            display: inline-block;
+            background-color: #6e00ff;
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .footer {
+            font-size: 0.9em;
+            color: #777;
+            text-align: center;
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 15px;
+        }
+        .note {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Verify Your CV Download</h1>
+            <p>One more step to download Mohamad Arouni's CV</p>
+        </div>
+        
+        <div class="content">
+            <p>Hello,</p>
+            <p>You've requested to download Mohamad Arouni's CV for the purpose of: <strong>{{ reason }}</strong>.</p>
+            <p>To complete your download, please click the verification button below:</p>
+            
+            <div class="cta-button">
+                <a href="{{ verification_link }}" class="button">Verify & Download CV</a>
+            </div>
+            
+            <p>If you did not request this CV, please ignore this email.</p>
+            
+            <div class="note">
+                <p><strong>Important:</strong> This verification link will expire in {{ expires_in }}. Please click the link promptly to download the CV.</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Mohamad Arouni - Portfolio Website</p>
+            <p>© {{ current_year }} All Rights Reserved</p>
+        </div>
+    </div>
+</body>
+</html> 

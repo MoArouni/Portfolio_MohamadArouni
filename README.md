@@ -1,35 +1,78 @@
-# Portfolio Website
+# Portfolio Website with CV Download Verification
 
-A modern, responsive portfolio website built with Flask, featuring a blog system, project showcase, and professional CV presentation.
+This is a Flask-based portfolio website with blog functionality and email verification for CV downloads.
+
+## Setup Instructions
+
+1. Clone the repository
+2. Install requirements:
+   ```
+   pip install -r requirements.txt
+   ```
+3. Set up your environment variables by creating a `.env` file with the following:
+   ```
+   # Secret key for Flask sessions and token generation
+   SECRET_KEY=your_secret_key_here
+
+   # Admin user credentials
+   USERNAME=admin
+   EMAIL=admin@example.com
+   PASSWORD=admin_password
+
+   # Email settings (for verification links)
+   MAIL_SERVER=smtp.gmail.com
+   MAIL_PORT=587
+   MAIL_USE_TLS=True
+   MAIL_USE_SSL=False
+   MAIL_USERNAME=your_email@gmail.com
+   MAIL_PASSWORD=your_app_password
+   MAIL_DEFAULT_SENDER=your_email@gmail.com
+   ```
+
+4. For Gmail, you need to use an App Password:
+   - Go to your Google Account at [https://myaccount.google.com/](https://myaccount.google.com/)
+   - Navigate to Security > 2-Step Verification > App passwords
+   - Create a new app password for your application
+   - Use this password in your `.env` file
+
+5. Run the application:
+   ```
+   python app.py
+   ```
 
 ## Features
 
-### 1. Modern UI/UX
-- Responsive design that adapts to all screen sizes
-- Smooth animations and transitions for an engaging user experience
-- Interactive elements with visual feedback
+- Portfolio showcase
+- Blog with comments and likes
+- CV download with email verification
+- Admin dashboard with analytics
+- Responsive design
 
-### 2. Enhanced Blog System
-- Full-featured blog with posts, comments, and likes
-- Support for both authenticated and anonymous users
-- Advanced commenting system with author interactions
-- Like/unlike functionality with tracking for anonymous users
+## CV Download Verification
 
-### 3. Professional Presentation
-- Customized timeline for education and experience
-- Interactive project cards with filtering by category
-- Skill display with visual progress indicators
-- Downloadable CV with analytics tracking
+The website supports two methods for downloading the CV:
+1. Direct download (user provides email and download reason)
+2. Email verification link (more secure):
+   - User provides email and selects a reason for downloading
+   - System emails a secure verification link to the user
+   - Link is valid for 30 minutes
+   - Once verified, the CV downloads automatically
 
-### 4. User Authentication
-- Secure login and registration system
-- Role-based permissions (admin, subscriber)
-- Profile management
+## Database Schema
 
-### 5. Admin Dashboard
-- Blog post management (create, edit, delete)
-- Comment moderation
-- Analytics tracking for posts, downloads, and site traffic
+The application uses SQLite for data storage with tables for:
+- Users and authentication
+- Blog posts, comments, and likes
+- CV download records and verification tokens
+- Visitor statistics
+
+## Development
+
+The application is built with:
+- Flask for the back-end
+- SQLite for the database
+- Vanilla JavaScript for front-end interactivity
+- HTML/CSS for template rendering
 
 ## Technical Details
 
@@ -49,26 +92,6 @@ A modern, responsive portfolio website built with Flask, featuring a blog system
 - Track CV downloads with reason categorization
 - Monitor blog post popularity 
 - Analyze user engagement
-
-## Setup Instructions
-
-### 1. Install required packages
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Initialize the database
-
-```bash
-python db_init.py
-```
-
-### 3. Run the application
-
-```bash
-python app.py
-```
 
 ## Recent Enhancements
 

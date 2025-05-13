@@ -574,14 +574,14 @@ class CVDownload:
     """CV Download model for tracking CV downloads"""
     
     @staticmethod
-    def create(reason, user_id=None, ip_address=None):
+    def create(reason, user_id=None, ip_address=None, email=None, is_verified=False):
         """Record a CV download"""
         conn = get_db_connection()
         try:
             is_anonymous = user_id is None
             cursor = conn.execute(
-                'INSERT INTO cv_downloads (user_id, reason, is_anonymous, ip_address) VALUES (?, ?, ?, ?)',
-                (user_id, reason, 1 if is_anonymous else 0, ip_address)
+                'INSERT INTO cv_downloads (user_id, reason, is_anonymous, ip_address, email, is_verified) VALUES (?, ?, ?, ?, ?, ?)',
+                (user_id, reason, 1 if is_anonymous else 0, ip_address, email, 1 if is_verified else 0)
             )
             download_id = cursor.lastrowid
             conn.commit()
@@ -858,4 +858,87 @@ class Notification:
     def create_new_user_notification(username):
         """Create a notification for a new registered user"""
         message = f"{username} is now a registered user!"
-        return Notification.create(Notification.TYPE_NEW_USER, message, username=username, is_anonymous=False) 
+        return Notification.create(Notification.TYPE_NEW_USER, message, username=username, is_anonymous=False)
+
+class CVVerification:
+    """CV Verification model for handling verification links"""
+    
+    @staticmethod
+    def create(email, reason, token, expires_at):
+        """Create a new verification entry"""
+        conn = get_db_connection()
+        try:
+            cursor = conn.execute(
+                'INSERT INTO cv_verifications (email, reason, token, expires_at) VALUES (?, ?, ?, ?)',
+                (email, reason, token, expires_at)
+            )
+            verification_id = cursor.lastrowid
+            conn.commit()
+            return verification_id
+        except Exception as e:
+            print(f"Error creating verification entry: {e}")
+            return None
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def get_by_token(token):
+        """Get verification entry by token"""
+        conn = get_db_connection()
+        try:
+            verification = conn.execute(
+                'SELECT * FROM cv_verifications WHERE token = ?',
+                (token,)
+            ).fetchone()
+            
+            return dict(verification) if verification else None
+        except Exception as e:
+            print(f"Error getting verification by token: {e}")
+            return None
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def mark_as_used(token):
+        """Mark a verification token as used"""
+        conn = get_db_connection()
+        try:
+            conn.execute(
+                'UPDATE cv_verifications SET is_used = 1 WHERE token = ?',
+                (token,)
+            )
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error marking verification as used: {e}")
+            return False
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def create_verified_download(verification_id):
+        """Record a verified CV download"""
+        conn = get_db_connection()
+        try:
+            # Get the verification record
+            verification = conn.execute(
+                'SELECT * FROM cv_verifications WHERE id = ?',
+                (verification_id,)
+            ).fetchone()
+            
+            if not verification:
+                return None
+                
+            # Create the download record
+            cursor = conn.execute(
+                'INSERT INTO cv_downloads (reason, email, is_verified) VALUES (?, ?, ?)',
+                (verification['reason'], verification['email'], 1)
+            )
+            download_id = cursor.lastrowid
+            conn.commit()
+            return download_id
+        except Exception as e:
+            print(f"Error creating verified download: {e}")
+            return None
+        finally:
+            conn.close() 

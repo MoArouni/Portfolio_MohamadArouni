@@ -12,8 +12,22 @@
 <!-- Particles container for the entire page -->
 <div id="particles-js"></div>
 
+<!-- Auto-download flags (hidden) -->
+<input type="hidden" id="should-download-cv" value="{{ 'true' if download_cv else 'false' }}">
+<input type="hidden" id="error-message" value="{{ error_message or '' }}">
+<input type="hidden" id="cv-download-url" value="{{ url_for('static', filename='pdf/Mohamad_Arouni_CV.pdf') }}">
+
 <!-- Combined Hero & About Section -->
 <section id="hero-about" class="hero-about-section">
+    <!-- Error/Success Message Alert -->
+    {% if error_message %}
+    <div class="alert alert-error">
+        <span class="alert-icon"><i class="fas fa-exclamation-circle"></i></span>
+        <span class="alert-message">{{ error_message }}</span>
+        <button class="alert-close"><i class="fas fa-times"></i></button>
+    </div>
+    {% endif %}
+        
     <!-- Quote at the top -->
     <div class="quote-container">
         <p class="quote-text">"What is now proved was once only imagined."</p>
@@ -102,63 +116,85 @@
         <h3>Download CV</h3>
         <p>Please select a reason for downloading the CV:</p>
         
-        <!-- Email input field (required for all downloads) -->
-        <div class="form-group email-input-container">
-            <label for="cv-email">Email Address <span class="required-indicator">*</span></label>
-            <input type="email" id="cv-email" placeholder="Enter your email address" required>
-            <span class="validation-message"></span>
-        </div>
-        
         <div class="download-options">
-            <a href="javascript:void(0);" class="download-option" data-reason="Job Application">
+            <a href="javascript:void(0);" class="download-option" data-reason="Job opportunity">
                 <div class="download-icon">
                     <i class="fas fa-briefcase"></i>
                 </div>
                 <div class="download-details">
-                    <h4>Job Application</h4>
-                    <p>For applying to a job position</p>
+                    <h4>Job opportunity</h4>
+                    <p>Hiring for a full-time or internship position</p>
                 </div>
             </a>
             
-            <a href="javascript:void(0);" class="download-option" data-reason="Freelance Project">
+            <a href="javascript:void(0);" class="download-option" data-reason="Freelance or contract work">
                 <div class="download-icon">
                     <i class="fas fa-laptop-code"></i>
                 </div>
                 <div class="download-details">
-                    <h4>Freelance Project</h4>
-                    <p>For freelance opportunities</p>
+                    <h4>Freelance or contract work</h4>
+                    <p>Interested in short-term or project-based collaboration</p>
                 </div>
             </a>
             
-            <a href="javascript:void(0);" class="download-option" data-reason="Networking">
+            <a href="javascript:void(0);" class="download-option" data-reason="Recruiting">
                 <div class="download-icon">
-                    <i class="fas fa-network-wired"></i>
+                    <i class="fas fa-user-tie"></i>
                 </div>
                 <div class="download-details">
-                    <h4>Networking</h4>
-                    <p>For professional networking</p>
+                    <h4>Recruiting</h4>
+                    <p>Assessing candidates for a client or company</p>
                 </div>
             </a>
             
-            <a href="javascript:void(0);" class="download-option" data-reason="Research">
+            <a href="javascript:void(0);" class="download-option" data-reason="Referral">
+                <div class="download-icon">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <div class="download-details">
+                    <h4>Referral</h4>
+                    <p>Planning to share the CV with someone else</p>
+                </div>
+            </a>
+            
+            <a href="javascript:void(0);" class="download-option" data-reason="Academic opportunity">
+                <div class="download-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="download-details">
+                    <h4>Academic opportunity</h4>
+                    <p>For research, teaching, or university programs</p>
+                </div>
+            </a>
+            
+            <a href="javascript:void(0);" class="download-option" data-reason="Professional interest">
                 <div class="download-icon">
                     <i class="fas fa-search"></i>
                 </div>
                 <div class="download-details">
-                    <h4>Research</h4>
-                    <p>For academic or professional research</p>
+                    <h4>Professional interest</h4>
+                    <p>Exploring career paths, roles, or background for inspiration</p>
                 </div>
             </a>
         </div>
         
-        <div class="other-download-option">
-            <h4>Other reason?</h4>
-            <form id="otherReasonForm">
-                <div class="input-group">
-                    <input type="text" id="other-reason-text" placeholder="Specify your reason here">
-                    <button type="submit" class="btn btn-primary">Download</button>
-                </div>
-            </form>
+        <!-- Email input and verification step (initially hidden) -->
+        <div id="verification-step" class="verification-step">
+            <div class="email-input-container">
+                <label for="cv-email">Email Address <span class="required-indicator">*</span></label>
+                <input type="email" id="cv-email" placeholder="Enter your email address" required>
+                <span class="validation-message"></span>
+            </div>
+            
+            <div class="verification-button-container">
+                <button id="sendVerificationBtn" class="btn btn-primary verification-btn">
+                    <i class="fas fa-paper-plane"></i> Send Verification Link
+                </button>
+                <span class="verification-message"></span>
+                <p class="verification-info">
+                    A verification link will be sent to your email. The link will expire in 5 minutes.
+                </p>
+            </div>
         </div>
         
         <div class="modal-footer">
@@ -197,6 +233,78 @@
         
         return messageElement;
     }
+</script>
+
+<!-- Auto-download script when redirected from verification link -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Function to show message toasts
+        function showMessage(message, type) {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messageElement.className = `message-toast ${type}`;
+            document.body.appendChild(messageElement);
+            
+            // Show the message
+            setTimeout(() => {
+                messageElement.classList.add('visible');
+            }, 100);
+            
+            // Hide and remove after 3 seconds (except for loading messages)
+            if (type !== 'info') {
+                setTimeout(() => {
+                    messageElement.classList.remove('visible');
+                    setTimeout(() => {
+                        if (messageElement.parentNode) {
+                            document.body.removeChild(messageElement);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+            
+            return messageElement;
+        }
+        
+        // Close alert buttons
+        document.querySelectorAll('.alert-close').forEach(button => {
+            button.addEventListener('click', function() {
+                this.closest('.alert').remove();
+            });
+        });
+        
+        // Get download flags from hidden inputs
+        const shouldDownload = document.getElementById('should-download-cv').value === 'true';
+        const errorMsg = document.getElementById('error-message').value;
+        const cvDownloadUrl = document.getElementById('cv-download-url').value;
+        
+        // Handle automatic download if redirected from verification link
+        if (shouldDownload) {
+            // Show success message
+            showMessage('CV verified! Downloading...', 'success');
+            
+            // Delay the download slightly to allow the message to be seen
+            setTimeout(function() {
+                // Create a temporary link to download the CV
+                var link = document.createElement('a');
+                link.href = cvDownloadUrl;
+                link.download = 'Mohamad_Arouni_CV.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up the URL to prevent auto-download on refresh
+                // Use history.replaceState to remove the download parameter without refreshing
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.delete('download');
+                window.history.replaceState({}, document.title, currentUrl.toString());
+            }, 800);
+        }
+        
+        // Show error message if present
+        if (errorMsg) {
+            showMessage(errorMsg, 'error');
+        }
+    });
 </script>
 
 <!-- Education Section -->
@@ -752,7 +860,7 @@
                     </div>
                     <div class="skill-item">
                         <div class="skill-top">
-                            <span style="font-size:1.2em;">🧠</span>
+                            <span style="font-size:1.2em;">🛠️</span>
                             <span class="dot blue"></span>
                         </div>
                         <h3>Render</h3>
@@ -762,7 +870,7 @@
                     </div>
                     <div class="skill-item">
                         <div class="skill-top">
-                            <span style="font-size:1.2em;">🧠</span>
+                            <span style="font-size:1.2em;">🛠️</span>
                             <span class="dot blue"></span>
                         </div>
                         <h3>Netlify</h3>
@@ -778,6 +886,16 @@
                         <h3>Railway</h3>
                         <div class="skill-bottom">
                             <i class="fas fa-train"></i>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-top">
+                            <span style="font-size:1.2em;">🛠️</span>
+                            <span class="dot blue"></span>
+                        </div>
+                        <h3>Cloudflare</h3>
+                        <div class="skill-bottom">
+                            <i class="fas fa-cloud"></i>
                         </div>
                     </div>
                 </div>
@@ -1448,4 +1566,5 @@
         });
     });
 </script>
-{% endblock %} 
+
+{% endblock %}

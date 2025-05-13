@@ -2,6 +2,7 @@
 PRAGMA foreign_keys = ON;
 
 -- Drop tables if they exist to avoid conflicts
+DROP TABLE IF EXISTS cv_verifications;
 DROP TABLE IF EXISTS visitor_stats;
 DROP TABLE IF EXISTS cv_downloads;
 DROP TABLE IF EXISTS comment_likes;
@@ -77,6 +78,8 @@ CREATE TABLE cv_downloads (
     reason TEXT NOT NULL,
     is_anonymous BOOLEAN DEFAULT 1,
     ip_address TEXT,
+    email TEXT,
+    is_verified BOOLEAN DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
@@ -102,6 +105,17 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- CV Verification Links table
+CREATE TABLE cv_verifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    is_used BOOLEAN DEFAULT 0,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create indexes for faster queries

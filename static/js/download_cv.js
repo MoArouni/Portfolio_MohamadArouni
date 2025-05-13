@@ -4,10 +4,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeBtn = modal.querySelector('.close-modal');
     const cancelBtn = document.getElementById('cancelDownload');
     const downloadOptions = document.querySelectorAll('.download-option');
-    const otherReasonForm = document.getElementById('otherReasonForm');
-    const otherReasonInput = document.getElementById('other-reason-text');
     const emailInput = document.getElementById('cv-email');
     const emailValidationMessage = document.querySelector('.email-input-container .validation-message');
+    const sendVerificationBtn = document.getElementById('sendVerificationBtn');
+    const verificationMessage = document.querySelector('.verification-message');
+    const verificationStep = document.getElementById('verification-step');
+
+    // Tracks the currently selected reason
+    let selectedReason = '';
 
     if (!modal || !downloadBtn) return;
 
@@ -40,31 +44,46 @@ document.addEventListener('DOMContentLoaded', function() {
         validateEmail();
     });
 
-    // Handle download option clicks
+    // Add click event to download options to select them
     downloadOptions.forEach(option => {
         option.addEventListener('click', function() {
-            const reason = this.getAttribute('data-reason');
-            if (validateEmail()) {
-                downloadCV(reason, emailInput.value);
-            }
+            // First remove selected class from all options
+            downloadOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selected class to this option
+            this.classList.add('selected');
+            
+            // Save the reason
+            selectedReason = this.getAttribute('data-reason');
+            
+            // Show the verification step
+            verificationStep.classList.add('visible');
         });
     });
 
-    // Handle other reason form submission
-    otherReasonForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const reason = otherReasonInput.value.trim();
-        
-        if (!validateEmail()) {
-            return;
-        }
-        
-        if (reason) {
-            downloadCV(reason, emailInput.value);
-        } else {
-            showMessage('Please specify a reason for downloading', 'error');
-        }
-    });
+    // Handle verification link button click
+    if (sendVerificationBtn) {
+        sendVerificationBtn.addEventListener('click', function() {
+            // Validate email
+            if (!validateEmail()) {
+                return;
+            }
+            
+            // Ensure a reason was selected
+            if (!selectedReason) {
+                showMessage('Please select a reason for downloading', 'error');
+                return;
+            }
+            
+            // Show loading message
+            sendVerificationBtn.disabled = true;
+            sendVerificationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            verificationMessage.textContent = '';
+            
+            // Send verification link request
+            sendVerificationLink(emailInput.value, selectedReason);
+        });
+    }
 
     // Function to validate email
     function validateEmail() {
@@ -90,69 +109,63 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to reset form
     function resetForm() {
         emailInput.value = '';
-        otherReasonInput.value = '';
         emailInput.classList.remove('invalid', 'valid');
         emailValidationMessage.textContent = '';
+        verificationMessage.textContent = '';
+        downloadOptions.forEach(opt => opt.classList.remove('selected'));
+        sendVerificationBtn.disabled = false;
+        sendVerificationBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Verification Link';
+        verificationStep.classList.remove('visible');
+        selectedReason = '';
     }
 
-    // Function to handle CV download
-    function downloadCV(reason, email) {
-        // Show loading message
-        const loadingMessage = showMessage('Preparing download...', 'info');
-
-        // Send download request to server
-        fetch('/download_cv', {
+    // Function to send verification link
+    function sendVerificationLink(email, reason) {
+        fetch('/send-verification-link', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ 
-                reason: reason,
-                email: email
+                email: email,
+                reason: reason
             })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.blob();
-        })
-        .then(blob => {
-            // Create a temporary link to download the file
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = 'Mohamad_Arouni_CV.pdf';
-            document.body.appendChild(a);
-            a.click();
-
-            // Clean up
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            // Close the modal
-            modal.classList.remove('active');
+        .then(response => response.json())
+        .then(data => {
+            sendVerificationBtn.disabled = false;
+            sendVerificationBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Verification Link';
             
-            // Reset the form
-            resetForm();
-
-            // Show success message
-            showMessage('CV downloaded successfully!', 'success');
-
-            // Remove loading message
-            if (loadingMessage && loadingMessage.parentNode) {
-                loadingMessage.parentNode.removeChild(loadingMessage);
+            if (data.success) {
+                // Show success message on the modal
+                verificationMessage.textContent = data.message;
+                verificationMessage.classList.add('success');
+                verificationMessage.classList.remove('error');
+                
+                // Show toast message
+                showMessage(data.message, 'success');
+            } else {
+                // Show error message
+                verificationMessage.textContent = data.message || 'Failed to send verification link';
+                verificationMessage.classList.add('error');
+                verificationMessage.classList.remove('success');
+                
+                // Show toast message
+                showMessage(data.message || 'Failed to send verification link', 'error');
             }
         })
         .catch(error => {
-            console.error('Download failed:', error);
-            showMessage('Failed to download CV. Please try again.', 'error');
-
-            // Remove loading message
-            if (loadingMessage && loadingMessage.parentNode) {
-                loadingMessage.parentNode.removeChild(loadingMessage);
-            }
+            console.error('Error sending verification link:', error);
+            sendVerificationBtn.disabled = false;
+            sendVerificationBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Verification Link';
+            
+            // Show error message
+            verificationMessage.textContent = 'Unable to send verification email. Please check your email address and try again later.';
+            verificationMessage.classList.add('error');
+            verificationMessage.classList.remove('success');
+            
+            // Show toast message
+            showMessage('Unable to send verification email. The server might be temporarily unavailable.', 'error');
         });
     }
 

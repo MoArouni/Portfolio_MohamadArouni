@@ -751,3 +751,20 @@ section {
         bottom: 1rem;
     }
 }
+
+.direct-download-container {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.direct-download-container p {
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #444;
+}
+
+.direct-download-container .btn {
+    display: block;
+    width: 100%;
+}

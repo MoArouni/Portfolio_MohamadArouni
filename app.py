@@ -2,16 +2,36 @@ from flask import Flask, render_template, request, redirect, url_for, session, g
 import sqlite3
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
-from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification
+from datetime import datetime, timedelta
+from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification, CVVerification
 from db_init import get_db_connection, init_db, create_admin_user1
 from functools import wraps
 from dotenv import load_dotenv
 import math
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+
+# Load environment variables
+load_dotenv()
 
 # Configure app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_key_for_blog')
+
+# Configure mail
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'False').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER') or os.environ.get('MAIL_USERNAME')
+
+# Initialize mail
+mail = Mail(app)
+
+# Initialize the serializer for token generation
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 # Custom template filter for newlines to <br>
 @app.template_filter('nl2br')
@@ -74,8 +94,15 @@ def home():
     for post in latest_posts:
         post['comments'] = Comment.get_for_post(post['id'])
         post['like_count'] = BlogLike.get_count_for_post(post['id'])
+    
+    # Check for download parameter to trigger CV download via JS
+    download_cv = request.args.get('download') == 'cv'
+    error_message = request.args.get('error')
         
-    return render_template('home.html', latest_posts=latest_posts)
+    return render_template('home.html', 
+                          latest_posts=latest_posts, 
+                          download_cv=download_cv,
+                          error_message=error_message)
 
 @app.route('/blog')
 def view_blog():
@@ -654,6 +681,119 @@ def notifications_history():
                 notification['username'] = 'Anonymous'
     
     return render_template('notifications_history.html', notifications=notifications)
+
+@app.route('/send-verification-link', methods=['POST'])
+def send_verification_link():
+    """Send a verification link for CV download"""
+    # Get data from request
+    if request.is_json:
+        data = request.get_json()
+        email = data.get('email')
+        reason = data.get('reason')
+    else:
+        email = request.form.get('email')
+        reason = request.form.get('reason')
+    
+    # Validate input
+    if not email or not reason:
+        return jsonify({
+            'success': False,
+            'message': 'Email and reason are required'
+        }), 400
+    
+    # Generate token with email and reason
+    token_data = {'email': email, 'reason': reason}
+    token = serializer.dumps(token_data)
+    
+    # Calculate expiration (5 minutes from now)
+    expires_at = datetime.now() + timedelta(minutes=5)
+    
+    # Store token in database
+    verification_id = CVVerification.create(email, reason, token, expires_at.strftime('%Y-%m-%d %H:%M:%S'))
+    
+    if not verification_id:
+        return jsonify({
+            'success': False,
+            'message': 'Failed to create verification record'
+        }), 500
+    
+    # Create verification link
+    verification_link = url_for('verify_download', token=token, _external=True)
+    
+    # Create email message
+    msg = Message(
+        subject="Verify Your CV Download - Mohamad Arouni",
+        sender=app.config['MAIL_DEFAULT_SENDER'],
+        recipients=[email],
+        html=render_template(
+            'email/verify_download.html', 
+            verification_link=verification_link,
+            reason=reason,
+            expires_in="5 minutes"
+        )
+    )
+    
+    try:
+        # Send email
+        mail.send(msg)
+        
+        # Create notification for admin
+        Notification.create('cv_verification', f"Verification link sent to {email} for {reason}", is_anonymous=True)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Verification link sent. Please check your email to continue.'
+        })
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Unable to send verification email. Please check your email address or try again later.'
+        }), 500
+
+@app.route('/verify-download')
+def verify_download():
+    """Handle verification link and trigger download"""
+    token = request.args.get('token')
+    
+    if not token:
+        return redirect(url_for('home', error='Invalid verification link'))
+    
+    try:
+        # Validate token (5 minute expiration)
+        token_data = serializer.loads(token, max_age=300)  # 300 seconds = 5 minutes
+        email = token_data.get('email')
+        reason = token_data.get('reason')
+        
+        # Get verification from database
+        verification = CVVerification.get_by_token(token)
+        
+        if not verification:
+            return redirect(url_for('home', error='Invalid verification link'))
+            
+        # Check if token is already used
+        if verification.get('is_used'):
+            return redirect(url_for('home', error='This verification link has already been used'))
+            
+        # Mark token as used
+        CVVerification.mark_as_used(token)
+        
+        # Record the verified download
+        CVDownload.create(reason, None, request.remote_addr, email=email, is_verified=True)
+        
+        # Create notification
+        Notification.create_cv_download_notification('Verified User', True, reason)
+        
+        # Redirect to home with download parameter
+        return redirect(url_for('home', download='cv'))
+        
+    except SignatureExpired:
+        return redirect(url_for('home', error='Verification link has expired. Please request a new one.'))
+    except BadSignature:
+        return redirect(url_for('home', error='Invalid verification link'))
+    except Exception as e:
+        print(f"Error verifying download: {e}")
+        return redirect(url_for('home', error='An error occurred while processing your request'))
 
 if __name__ == '__main__':
     app.run(debug=True) 
