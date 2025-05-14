@@ -199,29 +199,54 @@ def initialize_postgres_db():
         if not connection_successful:
             return False
             
-        # Check if tables already exist
+        # Check if database is already initialized by querying information_schema
         print("Checking if database is already initialized...")
-        try:
-            with engine.connect() as conn:
-                # Check if key tables exist
-                tables_to_check = ['users', 'posts', 'comments', 'blog_likes']
-                tables_exist = True
+        with engine.connect() as conn:
+            try:
+                # Check if any tables exist in the public schema
+                table_count_query = text("""
+                    SELECT COUNT(*) 
+                    FROM information_schema.tables 
+                    WHERE table_schema = 'public'
+                """)
+                result = conn.execute(table_count_query)
+                table_count = result.scalar()
                 
-                for table in tables_to_check:
-                    try:
-                        result = conn.execute(text(f"SELECT 1 FROM {table} LIMIT 1"))
-                        print(f"Table '{table}' exists.")
-                    except ProgrammingError:
-                        tables_exist = False
-                        print(f"Table '{table}' does not exist.")
-                        break
-                
-                if tables_exist:
-                    print("Database is already initialized. Skipping initialization.")
+                if table_count > 0:
+                    print(f"Database already has {table_count} tables. Skipping schema initialization.")
+                    
+                    # Check if admin user exists
+                    admin_username = os.environ.get('ADMIN_USERNAME')
+                    admin_email = os.environ.get('ADMIN_EMAIL')
+                    admin_password = os.environ.get('ADMIN_PASSWORD')
+                    
+                    if admin_username and admin_email and admin_password:
+                        try:
+                            # Check if users table exists and if admin exists
+                            admin_check = text("SELECT COUNT(*) FROM users WHERE role = 'admin'")
+                            admin_result = conn.execute(admin_check)
+                            admin_count = admin_result.scalar()
+                            
+                            if admin_count == 0:
+                                print("No admin user found. Creating admin user...")
+                                hashed_password = generate_password_hash(admin_password)
+                                
+                                # Create admin user
+                                conn.execute(
+                                    text("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, :role)"),
+                                    {"username": admin_username, "email": admin_email, "password": hashed_password, "role": "admin"}
+                                )
+                                conn.commit()
+                                print("Admin user created successfully!")
+                            else:
+                                print(f"Admin users already exist ({admin_count} found)")
+                        except Exception as admin_error:
+                            print(f"Error checking/creating admin user: {admin_error}")
+                    
                     return True
-        except Exception as e:
-            print(f"Error checking existing tables: {e}")
-            # Continue to initialization
+            except Exception as e:
+                print(f"Error checking database schema: {e}")
+                # Continue to initialization if we can't check
         
         # Now create tables
         print("\nInitializing PostgreSQL database...")
@@ -273,6 +298,25 @@ def initialize_postgres_db():
         with engine.connect() as conn:
             for i, cmd in enumerate(commands):
                 try:
+                    # Skip commands that might cause unique constraint violations
+                    if "CREATE TABLE" in cmd:
+                        table_name = cmd.split("CREATE TABLE")[1].strip().split(" ")[0].split("(")[0].strip()
+                        print(f"Checking if table {table_name} already exists...")
+                        try:
+                            # Check if table exists before trying to create it
+                            conn.execute(text(f"SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{table_name}'"))
+                            result = conn.fetchone()
+                            if result:
+                                print(f"Table {table_name} already exists. Skipping.")
+                                continue
+                        except Exception as table_check_error:
+                            print(f"Error checking table existence: {table_check_error}")
+                    
+                    # Skip index creation commands to avoid duplicate index errors
+                    if "CREATE INDEX" in cmd:
+                        print(f"Skipping index creation: {cmd[:100]}...")
+                        continue
+                        
                     print(f"Executing command {i+1}/{len(commands)}...")
                     # Print first 100 chars of command for debugging
                     print(f"Command: {cmd[:100]}..." if len(cmd) > 100 else f"Command: {cmd}")
@@ -282,7 +326,7 @@ def initialize_postgres_db():
                     print(f"Command {i+1} executed successfully")
                 except ProgrammingError as e:
                     if "already exists" in str(e):
-                        print(f"Table already exists: {e}")
+                        print(f"Object already exists: {e}")
                     else:
                         print(f"Error executing command: {e}")
                         print(f"Full command was: {cmd}")
