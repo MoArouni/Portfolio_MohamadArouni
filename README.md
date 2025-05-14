@@ -75,4 +75,4 @@ The application follows a modular structure for maintainability:
 
 ---
 
-Built with ❤️ by Mohamad Arouni 
+Built by Mohamad Arouni 
