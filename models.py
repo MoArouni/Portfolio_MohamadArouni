@@ -2,6 +2,7 @@ from db_init import get_db_connection
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from flask import g, request
+from sqlalchemy.sql import text
 
 class User:
     """User model for managing user operations"""
@@ -12,57 +13,120 @@ class User:
         conn = get_db_connection()
         try:
             # Check if this is the first user and make them an admin if so
-            user_count = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()['count']
+            user_count_result = conn.execute(text('SELECT COUNT(*) as count FROM users')).fetchone()
+            
+            # Handle different result row types
+            user_count = 0
+            if user_count_result:
+                try:
+                    if hasattr(user_count_result, "_mapping"):
+                        user_count = user_count_result._mapping["count"]
+                    else:
+                        # In tuple form, the count should be the first column
+                        user_count = user_count_result[0]
+                except Exception as e:
+                    print(f"Error accessing user count: {e}")
+            
             if user_count == 0:
                 role = 'admin'
                 
             hashed_password = generate_password_hash(password)
             cursor = conn.execute(
-                'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
-                (username, email, hashed_password, role)
+                text('INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, :role)'),
+                {"username": username, "email": email, "password": hashed_password, "role": role}
             )
-            user_id = cursor.lastrowid
+            # For SQLite compatibility
+            if hasattr(cursor, 'lastrowid'):
+                user_id = cursor.lastrowid
+            else:
+                # For PostgreSQL, use RETURNING id which we already set up in the db_init.py
+                user_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                
             conn.commit()
             return user_id
-        except conn.IntegrityError:
-            # Username or email already exists
+        except Exception as e:
+            print(f"Error creating user: {e}")
             return None
-        finally:
-            conn.close()
     
     @staticmethod
     def get_by_id(user_id):
         """Get user by ID"""
         conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-        conn.close()
-        return dict(user) if user else None
+        user = conn.execute(text('SELECT * FROM users WHERE id = :user_id'), {"user_id": user_id}).fetchone()
+        if not user:
+            return None
+            
+        # Handle different types of result rows
+        try:
+            if hasattr(user, "_mapping"):
+                return dict(user._mapping)
+            else:
+                # Create a dict manually from the row tuple
+                # Assuming columns are: id, username, email, password, role, created_at
+                columns = ["id", "username", "email", "password", "role", "created_at"]
+                return {columns[i]: user[i] for i in range(min(len(columns), len(user)))}
+        except Exception as e:
+            print(f"Error converting user row to dict: {e}")
+            return None
     
     @staticmethod
     def get_by_email(email):
         """Get user by email"""
         conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
-        conn.close()
-        return dict(user) if user else None
+        user = conn.execute(text('SELECT * FROM users WHERE email = :email'), {"email": email}).fetchone()
+        if not user:
+            return None
+            
+        # Handle different types of result rows
+        try:
+            if hasattr(user, "_mapping"):
+                return dict(user._mapping)
+            else:
+                # Create a dict manually from the row tuple
+                # Assuming columns are: id, username, email, password, role, created_at
+                columns = ["id", "username", "email", "password", "role", "created_at"]
+                return {columns[i]: user[i] for i in range(min(len(columns), len(user)))}
+        except Exception as e:
+            print(f"Error converting user row to dict: {e}")
+            return None
     
     @staticmethod
     def exists_with_username(username):
         """Check if a user with the given username exists"""
         conn = get_db_connection()
-        result = conn.execute('SELECT COUNT(*) as count FROM users WHERE username = ?', (username,)).fetchone()
-        exists = result['count'] > 0 if result else False
-        conn.close()
-        return exists
+        result = conn.execute(text('SELECT COUNT(*) as count FROM users WHERE username = :username'), {"username": username}).fetchone()
+        
+        # Handle different result row types (dict-like or tuple)
+        if result:
+            try:
+                if hasattr(result, "_mapping"):
+                    return result._mapping["count"] > 0
+                else:
+                    # In tuple form, the count should be the first column
+                    return result[0] > 0
+            except Exception as e:
+                print(f"Error accessing count: {e}")
+                return False
+        return False
         
     @staticmethod
     def exists_with_email(email):
         """Check if a user with the given email exists"""
         conn = get_db_connection()
-        result = conn.execute('SELECT COUNT(*) as count FROM users WHERE email = ?', (email,)).fetchone()
-        exists = result['count'] > 0 if result else False
-        conn.close()
-        return exists
+        result = conn.execute(text('SELECT COUNT(*) as count FROM users WHERE email = :email'), {"email": email}).fetchone()
+        
+        # Handle different result row types (dict-like or tuple)
+        if result:
+            try:
+                if hasattr(result, "_mapping"):
+                    return result._mapping["count"] > 0
+                else:
+                    # In tuple form, the count should be the first column
+                    return result[0] > 0
+            except Exception as e:
+                print(f"Error accessing count: {e}")
+                return False
+        return False
     
     @staticmethod
     def authenticate(email, password):
@@ -80,41 +144,41 @@ class User:
             conn = get_db_connection()
             
             # Total users
-            result = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()
+            result = conn.execute(text('SELECT COUNT(*) as count FROM users')).fetchone()
             total_users = result['count'] if result else 0
             
             # Users by role
-            by_role_query = '''
+            by_role_query = text('''
                 SELECT role, COUNT(*) as count 
                 FROM users 
                 GROUP BY role 
                 ORDER BY count DESC
-            '''
+            ''')
             by_role = conn.execute(by_role_query).fetchall()
             
             # Recent users
-            recent_users_query = '''
+            recent_users_query = text('''
                 SELECT id, username, email, role, created_at 
                 FROM users 
                 ORDER BY created_at DESC 
                 LIMIT 10
-            '''
+            ''')
             recent_users = conn.execute(recent_users_query).fetchall()
             
             # All users for the table view
-            all_users_query = '''
+            all_users_query = text('''
                 SELECT id, username, email, role, created_at 
                 FROM users 
                 ORDER BY created_at DESC
-            '''
+            ''')
             all_users = conn.execute(all_users_query).fetchall()
             
             # Build and return the analytics dictionary
             return {
                 'total_users': total_users,
-                'by_role': [dict(r) for r in by_role] if by_role else [],
-                'recent_users': [dict(u) for u in recent_users] if recent_users else [],
-                'all_users': [dict(u) for u in all_users] if all_users else []
+                'by_role': [dict(r._mapping) for r in by_role] if by_role else [],
+                'recent_users': [dict(u._mapping) for u in recent_users] if recent_users else [],
+                'all_users': [dict(u._mapping) for u in all_users] if all_users else []
             }
         except Exception as e:
             print(f"Error getting user analytics: {e}")
@@ -148,65 +212,85 @@ class Post:
         """Create a new blog post"""
         conn = get_db_connection()
         cursor = conn.execute(
-            'INSERT INTO posts (title, content, user_id) VALUES (?, ?, ?)',
-            (title, content, user_id)
+            text('INSERT INTO posts (title, content, user_id) VALUES (:title, :content, :user_id)'),
+            {"title": title, "content": content, "user_id": user_id}
         )
-        post_id = cursor.lastrowid
+        # For SQLite compatibility
+        if hasattr(cursor, 'lastrowid'):
+            post_id = cursor.lastrowid
+        else:
+            # For PostgreSQL
+            post_id = cursor.fetchone()[0] if cursor.returns_rows else None
+            
         conn.commit()
-        conn.close()
         return post_id
     
     @staticmethod
     def get_all(month_filter=None):
         """Get all posts, with optional month filtering"""
         conn = get_db_connection()
-        query = 'SELECT * FROM posts'
-        params = []
-        
         if month_filter:
-            query += ' WHERE strftime("%Y-%m", created_at) = ?'
-            params.append(month_filter)
-        
-        query += ' ORDER BY created_at DESC'
-        posts = conn.execute(query, params).fetchall()
-        conn.close()
+            # Use strftime for SQLite or TO_CHAR for PostgreSQL
+            query = text('''
+                SELECT * FROM posts 
+                WHERE strftime('%Y-%m', created_at) = :month_filter
+                ORDER BY created_at DESC
+            ''')
+            posts = conn.execute(query, {"month_filter": month_filter}).fetchall()
+        else:
+            query = text('SELECT * FROM posts ORDER BY created_at DESC')
+            posts = conn.execute(query).fetchall()
         
         # Convert to list of dicts and convert timestamps
-        return [Post._convert_post_timestamps(dict(post)) for post in posts]
+        return [Post._convert_post_timestamps(dict(post._mapping)) for post in posts]
     
     @staticmethod
     def get_latest(limit=2):
         """Get the latest n blog posts"""
         conn = get_db_connection()
-        query = 'SELECT * FROM posts ORDER BY created_at DESC LIMIT ?'
-        posts = conn.execute(query, (limit,)).fetchall()
-        conn.close()
+        query = text('SELECT * FROM posts ORDER BY created_at DESC LIMIT :limit')
+        posts = conn.execute(query, {"limit": limit}).fetchall()
         
         # Convert to list of dicts and convert timestamps
-        return [Post._convert_post_timestamps(dict(post)) for post in posts]
+        return [Post._convert_post_timestamps(dict(post._mapping)) for post in posts]
     
     @staticmethod
     def get_by_id(post_id):
         """Get post by ID"""
         conn = get_db_connection()
-        post = conn.execute('SELECT * FROM posts WHERE id = ?', (post_id,)).fetchone()
-        conn.close()
-        return Post._convert_post_timestamps(dict(post)) if post else None
+        post = conn.execute(text('SELECT * FROM posts WHERE id = :post_id'), {"post_id": post_id}).fetchone()
+        if not post:
+            return None
+            
+        # Handle different types of result rows
+        post_dict = None
+        try:
+            if hasattr(post, "_mapping"):
+                post_dict = dict(post._mapping)
+            else:
+                # Create a dict manually from the row tuple
+                # Assuming columns are: id, title, content, user_id, view_count, created_at
+                columns = ["id", "title", "content", "user_id", "view_count", "created_at"]
+                post_dict = {columns[i]: post[i] for i in range(min(len(columns), len(post)))}
+        except Exception as e:
+            print(f"Error converting post row to dict: {e}")
+            return None
+            
+        return Post._convert_post_timestamps(post_dict)
     
     @staticmethod
     def delete(post_id):
         """Delete a post by ID"""
         conn = get_db_connection()
-        conn.execute('DELETE FROM posts WHERE id = ?', (post_id,))
+        conn.execute(text('DELETE FROM posts WHERE id = :post_id'), {"post_id": post_id})
         conn.commit()
-        conn.close()
         return True
     
     @staticmethod
     def get_available_months():
         """Get list of months that have posts"""
         conn = get_db_connection()
-        months = conn.execute('''
+        months = conn.execute(text('''
             SELECT DISTINCT 
                 strftime('%Y-%m', created_at) as month_year,
                 case 
@@ -227,9 +311,8 @@ class Post:
             FROM posts
             WHERE created_at IS NOT NULL
             ORDER BY month_year DESC
-        ''').fetchall()
-        conn.close()
-        return [dict(month) for month in months]
+        ''')).fetchall()
+        return [dict(month._mapping) for month in months]
 
     @staticmethod
     def update(post_id, title, content):
@@ -237,16 +320,14 @@ class Post:
         conn = get_db_connection()
         try:
             conn.execute(
-                'UPDATE posts SET title = ?, content = ? WHERE id = ?',
-                (title, content, post_id)
+                text('UPDATE posts SET title = :title, content = :content WHERE id = :post_id'),
+                {"title": title, "content": content, "post_id": post_id}
             )
             conn.commit()
             return True
         except Exception as e:
             print(f"Error updating post: {e}")
             return False
-        finally:
-            conn.close()
             
     @staticmethod
     def increment_view_count(post_id):
@@ -254,22 +335,20 @@ class Post:
         conn = get_db_connection()
         try:
             conn.execute(
-                'UPDATE posts SET view_count = view_count + 1 WHERE id = ?',
-                (post_id,)
+                text('UPDATE posts SET view_count = view_count + 1 WHERE id = :post_id'),
+                {"post_id": post_id}
             )
             conn.commit()
             return True
         except Exception as e:
             print(f"Error incrementing view count: {e}")
             return False
-        finally:
-            conn.close()
             
     @staticmethod
     def get_analytics():
         """Get analytics for all blog posts"""
         conn = get_db_connection()
-        posts_analytics = conn.execute('''
+        posts_analytics = conn.execute(text('''
             SELECT 
                 p.id,
                 p.title,
@@ -283,11 +362,10 @@ class Post:
                 p.created_at
             FROM posts p
             ORDER BY p.created_at DESC
-        ''').fetchall()
-        conn.close()
+        ''')).fetchall()
         
         # Convert to list of dicts
-        return [dict(post) for post in posts_analytics]
+        return [dict(post._mapping) for post in posts_analytics]
 
 class Comment:
     """Comment model for post comment operations"""
@@ -308,12 +386,17 @@ class Comment:
         """Create a new comment"""
         conn = get_db_connection()
         cursor = conn.execute(
-            'INSERT INTO comments (post_id, user_id, content, is_anonymous) VALUES (?, ?, ?, ?)',
-            (post_id, user_id, content, 0)
+            text('INSERT INTO comments (post_id, user_id, content, is_anonymous) VALUES (:post_id, :user_id, :content, :is_anonymous)'),
+            {"post_id": post_id, "user_id": user_id, "content": content, "is_anonymous": 0}
         )
-        comment_id = cursor.lastrowid
+        # For SQLite compatibility
+        if hasattr(cursor, 'lastrowid'):
+            comment_id = cursor.lastrowid
+        else:
+            # For PostgreSQL
+            comment_id = cursor.fetchone()[0] if cursor.returns_rows else None
+            
         conn.commit()
-        conn.close()
         return comment_id
     
     @staticmethod
@@ -321,19 +404,24 @@ class Comment:
         """Create a new anonymous comment"""
         conn = get_db_connection()
         cursor = conn.execute(
-            'INSERT INTO comments (post_id, author_name, content, is_anonymous) VALUES (?, ?, ?, ?)',
-            (post_id, author_name, content, 1)
+            text('INSERT INTO comments (post_id, author_name, content, is_anonymous) VALUES (:post_id, :author_name, :content, :is_anonymous)'),
+            {"post_id": post_id, "author_name": author_name, "content": content, "is_anonymous": 1}
         )
-        comment_id = cursor.lastrowid
+        # For SQLite compatibility
+        if hasattr(cursor, 'lastrowid'):
+            comment_id = cursor.lastrowid
+        else:
+            # For PostgreSQL
+            comment_id = cursor.fetchone()[0] if cursor.returns_rows else None
+            
         conn.commit()
-        conn.close()
         return comment_id
     
     @staticmethod
     def get_for_post(post_id):
         """Get all comments for a post"""
         conn = get_db_connection()
-        comments = conn.execute('''
+        comments = conn.execute(text('''
             SELECT c.*, u.username,
                    (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.id) AS like_count,
                    c.liked_by_author,
@@ -341,19 +429,17 @@ class Comment:
                    c.author_name
             FROM comments c
             LEFT JOIN users u ON c.user_id = u.id
-            WHERE c.post_id = ?
+            WHERE c.post_id = :post_id
             ORDER BY c.created_at DESC
-        ''', (post_id,)).fetchall()
-        conn.close()
-        return [Comment._convert_comment_timestamps(dict(comment)) for comment in comments]
+        '''), {"post_id": post_id}).fetchall()
+        return [Comment._convert_comment_timestamps(dict(comment._mapping)) for comment in comments]
     
     @staticmethod
     def delete(comment_id):
         """Delete a comment by ID"""
         conn = get_db_connection()
-        conn.execute('DELETE FROM comments WHERE id = ?', (comment_id,))
+        conn.execute(text('DELETE FROM comments WHERE id = :comment_id'), {"comment_id": comment_id})
         conn.commit()
-        conn.close()
         return True
         
     @staticmethod
@@ -362,16 +448,14 @@ class Comment:
         conn = get_db_connection()
         try:
             conn.execute(
-                'UPDATE comments SET liked_by_author = ? WHERE id = ?',
-                (1 if liked else 0, comment_id)
+                text('UPDATE comments SET liked_by_author = :liked WHERE id = :comment_id'),
+                {"liked": 1 if liked else 0, "comment_id": comment_id}
             )
             conn.commit()
             return True
         except Exception as e:
             print(f"Error toggling author like: {e}")
             return False
-        finally:
-            conn.close()
 
 class BlogLike:
     """Blog like model for managing blog post likes"""
@@ -384,27 +468,30 @@ class BlogLike:
         # Check if like already exists for this user/post combination
         if user_id:
             existing = conn.execute(
-                'SELECT id FROM blog_likes WHERE post_id = ? AND user_id = ?',
-                (post_id, user_id)
+                text('SELECT id FROM blog_likes WHERE post_id = :post_id AND user_id = :user_id'),
+                {"post_id": post_id, "user_id": user_id}
             ).fetchone()
             
             if existing:
-                conn.close()
                 return None  # User already liked this post
         
         try:
             cursor = conn.execute(
-                'INSERT INTO blog_likes (post_id, user_id, username, is_anonymous) VALUES (?, ?, ?, ?)',
-                (post_id, user_id, username, 1 if is_anonymous else 0)
+                text('INSERT INTO blog_likes (post_id, user_id, username, is_anonymous) VALUES (:post_id, :user_id, :username, :is_anonymous)'),
+                {"post_id": post_id, "user_id": user_id, "username": username, "is_anonymous": 1 if is_anonymous else 0}
             )
-            like_id = cursor.lastrowid
+            # For SQLite compatibility
+            if hasattr(cursor, 'lastrowid'):
+                like_id = cursor.lastrowid
+            else:
+                # For PostgreSQL
+                like_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                
             conn.commit()
             return like_id
         except Exception as e:
             print(f"Error creating blog like: {e}")
             return None
-        finally:
-            conn.close()
     
     @staticmethod
     def delete(like_id=None, post_id=None, user_id=None):
@@ -412,27 +499,24 @@ class BlogLike:
         conn = get_db_connection()
         try:
             if like_id:
-                conn.execute('DELETE FROM blog_likes WHERE id = ?', (like_id,))
+                conn.execute(text('DELETE FROM blog_likes WHERE id = :like_id'), {"like_id": like_id})
             elif post_id and user_id:
-                conn.execute('DELETE FROM blog_likes WHERE post_id = ? AND user_id = ?', 
-                             (post_id, user_id))
+                conn.execute(text('DELETE FROM blog_likes WHERE post_id = :post_id AND user_id = :user_id'), 
+                           {"post_id": post_id, "user_id": user_id})
             conn.commit()
             return True
         except Exception as e:
             print(f"Error deleting blog like: {e}")
             return False
-        finally:
-            conn.close()
     
     @staticmethod
     def has_user_liked(post_id, user_id):
         """Check if a user has liked a post"""
         conn = get_db_connection()
         result = conn.execute(
-            'SELECT id FROM blog_likes WHERE post_id = ? AND user_id = ?',
-            (post_id, user_id)
+            text('SELECT id FROM blog_likes WHERE post_id = :post_id AND user_id = :user_id'),
+            {"post_id": post_id, "user_id": user_id}
         ).fetchone()
-        conn.close()
         return bool(result)
     
     @staticmethod
@@ -440,20 +524,42 @@ class BlogLike:
         """Get the count of likes for a post"""
         conn = get_db_connection()
         result = conn.execute(
-            'SELECT COUNT(*) as count FROM blog_likes WHERE post_id = ?',
-            (post_id,)
+            text('SELECT COUNT(*) as count FROM blog_likes WHERE post_id = :post_id'),
+            {"post_id": post_id}
         ).fetchone()
-        conn.close()
-        return result['count'] if result else 0
+        
+        # Handle different result row types (dict-like or tuple)
+        if result:
+            try:
+                if hasattr(result, "_mapping"):
+                    return result._mapping["count"]
+                else:
+                    # In tuple form, the count should be the first column
+                    return result[0]
+            except Exception as e:
+                print(f"Error accessing count: {e}")
+                return 0
+        return 0
     
     @staticmethod
     def get_total_likes_count():
         """Get the total count of all likes in the database"""
         try:
             conn = get_db_connection()
-            result = conn.execute('SELECT COUNT(*) as count FROM blog_likes').fetchone()
-            conn.close()
-            return result['count'] if result else 0
+            result = conn.execute(text('SELECT COUNT(*) as count FROM blog_likes')).fetchone()
+            
+            # Handle different result row types (dict-like or tuple)
+            if result:
+                try:
+                    if hasattr(result, "_mapping"):
+                        return result._mapping["count"]
+                    else:
+                        # In tuple form, the count should be the first column
+                        return result[0]
+                except Exception as e:
+                    print(f"Error accessing count: {e}")
+                    return 0
+            return 0
         except Exception as e:
             print(f"Error getting total likes count: {e}")
             return 0
@@ -466,38 +572,40 @@ class BlogLike:
         # Check if like already exists for this anonymous user
         if anonymous_id:
             existing = conn.execute(
-                'SELECT id FROM blog_likes WHERE post_id = ? AND anonymous_id = ?',
-                (post_id, anonymous_id)
+                text('SELECT id FROM blog_likes WHERE post_id = :post_id AND anonymous_id = :anonymous_id'),
+                {"post_id": post_id, "anonymous_id": anonymous_id}
             ).fetchone()
             
             if existing:
-                conn.close()
                 return None  # Already liked from this anonymous ID
         
         # Check if like already exists for this IP (additional check)
         if ip_address:
             existing_ip = conn.execute(
-                'SELECT id FROM blog_likes WHERE post_id = ? AND ip_address = ? AND is_anonymous = 1',
-                (post_id, ip_address)
+                text('SELECT id FROM blog_likes WHERE post_id = :post_id AND ip_address = :ip_address AND is_anonymous = 1'),
+                {"post_id": post_id, "ip_address": ip_address}
             ).fetchone()
             
             if existing_ip:
-                conn.close()
                 return None  # Already liked from this IP
         
         try:
             cursor = conn.execute(
-                'INSERT INTO blog_likes (post_id, user_id, username, is_anonymous, anonymous_id, ip_address) VALUES (?, ?, ?, ?, ?, ?)',
-                (post_id, None, username, 1, anonymous_id, ip_address)
+                text('INSERT INTO blog_likes (post_id, user_id, username, is_anonymous, anonymous_id, ip_address) VALUES (:post_id, :user_id, :username, :is_anonymous, :anonymous_id, :ip_address)'),
+                {"post_id": post_id, "user_id": None, "username": username, "is_anonymous": 1, "anonymous_id": anonymous_id, "ip_address": ip_address}
             )
-            like_id = cursor.lastrowid
+            # For SQLite compatibility
+            if hasattr(cursor, 'lastrowid'):
+                like_id = cursor.lastrowid
+            else:
+                # For PostgreSQL
+                like_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                
             conn.commit()
             return like_id
         except Exception as e:
             print(f"Error creating anonymous blog like: {e}")
             return None
-        finally:
-            conn.close()
 
 class CommentLike:
     """Comment like model for managing comment likes"""
@@ -509,27 +617,30 @@ class CommentLike:
         
         # Check if like already exists for this user/comment combination
         existing = conn.execute(
-            'SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ?',
-            (comment_id, user_id)
+            text('SELECT id FROM comment_likes WHERE comment_id = :comment_id AND user_id = :user_id'),
+            {"comment_id": comment_id, "user_id": user_id}
         ).fetchone()
         
         if existing:
-            conn.close()
             return None  # User already liked this comment
         
         try:
             cursor = conn.execute(
-                'INSERT INTO comment_likes (comment_id, user_id) VALUES (?, ?)',
-                (comment_id, user_id)
+                text('INSERT INTO comment_likes (comment_id, user_id) VALUES (:comment_id, :user_id)'),
+                {"comment_id": comment_id, "user_id": user_id}
             )
-            like_id = cursor.lastrowid
+            # For SQLite compatibility
+            if hasattr(cursor, 'lastrowid'):
+                like_id = cursor.lastrowid
+            else:
+                # For PostgreSQL
+                like_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                
             conn.commit()
             return like_id
         except Exception as e:
             print(f"Error creating comment like: {e}")
             return None
-        finally:
-            conn.close()
     
     @staticmethod
     def delete(comment_id, user_id):
@@ -537,26 +648,23 @@ class CommentLike:
         conn = get_db_connection()
         try:
             conn.execute(
-                'DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?',
-                (comment_id, user_id)
+                text('DELETE FROM comment_likes WHERE comment_id = :comment_id AND user_id = :user_id'),
+                {"comment_id": comment_id, "user_id": user_id}
             )
             conn.commit()
             return True
         except Exception as e:
             print(f"Error deleting comment like: {e}")
             return False
-        finally:
-            conn.close()
     
     @staticmethod
     def has_user_liked(comment_id, user_id):
         """Check if a user has liked a comment"""
         conn = get_db_connection()
         result = conn.execute(
-            'SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ?',
-            (comment_id, user_id)
+            text('SELECT id FROM comment_likes WHERE comment_id = :comment_id AND user_id = :user_id'),
+            {"comment_id": comment_id, "user_id": user_id}
         ).fetchone()
-        conn.close()
         return bool(result)
     
     @staticmethod
@@ -564,11 +672,22 @@ class CommentLike:
         """Get the count of likes for a comment"""
         conn = get_db_connection()
         result = conn.execute(
-            'SELECT COUNT(*) as count FROM comment_likes WHERE comment_id = ?',
-            (comment_id,)
+            text('SELECT COUNT(*) as count FROM comment_likes WHERE comment_id = :comment_id'),
+            {"comment_id": comment_id}
         ).fetchone()
-        conn.close()
-        return result['count'] if result else 0
+        
+        # Handle different result row types (dict-like or tuple)
+        if result:
+            try:
+                if hasattr(result, "_mapping"):
+                    return result._mapping["count"]
+                else:
+                    # In tuple form, the count should be the first column
+                    return result[0]
+            except Exception as e:
+                print(f"Error accessing count: {e}")
+                return 0
+        return 0
 
 class CVDownload:
     """CV Download model for tracking CV downloads"""
@@ -580,17 +699,21 @@ class CVDownload:
         try:
             is_anonymous = user_id is None
             cursor = conn.execute(
-                'INSERT INTO cv_downloads (user_id, reason, is_anonymous, ip_address, email, is_verified) VALUES (?, ?, ?, ?, ?, ?)',
-                (user_id, reason, 1 if is_anonymous else 0, ip_address, email, 1 if is_verified else 0)
+                text('INSERT INTO cv_downloads (user_id, reason, is_anonymous, ip_address, email, is_verified) VALUES (:user_id, :reason, :is_anonymous, :ip_address, :email, :is_verified)'),
+                {"user_id": user_id, "reason": reason, "is_anonymous": 1 if is_anonymous else 0, "ip_address": ip_address, "email": email, "is_verified": 1 if is_verified else 0}
             )
-            download_id = cursor.lastrowid
+            # For SQLite compatibility
+            if hasattr(cursor, 'lastrowid'):
+                download_id = cursor.lastrowid
+            else:
+                # For PostgreSQL
+                download_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                
             conn.commit()
             return download_id
         except Exception as e:
             print(f"Error recording CV download: {e}")
             return None
-        finally:
-            conn.close()
     
     @staticmethod
     def get_analytics():
@@ -598,26 +721,26 @@ class CVDownload:
         conn = get_db_connection()
         try:
             # Total downloads
-            total = conn.execute('SELECT COUNT(*) as count FROM cv_downloads').fetchone()['count']
+            total = conn.execute(text('SELECT COUNT(*) as count FROM cv_downloads')).fetchone()['count']
             
             # Downloads by reason
-            by_reason = conn.execute('''
+            by_reason = conn.execute(text('''
                 SELECT reason, COUNT(*) as count 
                 FROM cv_downloads 
                 GROUP BY reason 
                 ORDER BY count DESC
-            ''').fetchall()
+            ''')).fetchall()
             
             # Registered vs anonymous
-            by_type = conn.execute('''
+            by_type = conn.execute(text('''
                 SELECT 
                     SUM(CASE WHEN is_anonymous = 0 THEN 1 ELSE 0 END) as registered,
                     SUM(CASE WHEN is_anonymous = 1 THEN 1 ELSE 0 END) as anonymous
                 FROM cv_downloads
-            ''').fetchone()
+            ''')).fetchone()
             
             # Recent downloads
-            recent = conn.execute('''
+            recent = conn.execute(text('''
                 SELECT 
                     cv.id,
                     cv.reason,
@@ -628,20 +751,17 @@ class CVDownload:
                 LEFT JOIN users u ON cv.user_id = u.id
                 ORDER BY cv.created_at DESC
                 LIMIT 10
-            ''').fetchall()
-            
-            conn.close()
+            ''')).fetchall()
             
             return {
                 'total': total,
-                'by_reason': [dict(r) for r in by_reason],
-                'registered': by_type['registered'],
-                'anonymous': by_type['anonymous'],
-                'recent': [dict(r) for r in recent]
+                'by_reason': [dict(r._mapping) for r in by_reason],
+                'registered': by_type['registered'] if by_type['registered'] is not None else 0,
+                'anonymous': by_type['anonymous'] if by_type['anonymous'] is not None else 0,
+                'recent': [dict(r._mapping) for r in recent]
             }
         except Exception as e:
             print(f"Error getting CV download analytics: {e}")
-            conn.close()
             return None
 
 class VisitorStat:
@@ -655,25 +775,29 @@ class VisitorStat:
             # Check if this IP has visited before
             is_unique = 1
             existing = conn.execute(
-                'SELECT id FROM visitor_stats WHERE ip_address = ?',
-                (ip_address,)
+                text('SELECT id FROM visitor_stats WHERE ip_address = :ip_address'),
+                {"ip_address": ip_address}
             ).fetchone()
             
             if existing:
                 is_unique = 0
             
             cursor = conn.execute(
-                'INSERT INTO visitor_stats (ip_address, country, page_visited, is_unique) VALUES (?, ?, ?, ?)',
-                (ip_address, country, page_visited, is_unique)
+                text('INSERT INTO visitor_stats (ip_address, country, page_visited, is_unique) VALUES (:ip_address, :country, :page_visited, :is_unique)'),
+                {"ip_address": ip_address, "country": country, "page_visited": page_visited, "is_unique": is_unique}
             )
-            visitor_id = cursor.lastrowid
+            # For SQLite compatibility
+            if hasattr(cursor, 'lastrowid'):
+                visitor_id = cursor.lastrowid
+            else:
+                # For PostgreSQL
+                visitor_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                
             conn.commit()
             return visitor_id
         except Exception as e:
             print(f"Error recording visitor stat: {e}")
             return None
-        finally:
-            conn.close()
     
     @staticmethod
     def get_analytics():
@@ -681,15 +805,31 @@ class VisitorStat:
         conn = get_db_connection()
         try:
             # Total page views
-            total_views = conn.execute('SELECT COUNT(*) as count FROM visitor_stats').fetchone()['count']
+            result = conn.execute(text('SELECT COUNT(*) as count FROM visitor_stats')).fetchone()
+            total_views = 0
+            try:
+                if hasattr(result, "_mapping"):
+                    total_views = result._mapping["count"]
+                else:
+                    total_views = result[0]
+            except Exception as e:
+                print(f"Error getting total views: {e}")
             
             # Unique visitors
-            unique_visitors = conn.execute(
-                'SELECT COUNT(DISTINCT ip_address) as count FROM visitor_stats'
-            ).fetchone()['count']
+            result = conn.execute(
+                text('SELECT COUNT(DISTINCT ip_address) as count FROM visitor_stats')
+            ).fetchone()
+            unique_visitors = 0
+            try:
+                if hasattr(result, "_mapping"):
+                    unique_visitors = result._mapping["count"]
+                else:
+                    unique_visitors = result[0]
+            except Exception as e:
+                print(f"Error getting unique visitors: {e}")
             
             # Most visited pages
-            popular_pages = conn.execute('''
+            popular_pages_rows = conn.execute(text('''
                 SELECT 
                     page_visited, 
                     COUNT(*) as count
@@ -697,10 +837,20 @@ class VisitorStat:
                 GROUP BY page_visited
                 ORDER BY count DESC
                 LIMIT 10
-            ''').fetchall()
+            ''')).fetchall()
+            
+            popular_pages = []
+            for row in popular_pages_rows:
+                try:
+                    if hasattr(row, "_mapping"):
+                        popular_pages.append(dict(row._mapping))
+                    else:
+                        popular_pages.append({"page_visited": row[0], "count": row[1]})
+                except Exception as e:
+                    print(f"Error processing popular page: {e}")
             
             # Views over time (last 7 days)
-            views_by_day = conn.execute('''
+            views_by_day_rows = conn.execute(text('''
                 SELECT 
                     date(created_at) as date,
                     COUNT(*) as count
@@ -708,20 +858,33 @@ class VisitorStat:
                 WHERE created_at >= date('now', '-7 days')
                 GROUP BY date
                 ORDER BY date
-            ''').fetchall()
+            ''')).fetchall()
             
-            conn.close()
+            views_by_day = []
+            for row in views_by_day_rows:
+                try:
+                    if hasattr(row, "_mapping"):
+                        views_by_day.append(dict(row._mapping))
+                    else:
+                        views_by_day.append({"date": row[0], "count": row[1]})
+                except Exception as e:
+                    print(f"Error processing daily views: {e}")
             
             return {
                 'total_views': total_views,
                 'unique_visitors': unique_visitors,
-                'popular_pages': [dict(p) for p in popular_pages],
-                'views_by_day': [dict(d) for d in views_by_day]
+                'popular_pages': popular_pages,
+                'views_by_day': views_by_day
             }
         except Exception as e:
             print(f"Error getting visitor analytics: {e}")
-            conn.close()
-            return None
+            # Return default empty structure instead of None
+            return {
+                'total_views': 0,
+                'unique_visitors': 0,
+                'popular_pages': [],
+                'views_by_day': []
+            }
 
 class Notification:
     """Notification model for admin dashboard notifications"""
@@ -740,17 +903,21 @@ class Notification:
         conn = get_db_connection()
         try:
             cursor = conn.execute(
-                'INSERT INTO notifications (type, message, user_id, username, is_anonymous, is_read) VALUES (?, ?, ?, ?, ?, ?)',
-                (type, message, user_id, username, 1 if is_anonymous else 0, 0)
+                text('INSERT INTO notifications (type, message, user_id, username, is_anonymous, is_read) VALUES (:type, :message, :user_id, :username, :is_anonymous, :is_read)'),
+                {"type": type, "message": message, "user_id": user_id, "username": username, "is_anonymous": 1 if is_anonymous else 0, "is_read": 0}
             )
-            notification_id = cursor.lastrowid
+            # For SQLite compatibility
+            if hasattr(cursor, 'lastrowid'):
+                notification_id = cursor.lastrowid
+            else:
+                # For PostgreSQL
+                notification_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                
             conn.commit()
             return notification_id
         except Exception as e:
             print(f"Error creating notification: {e}")
             return None
-        finally:
-            conn.close()
     
     @staticmethod
     def mark_as_read(notification_id):
@@ -758,23 +925,21 @@ class Notification:
         conn = get_db_connection()
         try:
             conn.execute(
-                'UPDATE notifications SET is_read = 1 WHERE id = ?',
-                (notification_id,)
+                text('UPDATE notifications SET is_read = 1 WHERE id = :notification_id'),
+                {"notification_id": notification_id}
             )
             conn.commit()
             return True
         except Exception as e:
             print(f"Error marking notification as read: {e}")
             return False
-        finally:
-            conn.close()
     
     @staticmethod
     def get_recent(limit=10):
         """Get recent notifications"""
         conn = get_db_connection()
         try:
-            notifications = conn.execute('''
+            notifications = conn.execute(text('''
                 SELECT 
                     id,
                     type,
@@ -785,15 +950,13 @@ class Notification:
                     created_at
                 FROM notifications
                 ORDER BY created_at DESC
-                LIMIT ?
-            ''', (limit,)).fetchall()
-            
-            conn.close()
+                LIMIT :limit
+            '''), {"limit": limit}).fetchall()
             
             # Convert to list of dicts with relative time
             result = []
             for notification in notifications:
-                notification_dict = dict(notification)
+                notification_dict = dict(notification._mapping)
                 
                 # Calculate relative time
                 created_at = datetime.strptime(notification_dict['created_at'], '%Y-%m-%d %H:%M:%S')
@@ -817,7 +980,6 @@ class Notification:
             return result
         except Exception as e:
             print(f"Error getting recent notifications: {e}")
-            conn.close()
             return []
             
     @staticmethod
@@ -869,17 +1031,21 @@ class CVVerification:
         conn = get_db_connection()
         try:
             cursor = conn.execute(
-                'INSERT INTO cv_verifications (email, reason, token, expires_at) VALUES (?, ?, ?, ?)',
-                (email, reason, token, expires_at)
+                text('INSERT INTO cv_verifications (email, reason, token, expires_at) VALUES (:email, :reason, :token, :expires_at)'),
+                {"email": email, "reason": reason, "token": token, "expires_at": expires_at}
             )
-            verification_id = cursor.lastrowid
+            # For SQLite compatibility
+            if hasattr(cursor, 'lastrowid'):
+                verification_id = cursor.lastrowid
+            else:
+                # For PostgreSQL
+                verification_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                
             conn.commit()
             return verification_id
         except Exception as e:
             print(f"Error creating verification entry: {e}")
             return None
-        finally:
-            conn.close()
     
     @staticmethod
     def get_by_token(token):
@@ -887,16 +1053,28 @@ class CVVerification:
         conn = get_db_connection()
         try:
             verification = conn.execute(
-                'SELECT * FROM cv_verifications WHERE token = ?',
-                (token,)
+                text('SELECT * FROM cv_verifications WHERE token = :token'),
+                {"token": token}
             ).fetchone()
             
-            return dict(verification) if verification else None
+            if not verification:
+                return None
+                
+            # Handle different types of result rows
+            try:
+                if hasattr(verification, "_mapping"):
+                    return dict(verification._mapping)
+                else:
+                    # Create a dict manually from the row tuple
+                    # Assuming columns are: id, email, reason, token, is_used, expires_at, created_at
+                    columns = ["id", "email", "reason", "token", "is_used", "expires_at", "created_at"]
+                    return {columns[i]: verification[i] for i in range(min(len(columns), len(verification)))}
+            except Exception as e:
+                print(f"Error converting verification row to dict: {e}")
+                return None
         except Exception as e:
             print(f"Error getting verification by token: {e}")
             return None
-        finally:
-            conn.close()
     
     @staticmethod
     def mark_as_used(token):
@@ -904,16 +1082,14 @@ class CVVerification:
         conn = get_db_connection()
         try:
             conn.execute(
-                'UPDATE cv_verifications SET is_used = 1 WHERE token = ?',
-                (token,)
+                text('UPDATE cv_verifications SET is_used = 1 WHERE token = :token'),
+                {"token": token}
             )
             conn.commit()
             return True
         except Exception as e:
             print(f"Error marking verification as used: {e}")
             return False
-        finally:
-            conn.close()
     
     @staticmethod
     def create_verified_download(verification_id):
@@ -922,8 +1098,8 @@ class CVVerification:
         try:
             # Get the verification record
             verification = conn.execute(
-                'SELECT * FROM cv_verifications WHERE id = ?',
-                (verification_id,)
+                text('SELECT * FROM cv_verifications WHERE id = :verification_id'),
+                {"verification_id": verification_id}
             ).fetchone()
             
             if not verification:
@@ -931,14 +1107,18 @@ class CVVerification:
                 
             # Create the download record
             cursor = conn.execute(
-                'INSERT INTO cv_downloads (reason, email, is_verified) VALUES (?, ?, ?)',
-                (verification['reason'], verification['email'], 1)
+                text('INSERT INTO cv_downloads (reason, email, is_verified) VALUES (:reason, :email, :is_verified)'),
+                {"reason": verification['reason'], "email": verification['email'], "is_verified": 1}
             )
-            download_id = cursor.lastrowid
+            # For SQLite compatibility
+            if hasattr(cursor, 'lastrowid'):
+                download_id = cursor.lastrowid
+            else:
+                # For PostgreSQL
+                download_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                
             conn.commit()
             return download_id
         except Exception as e:
             print(f"Error creating verified download: {e}")
-            return None
-        finally:
-            conn.close() 
+            return None 

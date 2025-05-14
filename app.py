@@ -4,13 +4,15 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification, CVVerification
-from db_init import get_db_connection, init_db, create_admin_user1
+from db_init import get_db_connection, init_db, create_admin_user1, db
 from functools import wraps
 from dotenv import load_dotenv
 import math
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+import re
+from sqlalchemy.sql import text
 
 # Load environment variables
 load_dotenv()
@@ -19,7 +21,24 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_key_for_blog')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')  # Use the DATABASE_URL variable
+# Database configuration - supports both PostgreSQL and SQLite
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith('postgres'):
+    # Railway provides PostgreSQL URLs starting with postgres://
+    # SQLAlchemy 1.4+ requires postgresql:// instead of postgres://
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    print(f"Using PostgreSQL database at {database_url}")
+else:
+    # Use SQLite for local development
+    sqlite_path = os.path.join(os.path.dirname(__file__), 'blog.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{sqlite_path}'
+    print(f"WARNING: Using SQLite database at {sqlite_path} for development/testing only.")
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize SQLAlchemy with app
+db.init_app(app)
 
 # Configure mail
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -77,8 +96,17 @@ def load_logged_in_user():
         # Check for view count milestones (every 100 views)
         if visitor_id:
             conn = get_db_connection()
-            total_views = conn.execute('SELECT COUNT(*) as count FROM visitor_stats').fetchone()['count']
-            conn.close()
+            result = conn.execute(text('SELECT COUNT(*) as count FROM visitor_stats')).fetchone()
+            # Access count safely - try both mapping and index access
+            total_views = 0
+            try:
+                if hasattr(result, "_mapping"):
+                    total_views = result._mapping["count"]
+                else:
+                    # Try accessing by position - count is the first column
+                    total_views = result[0]
+            except Exception as e:
+                print(f"Error accessing count: {e}")
             
             if total_views % 100 == 0:
                 Notification.create_view_milestone_notification(total_views)
@@ -449,17 +477,27 @@ def like_comment(comment_id):
     if like_id:
         # Get the post info for notification
         conn = get_db_connection()
-        comment_info = conn.execute('''
+        comment_info = conn.execute(text('''
             SELECT c.post_id, p.title 
             FROM comments c
             JOIN posts p ON c.post_id = p.id
-            WHERE c.id = ?
-        ''', (comment_id,)).fetchone()
-        conn.close()
+            WHERE c.id = :comment_id
+        '''), {"comment_id": comment_id}).fetchone()
         
+        title = "Unknown Post"
         if comment_info:
+            try:
+                # Try different ways to access title
+                if hasattr(comment_info, "_mapping"):
+                    title = comment_info._mapping["title"]
+                else:
+                    # Second column should be title
+                    title = comment_info[1]
+            except Exception as e:
+                print(f"Error getting post title: {e}")
+            
             # Create notification
-            Notification.create_comment_like_notification(username, False, comment_info['title'])
+            Notification.create_comment_like_notification(username, False, title)
         
         # Get updated like count
         like_count = CommentLike.get_count_for_comment(comment_id)
@@ -490,15 +528,25 @@ def toggle_author_like(comment_id):
     """Toggle the 'liked by author' status of a comment"""
     # Get current status
     conn = get_db_connection()
-    comment = conn.execute('SELECT liked_by_author FROM comments WHERE id = ?', 
-                          (comment_id,)).fetchone()
-    conn.close()
+    comment = conn.execute(text('SELECT liked_by_author FROM comments WHERE id = :comment_id'), 
+                          {"comment_id": comment_id}).fetchone()
     
     if not comment:
         return jsonify({'success': False, 'error': 'Comment not found'}), 404
     
+    # Get liked_by_author value, handling different row types
+    liked_by_author = 0
+    try:
+        if hasattr(comment, "_mapping"):
+            liked_by_author = comment._mapping["liked_by_author"]
+        else:
+            # First column is liked_by_author
+            liked_by_author = comment[0]
+    except Exception as e:
+        print(f"Error getting liked_by_author: {e}")
+    
     # Toggle the status
-    new_status = not bool(comment['liked_by_author'])
+    new_status = not bool(liked_by_author)
     success = Comment.toggle_author_like(comment_id, new_status)
     
     if success:
@@ -542,6 +590,10 @@ def blog_analytics():
     """Blog post analytics"""
     analytics = Post.get_analytics()
     
+    # If analytics returned None (e.g., due to error), provide default empty structure
+    if analytics is None:
+        analytics = []
+    
     # Get the total likes count directly from the database
     total_likes_count = BlogLike.get_total_likes_count()
     
@@ -564,6 +616,16 @@ def cv_analytics():
     """CV download analytics"""
     analytics = CVDownload.get_analytics()
     
+    # If analytics returned None (e.g., due to error), provide default empty structure
+    if analytics is None:
+        analytics = {
+            'total': 0,
+            'by_reason': [],
+            'registered': 0,
+            'anonymous': 0,
+            'recent': []
+        }
+    
     # Filter sensitive information for non-admin users
     if not session.get('user_id') or session.get('role') != 'admin':
         # Remove personally identifiable information
@@ -584,6 +646,15 @@ def visitor_analytics():
     """Visitor statistics"""
     analytics = VisitorStat.get_analytics()
     
+    # If there was an error and analytics is None, provide a default empty structure
+    if analytics is None:
+        analytics = {
+            'total_views': 0,
+            'unique_visitors': 0,
+            'popular_pages': [],
+            'views_by_day': []
+        }
+    
     # Filter sensitive information for non-admin users
     if not session.get('user_id') or session.get('role') != 'admin':
         # Remove IP addresses or other sensitive data
@@ -600,42 +671,85 @@ def user_analytics():
     conn = get_db_connection()
     
     # Get total users count
-    result = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()
-    total_users = result['count'] if result else 0
+    result = conn.execute(text('SELECT COUNT(*) as count FROM users')).fetchone()
+    # Access count safely
+    total_users = 0
+    try:
+        if hasattr(result, "_mapping"):
+            total_users = result._mapping["count"]
+        else:
+            # Try accessing by position - count is the first column
+            total_users = result[0]
+    except Exception as e:
+        print(f"Error accessing count: {e}")
     
     # Get users by role
-    by_role_query = '''
+    by_role_query = text('''
         SELECT role, COUNT(*) as count 
         FROM users 
         GROUP BY role 
         ORDER BY count DESC
-    '''
-    by_role = conn.execute(by_role_query).fetchall()
+    ''')
+    by_role_rows = conn.execute(by_role_query).fetchall()
+    by_role = []
+    for row in by_role_rows:
+        try:
+            if hasattr(row, "_mapping"):
+                by_role.append(dict(row._mapping))
+            else:
+                # Assume first column is role, second is count
+                by_role.append({"role": row[0], "count": row[1]})
+        except Exception as e:
+            print(f"Error processing row: {e}")
     
     # First check which columns exist in the users table
-    table_info = conn.execute("PRAGMA table_info(users)").fetchall()
-    columns = [col['name'] for col in table_info]
+    table_info_rows = conn.execute(text("PRAGMA table_info(users)")).fetchall()
+    columns = []
+    for row in table_info_rows:
+        try:
+            if hasattr(row, "_mapping"):
+                columns.append(row._mapping["name"])
+            else:
+                # "name" is typically the 2nd column in PRAGMA table_info result
+                columns.append(row[1])
+        except Exception as e:
+            print(f"Error getting column name: {e}")
     
     # Get all users for the table view with most recent first
     # Determine if created_at exists, otherwise use registration_date or id as fallback
     if 'created_at' in columns:
         order_by = 'created_at DESC'
-        all_users_query = f'''
+        all_users_query = text(f'''
             SELECT id, username, email, role, created_at 
             FROM users 
             ORDER BY {order_by}
-        '''
+        ''')
     else:
         # Fallback to ordering by ID if created_at doesn't exist
         order_by = 'id DESC'
-        all_users_query = f'''
+        all_users_query = text(f'''
             SELECT id, username, email, role
             FROM users 
             ORDER BY {order_by}
-        '''
+        ''')
     
-    all_users = conn.execute(all_users_query).fetchall()
-    all_users_list = [dict(u) for u in all_users] if all_users else []
+    all_users_rows = conn.execute(all_users_query).fetchall()
+    all_users_list = []
+    
+    for row in all_users_rows:
+        try:
+            if hasattr(row, "_mapping"):
+                all_users_list.append(dict(row._mapping))
+            else:
+                # Create dict from tuple assuming column order from query
+                user_dict = {}
+                if 'created_at' in columns:
+                    user_dict = {"id": row[0], "username": row[1], "email": row[2], "role": row[3], "created_at": row[4]}
+                else:
+                    user_dict = {"id": row[0], "username": row[1], "email": row[2], "role": row[3]}
+                all_users_list.append(user_dict)
+        except Exception as e:
+            print(f"Error processing user row: {e}")
     
     # If created_at doesn't exist in the result, add a placeholder
     if all_users_list and 'created_at' not in all_users_list[0]:
@@ -645,11 +759,9 @@ def user_analytics():
     # Build the analytics dictionary
     analytics = {
         'total_users': total_users,
-        'by_role': [dict(r) for r in by_role] if by_role else [],
+        'by_role': by_role,
         'all_users': all_users_list
     }
-    
-    conn.close()
     
     return render_template('analytics/user_analytics.html', analytics=analytics)
 

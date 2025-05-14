@@ -1,19 +1,20 @@
-import sqlite3
 import os
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import text
+
+# Initialize SQLAlchemy here but without app context
+db = SQLAlchemy()
 
 # Load environment variables
 load_dotenv(override=True)
 
 # Get environment variables
-username = os.getenv('USERNAME') or os.getenv('username')
-email = os.getenv('EMAIL') or os.getenv('email')
-password = os.getenv('PASSWORD') or os.getenv('password')
-
-# Database file path
-DB_PATH = 'blog.db'
+username = os.environ.get('ADMIN_USERNAME') or os.environ.get('username')
+email = os.environ.get('ADMIN_EMAIL') or os.environ.get('email')
+password = os.environ.get('ADMIN_PASSWORD') or os.environ.get('password')
 
 def update_admin_user(conn):
     """Update the existing admin user"""
@@ -23,50 +24,137 @@ def update_admin_user(conn):
     hashed_password = generate_password_hash(password)
     try:
         conn.execute(
-            'UPDATE users SET username = ?, email = ?, password = ? WHERE role = ?',
-            (username, email, hashed_password, 'admin')
+            text('UPDATE users SET username = :username, email = :email, password = :password WHERE role = :role'),
+            {"username": username, "email": email, "password": hashed_password, "role": 'admin'}
         )
         return True
-    except sqlite3.Error:
+    except Exception as e:
+        print(f"Error updating admin user: {e}")
         return False
 
 def init_db():
     """Initialize the database"""
-    # Check if database exists
-    db_exists = os.path.exists(DB_PATH)
+    from app import app
     
-    # Connect to database
-    conn = get_db_connection()
-    
-    if not db_exists:
-        # Create tables if database doesn't exist
-        with open('schema.sql') as f:
-            conn.executescript(f.read())
+    with app.app_context():
+        is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+        is_sqlite = 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']
         
-        # Create admin user
-        create_admin_user1(conn)
-    else:
-        # Database exists, update admin user
-        update_admin_user(conn)
-    
-    conn.commit()
-    conn.close()
+        print(f"Initializing database: PostgreSQL={is_postgres}, SQLite={is_sqlite}")
+        
+        if not is_postgres and not is_sqlite:
+            raise ValueError("Unsupported database type. Only PostgreSQL and SQLite are supported.")
+        
+        # Create tables from appropriate schema
+        if is_postgres:
+            print("Initializing PostgreSQL database...")
+            # PostgreSQL requires special handling with transactions for schema creation
+            schema_file = os.path.join(os.path.dirname(__file__), 'schema.sql')
+            if os.path.exists(schema_file):
+                with open(schema_file) as f:
+                    sql_commands = f.read()
+                    # Split commands by semicolon and execute each one separately
+                    for command in sql_commands.split(';'):
+                        command = command.strip()
+                        if command:  # Skip empty commands
+                            try:
+                                db.session.execute(text(command))
+                                db.session.commit()
+                            except Exception as e:
+                                print(f"Error executing command: {e}")
+                                print(f"Command was: {command}")
+                                db.session.rollback()
+            else:
+                print(f"Warning: Schema file {schema_file} not found.")
+                
+        elif is_sqlite:
+            print("Initializing SQLite database...")
+            # For SQLite, use the schema_sqlite.sql file if it exists
+            sqlite_schema = os.path.join(os.path.dirname(__file__), 'schema_sqlite.sql')
+            if os.path.exists(sqlite_schema):
+                print("Using SQLite-specific schema file...")
+                with open(sqlite_schema) as f:
+                    sql_commands = f.read()
+                    # Split commands by semicolon and execute each one separately
+                    for command in sql_commands.split(';'):
+                        command = command.strip()
+                        if command:  # Skip empty commands
+                            try:
+                                db.session.execute(text(command))
+                                db.session.commit()
+                            except Exception as e:
+                                print(f"Error executing command: {e}")
+                                print(f"Command was: {command}")
+                                db.session.rollback()
+            else:
+                # Fall back to using the main schema file, which may need tweaking for SQLite
+                print("Using adapted PostgreSQL schema for SQLite...")
+                schema_file = os.path.join(os.path.dirname(__file__), 'schema.sql')
+                if os.path.exists(schema_file):
+                    with open(schema_file) as f:
+                        sql_commands = f.read()
+                        # Convert PostgreSQL-specific syntax to SQLite
+                        sql_commands = sql_commands.replace('SERIAL', 'INTEGER')
+                        sql_commands = sql_commands.replace('true', '1')
+                        sql_commands = sql_commands.replace('false', '0')
+                        # Remove CASCADE keyword which SQLite doesn't support
+                        sql_commands = sql_commands.replace('CASCADE', '')
+                        
+                        # Split commands by semicolon and execute each one separately
+                        for command in sql_commands.split(';'):
+                            command = command.strip()
+                            if command:  # Skip empty commands
+                                try:
+                                    db.session.execute(text(command))
+                                    db.session.commit()
+                                except Exception as e:
+                                    print(f"Error executing command: {e}")
+                                    print(f"Command was: {command}")
+                                    db.session.rollback()
+                else:
+                    print(f"Warning: Schema file {schema_file} not found.")
+                
+                print("WARNING: Using PostgreSQL schema for SQLite. Some features may not work correctly.")
+        
+        # Create admin user if none exists
+        try:
+            result = db.session.execute(text('SELECT COUNT(*) as count FROM users'))
+            user_count = result.scalar()
+            
+            if user_count == 0:
+                create_admin_user1()
+                print("Created admin user.")
+        except Exception as e:
+            print(f"Error checking for users: {e}")
 
-def create_admin_user1(conn):
+def create_admin_user1():
     """Create a default admin user"""
+    if not username or not email or not password:
+        print("Warning: Admin credentials not found in environment variables.")
+        return False
+        
     hashed_password = generate_password_hash(password)
-    conn.execute(
-        'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
-        (username, email, hashed_password, 'admin')
-    )
+    try:
+        db.session.execute(
+            text('INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, :role)'),
+            {"username": username, "email": email, "password": hashed_password, "role": 'admin'}
+        )
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(f"Error creating admin user: {e}")
+        db.session.rollback()
+        return False
 
 def get_db_connection():
-    """Get a database connection with row factory"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute('PRAGMA foreign_keys = ON')
-    return conn
+    """Get a database connection using SQLAlchemy"""
+    from app import app
+    
+    with app.app_context():
+        return db.session
 
 # Execute script directly
 if __name__ == '__main__':
-    init_db() 
+    from app import app
+    with app.app_context():
+        init_db() 

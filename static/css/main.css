@@ -785,15 +785,14 @@ footer {
 .download-options {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin: 1.5rem 0;
+    gap: 0.5rem;
 }
 
 .download-option {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem;
+    gap: 0.25rem;
+    padding: 0.5rem;
     background-color: var(--bg-element);
     border-radius: var(--radius-md);
     text-decoration: none;
