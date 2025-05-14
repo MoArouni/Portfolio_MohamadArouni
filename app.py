@@ -734,182 +734,254 @@ def admin_dashboard():
 @app.route('/analytics/blog-analytics')
 def blog_analytics():
     """Blog post analytics"""
-    analytics = Post.get_analytics()
-    
-    # If analytics returned None (e.g., due to error), provide default empty structure
-    if analytics is None:
-        analytics = []
-    
-    # Get the total likes count directly from the database
-    total_likes_count = BlogLike.get_total_likes_count()
-    
-    # Filter sensitive information for non-admin users
-    if not session.get('user_id') or session.get('role') != 'admin':
-        # Remove sensitive user information
-        for post in analytics:
-            # Remove details that should be admin-only
-            if 'ip_addresses' in post:
-                del post['ip_addresses']
-            if 'username' in post:
-                post['username'] = 'Anonymous'
-            if 'email' in post:
-                post['email'] = '***@***.***'
-    
-    return render_template('analytics/blog_analytics.html', analytics=analytics, total_likes_count=total_likes_count)
+    # Try to initialize the database if needed
+    if not ensure_db_initialized():
+        return render_template('error.html', 
+                              error_message="Database is currently unavailable. Please try again later.",
+                              error_title="Database Error")
+
+    try:
+        analytics = Post.get_analytics()
+        
+        # If analytics returned None (e.g., due to error), provide default empty structure
+        if analytics is None:
+            analytics = []
+        
+        # Get the total likes count directly from the database
+        total_likes_count = BlogLike.get_total_likes_count()
+        
+        # Filter sensitive information for non-admin users
+        if not session.get('user_id') or session.get('role') != 'admin':
+            # Remove sensitive user information
+            for post in analytics:
+                # Remove details that should be admin-only
+                if 'ip_addresses' in post:
+                    del post['ip_addresses']
+                if 'username' in post:
+                    post['username'] = 'Anonymous'
+                if 'email' in post:
+                    post['email'] = '***@***.***'
+        
+        return render_template('analytics/blog_analytics.html', analytics=analytics, total_likes_count=total_likes_count)
+    except Exception as e:
+        print(f"Error in blog analytics: {e}")
+        return render_template('error.html',
+                              error_message="Error loading blog analytics. Please try again later.",
+                              error_title="Analytics Error")
 
 @app.route('/analytics/cv-analytics')
 def cv_analytics():
     """CV download analytics"""
-    analytics = CVDownload.get_analytics()
-    
-    # If analytics returned None (e.g., due to error), provide default empty structure
-    if analytics is None:
-        analytics = {
-            'total': 0,
-            'by_reason': [],
-            'registered': 0,
-            'anonymous': 0,
-            'recent': []
-        }
-    
-    # Filter sensitive information for non-admin users
-    if not session.get('user_id') or session.get('role') != 'admin':
-        # Remove personally identifiable information
-        if 'recent' in analytics:
-            for item in analytics['recent']:
-                # Mask or remove sensitive fields
-                if 'ip_address' in item:
-                    del item['ip_address']
-                if 'username' in item:
-                    item['username'] = 'Anonymous'
-                if 'email' in item:
-                    item['email'] = '***@***.***'
-    
-    return render_template('analytics/cv_analytics.html', analytics=analytics)
+    # Try to initialize the database if needed
+    if not ensure_db_initialized():
+        return render_template('error.html', 
+                              error_message="Database is currently unavailable. Please try again later.",
+                              error_title="Database Error")
+                              
+    try:
+        analytics = CVDownload.get_analytics()
+        
+        # If analytics returned None (e.g., due to error), provide default empty structure
+        if analytics is None:
+            analytics = {
+                'total': 0,
+                'by_reason': [],
+                'registered': 0,
+                'anonymous': 0,
+                'recent': []
+            }
+        
+        # Filter sensitive information for non-admin users
+        if not session.get('user_id') or session.get('role') != 'admin':
+            # Remove personally identifiable information
+            if 'recent' in analytics:
+                for item in analytics['recent']:
+                    # Mask or remove sensitive fields
+                    if 'ip_address' in item:
+                        del item['ip_address']
+                    if 'username' in item:
+                        item['username'] = 'Anonymous'
+                    if 'email' in item:
+                        item['email'] = '***@***.***'
+        
+        return render_template('analytics/cv_analytics.html', analytics=analytics)
+    except Exception as e:
+        print(f"Error in CV analytics: {e}")
+        return render_template('error.html',
+                              error_message="Error loading CV analytics. Please try again later.",
+                              error_title="Analytics Error")
 
 @app.route('/analytics/visitor-analytics')
 def visitor_analytics():
     """Visitor statistics"""
-    analytics = VisitorStat.get_analytics()
-    
-    # If there was an error and analytics is None, provide a default empty structure
-    if analytics is None:
-        analytics = {
-            'total_views': 0,
-            'unique_visitors': 0,
-            'popular_pages': [],
-            'views_by_day': []
-        }
-    
-    # Filter sensitive information for non-admin users
-    if not session.get('user_id') or session.get('role') != 'admin':
-        # Remove IP addresses or other sensitive data
-        pass  # Specific filtering based on what's in the analytics
-    
-    return render_template('analytics/visitor_analytics.html', analytics=analytics)
+    # Try to initialize the database if needed
+    if not ensure_db_initialized():
+        return render_template('error.html', 
+                              error_message="Database is currently unavailable. Please try again later.",
+                              error_title="Database Error")
+                              
+    try:
+        analytics = VisitorStat.get_analytics()
+        
+        # If there was an error and analytics is None, provide a default empty structure
+        if analytics is None:
+            analytics = {
+                'total_views': 0,
+                'unique_visitors': 0,
+                'popular_pages': [],
+                'views_by_day': []
+            }
+        
+        # Filter sensitive information for non-admin users
+        if not session.get('user_id') or session.get('role') != 'admin':
+            # Remove IP addresses or other sensitive data
+            pass  # Specific filtering based on what's in the analytics
+        
+        return render_template('analytics/visitor_analytics.html', analytics=analytics)
+    except Exception as e:
+        print(f"Error in visitor analytics: {e}")
+        return render_template('error.html',
+                              error_message="Error loading visitor analytics. Please try again later.",
+                              error_title="Analytics Error")
 
 @app.route('/analytics/user-analytics')
 @login_required
 @admin_required
 def user_analytics():
     """User statistics"""
-    # Get fresh data directly from the database to ensure accuracy
-    conn = get_db_connection()
-    
-    # Get total users count
-    result = conn.execute(text('SELECT COUNT(*) as count FROM users')).fetchone()
-    # Access count safely
-    total_users = 0
+    # Try to initialize the database if needed
+    if not ensure_db_initialized():
+        return render_template('error.html', 
+                              error_message="Database is currently unavailable. Please try again later.",
+                              error_title="Database Error")
+                              
     try:
-        if hasattr(result, "_mapping"):
-            total_users = result._mapping["count"]
-        else:
-            # Try accessing by position - count is the first column
-            total_users = result[0]
-    except Exception as e:
-        print(f"Error accessing count: {e}")
-    
-    # Get users by role
-    by_role_query = text('''
-        SELECT role, COUNT(*) as count 
-        FROM users 
-        GROUP BY role 
-        ORDER BY count DESC
-    ''')
-    by_role_rows = conn.execute(by_role_query).fetchall()
-    by_role = []
-    for row in by_role_rows:
+        # Get fresh data directly from the database to ensure accuracy
+        conn = get_db_connection()
+        
+        # Check if we're using PostgreSQL or SQLite
+        is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+        
+        # Get total users count
+        result = conn.execute(text('SELECT COUNT(*) as count FROM users')).fetchone()
+        # Access count safely
+        total_users = 0
         try:
-            if hasattr(row, "_mapping"):
-                by_role.append(dict(row._mapping))
+            if hasattr(result, "_mapping"):
+                total_users = result._mapping["count"]
             else:
-                # Assume first column is role, second is count
-                by_role.append({"role": row[0], "count": row[1]})
+                # Try accessing by position - count is the first column
+                total_users = result[0]
         except Exception as e:
-            print(f"Error processing row: {e}")
-    
-    # First check which columns exist in the users table
-    table_info_rows = conn.execute(text("PRAGMA table_info(users)")).fetchall()
-    columns = []
-    for row in table_info_rows:
-        try:
-            if hasattr(row, "_mapping"):
-                columns.append(row._mapping["name"])
-            else:
-                # "name" is typically the 2nd column in PRAGMA table_info result
-                columns.append(row[1])
-        except Exception as e:
-            print(f"Error getting column name: {e}")
-    
-    # Get all users for the table view with most recent first
-    # Determine if created_at exists, otherwise use registration_date or id as fallback
-    if 'created_at' in columns:
-        order_by = 'created_at DESC'
-        all_users_query = text(f'''
-            SELECT id, username, email, role, created_at 
+            print(f"Error accessing count: {e}")
+        
+        # Get users by role
+        by_role_query = text('''
+            SELECT role, COUNT(*) as count 
             FROM users 
-            ORDER BY {order_by}
+            GROUP BY role 
+            ORDER BY count DESC
         ''')
-    else:
-        # Fallback to ordering by ID if created_at doesn't exist
-        order_by = 'id DESC'
-        all_users_query = text(f'''
-            SELECT id, username, email, role
-            FROM users 
-            ORDER BY {order_by}
-        ''')
-    
-    all_users_rows = conn.execute(all_users_query).fetchall()
-    all_users_list = []
-    
-    for row in all_users_rows:
-        try:
-            if hasattr(row, "_mapping"):
-                all_users_list.append(dict(row._mapping))
-            else:
-                # Create dict from tuple assuming column order from query
-                user_dict = {}
-                if 'created_at' in columns:
-                    user_dict = {"id": row[0], "username": row[1], "email": row[2], "role": row[3], "created_at": row[4]}
+        by_role_rows = conn.execute(by_role_query).fetchall()
+        by_role = []
+        for row in by_role_rows:
+            try:
+                if hasattr(row, "_mapping"):
+                    by_role.append(dict(row._mapping))
                 else:
-                    user_dict = {"id": row[0], "username": row[1], "email": row[2], "role": row[3]}
-                all_users_list.append(user_dict)
-        except Exception as e:
-            print(f"Error processing user row: {e}")
-    
-    # If created_at doesn't exist in the result, add a placeholder
-    if all_users_list and 'created_at' not in all_users_list[0]:
-        for user in all_users_list:
-            user['created_at'] = 'Not recorded'
-    
-    # Build the analytics dictionary
-    analytics = {
-        'total_users': total_users,
-        'by_role': by_role,
-        'all_users': all_users_list
-    }
-    
-    return render_template('analytics/user_analytics.html', analytics=analytics)
+                    # Assume first column is role, second is count
+                    by_role.append({"role": row[0], "count": row[1]})
+            except Exception as e:
+                print(f"Error processing row: {e}")
+        
+        # Check which columns exist in the users table
+        columns = []
+        if is_postgres:
+            # PostgreSQL query to get column names
+            table_info_query = text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'users'
+            """)
+            table_info_rows = conn.execute(table_info_query).fetchall()
+            
+            for row in table_info_rows:
+                try:
+                    if hasattr(row, "_mapping"):
+                        columns.append(row._mapping["column_name"])
+                    else:
+                        # column_name is the first column
+                        columns.append(row[0])
+                except Exception as e:
+                    print(f"Error getting column name: {e}")
+        else:
+            # SQLite PRAGMA query
+            table_info_rows = conn.execute(text("PRAGMA table_info(users)")).fetchall()
+            
+            for row in table_info_rows:
+                try:
+                    if hasattr(row, "_mapping"):
+                        columns.append(row._mapping["name"])
+                    else:
+                        # "name" is typically the 2nd column in PRAGMA table_info result
+                        columns.append(row[1])
+                except Exception as e:
+                    print(f"Error getting column name: {e}")
+        
+        # Get all users for the table view with most recent first
+        # Determine if created_at exists, otherwise use registration_date or id as fallback
+        if 'created_at' in columns:
+            order_by = 'created_at DESC'
+            all_users_query = text(f'''
+                SELECT id, username, email, role, created_at 
+                FROM users 
+                ORDER BY {order_by}
+            ''')
+        else:
+            # Fallback to ordering by ID if created_at doesn't exist
+            order_by = 'id DESC'
+            all_users_query = text(f'''
+                SELECT id, username, email, role
+                FROM users 
+                ORDER BY {order_by}
+            ''')
+        
+        all_users_rows = conn.execute(all_users_query).fetchall()
+        all_users_list = []
+        
+        for row in all_users_rows:
+            try:
+                if hasattr(row, "_mapping"):
+                    all_users_list.append(dict(row._mapping))
+                else:
+                    # Create dict from tuple assuming column order from query
+                    user_dict = {}
+                    if 'created_at' in columns:
+                        user_dict = {"id": row[0], "username": row[1], "email": row[2], "role": row[3], "created_at": row[4]}
+                    else:
+                        user_dict = {"id": row[0], "username": row[1], "email": row[2], "role": row[3]}
+                    all_users_list.append(user_dict)
+            except Exception as e:
+                print(f"Error processing user row: {e}")
+        
+        # If created_at doesn't exist in the result, add a placeholder
+        if all_users_list and 'created_at' not in all_users_list[0]:
+            for user in all_users_list:
+                user['created_at'] = 'Not recorded'
+        
+        # Build the analytics dictionary
+        analytics = {
+            'total_users': total_users,
+            'by_role': by_role,
+            'all_users': all_users_list
+        }
+        
+        return render_template('analytics/user_analytics.html', analytics=analytics)
+    except Exception as e:
+        print(f"Error in user analytics: {e}")
+        return render_template('error.html',
+                              error_message="Error loading user analytics. Please try again later.",
+                              error_title="Analytics Error")
 
 @app.route('/api/notifications')
 def get_notifications():

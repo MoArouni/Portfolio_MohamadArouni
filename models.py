@@ -443,24 +443,47 @@ class Post:
     def get_analytics():
         """Get analytics for all blog posts"""
         conn = get_db_connection()
-        posts_analytics = conn.execute(text('''
-            SELECT 
-                p.id,
-                p.title,
-                p.view_count,
-                (SELECT COUNT(*) FROM comments WHERE post_id = p.id) AS comment_count,
-                (SELECT COUNT(*) FROM blog_likes WHERE post_id = p.id) AS total_likes,
-                (SELECT COUNT(*) FROM blog_likes WHERE post_id = p.id AND is_anonymous = 1) AS anonymous_likes,
-                (SELECT COUNT(*) FROM blog_likes WHERE post_id = p.id AND is_anonymous = 0) AS registered_likes,
-                (SELECT MAX(created_at) FROM blog_likes WHERE post_id = p.id) AS last_like_date,
-                (SELECT MAX(created_at) FROM comments WHERE post_id = p.id) AS last_comment_date,
-                p.created_at
-            FROM posts p
-            ORDER BY p.created_at DESC
-        ''')).fetchall()
-        
-        # Convert to list of dicts
-        return [dict(post._mapping) for post in posts_analytics]
+        try:
+            posts_analytics = conn.execute(text('''
+                SELECT 
+                    p.id,
+                    p.title,
+                    p.view_count,
+                    (SELECT COUNT(*) FROM comments WHERE post_id = p.id) AS comment_count,
+                    (SELECT COUNT(*) FROM blog_likes WHERE post_id = p.id) AS total_likes,
+                    (SELECT COUNT(*) FROM blog_likes WHERE post_id = p.id AND is_anonymous = TRUE) AS anonymous_likes,
+                    (SELECT COUNT(*) FROM blog_likes WHERE post_id = p.id AND is_anonymous = FALSE) AS registered_likes,
+                    (SELECT MAX(created_at) FROM blog_likes WHERE post_id = p.id) AS last_like_date,
+                    (SELECT MAX(created_at) FROM comments WHERE post_id = p.id) AS last_comment_date,
+                    p.created_at
+                FROM posts p
+                ORDER BY p.created_at DESC
+            ''')).fetchall()
+            
+            # Convert to list of dicts
+            result = []
+            for post in posts_analytics:
+                try:
+                    if hasattr(post, "_mapping"):
+                        result.append(dict(post._mapping))
+                    else:
+                        # Create dict manually - mapping column names to values
+                        column_names = ["id", "title", "view_count", "comment_count", "total_likes", 
+                                      "anonymous_likes", "registered_likes", "last_like_date", 
+                                      "last_comment_date", "created_at"]
+                        post_dict = {column_names[i]: post[i] for i in range(min(len(column_names), len(post)))}
+                        result.append(post_dict)
+                except Exception as e:
+                    print(f"Error processing post analytics: {e}")
+                
+            return result
+        except Exception as e:
+            print(f"Error getting post analytics: {e}")
+            try:
+                conn.rollback()
+            except:
+                pass
+            return []  # Return empty list on error
 
 class Comment:
     """Comment model for post comment operations"""
@@ -826,27 +849,63 @@ class CVDownload:
         """Get analytics for CV downloads"""
         conn = get_db_connection()
         try:
+            # Check if we're using PostgreSQL or SQLite
+            from app import app
+            is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+            
             # Total downloads
-            total = conn.execute(text('SELECT COUNT(*) as count FROM cv_downloads')).fetchone()['count']
+            result = conn.execute(text('SELECT COUNT(*) as count FROM cv_downloads')).fetchone()
+            total = 0
+            if result:
+                try:
+                    if hasattr(result, "_mapping"):
+                        total = result._mapping["count"]
+                    else:
+                        total = result[0]
+                except Exception as e:
+                    print(f"Error getting CV download count: {e}")
             
             # Downloads by reason
-            by_reason = conn.execute(text('''
+            by_reason = []
+            by_reason_rows = conn.execute(text('''
                 SELECT reason, COUNT(*) as count 
                 FROM cv_downloads 
                 GROUP BY reason 
                 ORDER BY count DESC
             ''')).fetchall()
             
+            for row in by_reason_rows:
+                try:
+                    if hasattr(row, "_mapping"):
+                        by_reason.append(dict(row._mapping))
+                    else:
+                        by_reason.append({"reason": row[0], "count": row[1]})
+                except Exception as e:
+                    print(f"Error processing reason row: {e}")
+            
             # Registered vs anonymous
-            by_type = conn.execute(text('''
+            by_type_result = conn.execute(text('''
                 SELECT 
-                    SUM(CASE WHEN is_anonymous = 0 THEN 1 ELSE 0 END) as registered,
-                    SUM(CASE WHEN is_anonymous = 1 THEN 1 ELSE 0 END) as anonymous
+                    SUM(CASE WHEN is_anonymous = FALSE THEN 1 ELSE 0 END) as registered,
+                    SUM(CASE WHEN is_anonymous = TRUE THEN 1 ELSE 0 END) as anonymous
                 FROM cv_downloads
             ''')).fetchone()
             
+            registered = 0
+            anonymous = 0
+            if by_type_result:
+                try:
+                    if hasattr(by_type_result, "_mapping"):
+                        registered = by_type_result._mapping["registered"] or 0
+                        anonymous = by_type_result._mapping["anonymous"] or 0
+                    else:
+                        registered = by_type_result[0] or 0
+                        anonymous = by_type_result[1] or 0
+                except Exception as e:
+                    print(f"Error processing download type counts: {e}")
+            
             # Recent downloads
-            recent = conn.execute(text('''
+            recent_rows = conn.execute(text('''
                 SELECT 
                     cv.id,
                     cv.reason,
@@ -859,16 +918,43 @@ class CVDownload:
                 LIMIT 10
             ''')).fetchall()
             
+            recent = []
+            for row in recent_rows:
+                try:
+                    if hasattr(row, "_mapping"):
+                        recent.append(dict(row._mapping))
+                    else:
+                        # Map tuple values to dict keys
+                        recent.append({
+                            "id": row[0],
+                            "reason": row[1],
+                            "is_anonymous": row[2],
+                            "username": row[3],
+                            "created_at": row[4]
+                        })
+                except Exception as e:
+                    print(f"Error processing recent download: {e}")
+            
             return {
                 'total': total,
-                'by_reason': [dict(r._mapping) for r in by_reason],
-                'registered': by_type['registered'] if by_type['registered'] is not None else 0,
-                'anonymous': by_type['anonymous'] if by_type['anonymous'] is not None else 0,
-                'recent': [dict(r._mapping) for r in recent]
+                'by_reason': by_reason,
+                'registered': registered,
+                'anonymous': anonymous,
+                'recent': recent
             }
         except Exception as e:
             print(f"Error getting CV download analytics: {e}")
-            return None
+            try:
+                conn.rollback()
+            except:
+                pass
+            return {
+                'total': 0,
+                'by_reason': [],
+                'registered': 0,
+                'anonymous': 0,
+                'recent': []
+            }
 
 class VisitorStat:
     """Visitor statistics model for tracking page views"""
@@ -935,6 +1021,10 @@ class VisitorStat:
         """Get visitor analytics"""
         conn = get_db_connection()
         try:
+            # Check if we're using PostgreSQL or SQLite
+            from app import app
+            is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+            
             # Total page views
             result = conn.execute(text('SELECT COUNT(*) as count FROM visitor_stats')).fetchone()
             total_views = 0
@@ -981,15 +1071,30 @@ class VisitorStat:
                     print(f"Error processing popular page: {e}")
             
             # Views over time (last 7 days)
-            views_by_day_rows = conn.execute(text('''
-                SELECT 
-                    date(created_at) as date,
-                    COUNT(*) as count
-                FROM visitor_stats
-                WHERE created_at >= date('now', '-7 days')
-                GROUP BY date
-                ORDER BY date
-            ''')).fetchall()
+            if is_postgres:
+                # PostgreSQL date formatting
+                views_by_day_query = text('''
+                    SELECT 
+                        date(created_at) as date,
+                        COUNT(*) as count
+                    FROM visitor_stats
+                    WHERE created_at >= NOW() - INTERVAL '7 days'
+                    GROUP BY date
+                    ORDER BY date
+                ''')
+            else:
+                # SQLite date formatting
+                views_by_day_query = text('''
+                    SELECT 
+                        date(created_at) as date,
+                        COUNT(*) as count
+                    FROM visitor_stats
+                    WHERE created_at >= date('now', '-7 days')
+                    GROUP BY date
+                    ORDER BY date
+                ''')
+            
+            views_by_day_rows = conn.execute(views_by_day_query).fetchall()
             
             views_by_day = []
             for row in views_by_day_rows:
@@ -1009,6 +1114,10 @@ class VisitorStat:
             }
         except Exception as e:
             print(f"Error getting visitor analytics: {e}")
+            try:
+                conn.rollback()
+            except:
+                pass
             # Return default empty structure instead of None
             return {
                 'total_views': 0,
