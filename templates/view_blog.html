@@ -158,41 +158,46 @@
                             {% endif %}
                         </div>
                         
-                        <!-- Comment Form for logged-in subscribers -->
-                        {% if session.role == 'subscriber' %}
-                            <div class="comment-form-container">
-                                <h4 class="comment-form-title">Leave a Comment</h4>
-                                <form class="form-comment" method="POST" action="{{ url_for('add_comment') }}">
-                                    <input type="hidden" name="post_id" value="{{ post.id }}">
-                                    <div class="form-field">
-                                        <label for="content">Your comment</label>
-                                        <textarea name="content" id="content" placeholder="Write your comment here..." required></textarea>
-                                    </div>
-                                    <div class="form-comment-buttons">
-                                        <button class="btn btn-primary" type="submit">Post Comment</button>
-                                    </div>
-                                </form>
-                            </div>
-                        {% elif not session.user_id %}
-                            <div class="comment-form-container">
-                                <h4 class="comment-form-title">Leave a Comment</h4>
-                                <form class="form-comment" method="POST" action="{{ url_for('add_anonymous_comment') }}">
-                                    <input type="hidden" name="post_id" value="{{ post.id }}">
-                                    <div class="form-field">
-                                        <label for="author_name">Your Name</label>
-                                        <input type="text" name="author_name" id="author_name" placeholder="Your name" required>
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="guest_content">Your comment</label>
-                                        <textarea name="content" id="guest_content" placeholder="Write your comment here..." required></textarea>
-                                    </div>
-                                    <div class="form-comment-buttons">
-                                        <button class="btn btn-primary" type="submit">Post Comment</button>
-                                        <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
-                                    </div>
-                                </form>
-                            </div>
-                        {% endif %}
+                        <!-- Comment Form -->
+                        <div class="comment-form-container">
+                            {% if session.user_id %}
+                            <!-- Logged in user comment form -->
+                            <form action="{{ url_for('add_comment') }}" method="post" class="comment-form">
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                
+                                <div class="form-group">
+                                    <label for="content-{{ post.id }}">Your Comment</label>
+                                    <textarea id="content-{{ post.id }}" name="content" rows="3" class="form-control" 
+                                             placeholder="Share your thoughts..."></textarea>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Submit Comment</button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <!-- Anonymous user comment form -->
+                            <form action="{{ url_for('add_anonymous_comment') }}" method="post" class="comment-form">
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                
+                                <div class="form-group">
+                                    <label for="author_name-{{ post.id }}">Your Name</label>
+                                    <input type="text" id="author_name-{{ post.id }}" name="author_name" 
+                                          class="form-control" placeholder="Your name (will be shown with comment)" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="content-{{ post.id }}">Your Comment</label>
+                                    <textarea id="content-{{ post.id }}" name="content" rows="3" class="form-control" 
+                                             placeholder="Share your thoughts..."></textarea>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Submit Comment</button>
+                                </div>
+                            </form>
+                            {% endif %}
+                        </div>
                     </div>
                 </article>
             {% endfor %}

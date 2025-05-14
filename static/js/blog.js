@@ -38,11 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Can't unlike as anonymous user
                     alert('Anonymous users cannot remove their likes');
                 } else if (!anonymousLikes.includes(postId)) {
-                    // Prompt for name and like
-                    const username = prompt('Please enter your name for the like:', 'Anonymous');
-                    if (username) {
-                        handleAnonymousLike(this, postId, username, likeCountElement);
-                    }
+                    // Skip prompt, use 'Anonymous' as default username
+                    handleAnonymousLike(this, postId, 'Anonymous', likeCountElement);
                 } else {
                     alert('You have already liked this post');
                 }
@@ -52,12 +49,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to handle regular like/unlike actions
     function handleLikeAction(button, postId, liked, likeCountElement) {
-        // UI update
-        toggleLikeUI(button, !liked);
-        likeCountElement.textContent = parseInt(likeCountElement.textContent) + (liked ? -1 : 1);
-        
-        // API call
+        // First call the API
         const url = liked ? `/post/unlike/${postId}` : `/post/like/${postId}`;
+        
         fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
@@ -65,17 +59,20 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Only update UI after successful API response
+                toggleLikeUI(button, !liked);
                 likeCountElement.textContent = data.like_count;
             } else {
-                // Revert on failure
-                toggleLikeUI(button, liked);
-                likeCountElement.textContent = parseInt(likeCountElement.textContent) + (liked ? 1 : -1);
+                // Error - don't change UI
+                console.error('Error with like action:', data.error);
+                if (data.error === 'Already liked') {
+                    // If already liked but UI doesn't show it, update UI
+                    if (!liked) toggleLikeUI(button, true);
+                }
             }
         })
         .catch(error => {
-            // Revert on error
-            toggleLikeUI(button, liked);
-            likeCountElement.textContent = parseInt(likeCountElement.textContent) + (liked ? 1 : -1);
+            console.error('Network error with like action:', error);
         });
     }
     
@@ -92,11 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to handle anonymous likes
     function handleAnonymousLike(button, postId, username, likeCountElement) {
-        // UI update
-        toggleLikeUI(button, true);
-        likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
-        
-        // API call
+        // First call the API
         fetch(`/post/anonymous_like/${postId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -108,25 +101,28 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Only update UI after successful API response
+                toggleLikeUI(button, true);
                 likeCountElement.textContent = data.like_count;
                 
                 // Store like in localStorage
                 anonymousLikes.push(postId);
                 localStorage.setItem('anonymous_likes', JSON.stringify(anonymousLikes));
             } else {
-                // Revert on failure
-                toggleLikeUI(button, false);
-                likeCountElement.textContent = parseInt(likeCountElement.textContent) - 1;
-                
+                // Error - don't change UI
+                console.error('Error with anonymous like:', data.error);
                 if (data.error === 'Already liked') {
-                    alert('This post has already been liked from this device');
+                    // If already liked but not in localStorage, add it
+                    if (!anonymousLikes.includes(postId)) {
+                        anonymousLikes.push(postId);
+                        localStorage.setItem('anonymous_likes', JSON.stringify(anonymousLikes));
+                        toggleLikeUI(button, true);
+                    }
                 }
             }
         })
         .catch(error => {
-            // Revert on error
-            toggleLikeUI(button, false);
-            likeCountElement.textContent = parseInt(likeCountElement.textContent) - 1;
+            console.error('Network error with anonymous like:', error);
         });
     }
     

@@ -990,19 +990,32 @@ class VisitorStat:
             
             # Now insert the visitor record
             try:
-                cursor = conn.execute(
-                    text('INSERT INTO visitor_stats (ip_address, country, page_visited, is_unique) VALUES (:ip_address, :country, :page_visited, :is_unique)'),
-                    {"ip_address": ip_address, "country": country, "page_visited": page_visited, "is_unique": is_unique}
-                )
-                
-                # For SQLite compatibility
-                if hasattr(cursor, 'lastrowid'):
-                    visitor_id = cursor.lastrowid
-                else:
-                    # For PostgreSQL
-                    visitor_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                # For PostgreSQL, use RETURNING to get the ID
+                is_postgres = False
+                try:
+                    from app import app
+                    is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+                except:
+                    pass
+
+                if is_postgres:
+                    # PostgreSQL version with RETURNING
+                    result = conn.execute(
+                        text('INSERT INTO visitor_stats (ip_address, country, page_visited, is_unique) VALUES (:ip_address, :country, :page_visited, :is_unique) RETURNING id'),
+                        {"ip_address": ip_address, "country": country, "page_visited": page_visited, "is_unique": is_unique}
+                    ).fetchone()
                     
+                    visitor_id = result[0] if result else None
+                else:
+                    # SQLite version
+                    cursor = conn.execute(
+                        text('INSERT INTO visitor_stats (ip_address, country, page_visited, is_unique) VALUES (:ip_address, :country, :page_visited, :is_unique)'),
+                        {"ip_address": ip_address, "country": country, "page_visited": page_visited, "is_unique": is_unique}
+                    )
+                    visitor_id = cursor.lastrowid
+                
                 conn.commit()
+                print(f"Recorded visit with ID: {visitor_id}")
                 return visitor_id
             except Exception as e:
                 print(f"Error recording visitor stat: {e}")
@@ -1270,21 +1283,39 @@ class CVVerification:
         """Create a new verification entry"""
         conn = get_db_connection()
         try:
-            cursor = conn.execute(
-                text('INSERT INTO cv_verifications (email, reason, token, expires_at) VALUES (:email, :reason, :token, :expires_at)'),
-                {"email": email, "reason": reason, "token": token, "expires_at": expires_at}
-            )
-            # For SQLite compatibility
-            if hasattr(cursor, 'lastrowid'):
-                verification_id = cursor.lastrowid
+            # For PostgreSQL, use RETURNING to get the ID
+            is_postgres = False
+            try:
+                from app import app
+                is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+            except:
+                pass
+
+            if is_postgres:
+                # PostgreSQL-specific version with RETURNING
+                result = conn.execute(
+                    text('INSERT INTO cv_verifications (email, reason, token, expires_at) VALUES (:email, :reason, :token, :expires_at) RETURNING id'),
+                    {"email": email, "reason": reason, "token": token, "expires_at": expires_at}
+                ).fetchone()
+                
+                verification_id = result[0] if result else None
             else:
-                # For PostgreSQL
-                verification_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                # SQLite version
+                cursor = conn.execute(
+                    text('INSERT INTO cv_verifications (email, reason, token, expires_at) VALUES (:email, :reason, :token, :expires_at)'),
+                    {"email": email, "reason": reason, "token": token, "expires_at": expires_at}
+                )
+                verification_id = cursor.lastrowid
                 
             conn.commit()
+            print(f"Created verification ID: {verification_id}")
             return verification_id
         except Exception as e:
             print(f"Error creating verification entry: {e}")
+            try:
+                conn.rollback()
+            except:
+                pass
             return None
     
     @staticmethod

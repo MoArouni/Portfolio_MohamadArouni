@@ -493,18 +493,29 @@ def update_post(post_id):
 @app.route('/comment', methods=['POST'])
 @login_required
 def add_comment():
+    """Add a comment from a logged-in user"""
     post_id = request.form['post_id']
     content = request.form['content']
     
     if not content:
         return redirect(url_for('view_blog'))
     
-    Comment.create(post_id, content, session['user_id'])
+    # Get user information
+    user_id = session.get('user_id')
+    username = session.get('username', 'Anonymous')
     
-    # Create notification
-    post = Post.get_by_id(post_id)
-    if post:
-        Notification.create_comment_notification(session['username'], False, post['title'])
+    # Create the comment
+    comment_id = Comment.create(post_id, content, user_id)
+    
+    if comment_id:
+        try:
+            # Create notification
+            post = Post.get_by_id(post_id)
+            if post:
+                Notification.create_comment_notification(username, False, post['title'])
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+            # Continue even if notification fails
     
     return redirect(url_for('view_blog') + '#post-' + post_id)
 
