@@ -1209,26 +1209,46 @@ class Notification:
             # Convert to list of dicts with relative time
             result = []
             for notification in notifications:
-                notification_dict = dict(notification._mapping)
-                
-                # Calculate relative time
-                created_at = datetime.strptime(notification_dict['created_at'], '%Y-%m-%d %H:%M:%S')
-                now = datetime.now()
-                diff = now - created_at
-                
-                if diff.days > 0:
-                    relative_time = f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
-                elif diff.seconds >= 3600:
-                    hours = diff.seconds // 3600
-                    relative_time = f"{hours} hour{'s' if hours > 1 else ''} ago"
-                elif diff.seconds >= 60:
-                    minutes = diff.seconds // 60
-                    relative_time = f"{minutes} minute{'s' if minutes > 1 else ''} ago"
-                else:
-                    relative_time = "just now"
-                
-                notification_dict['relative_time'] = relative_time
-                result.append(notification_dict)
+                try:
+                    # Handle different row types
+                    notification_dict = {}
+                    if hasattr(notification, "_mapping"):
+                        notification_dict = dict(notification._mapping)
+                    else:
+                        # Create a dict manually assuming column order matches query
+                        cols = ["id", "type", "message", "username", "is_anonymous", "is_read", "created_at"]
+                        notification_dict = {cols[i]: notification[i] for i in range(min(len(cols), len(notification)))}
+                    
+                    # Calculate relative time
+                    created_at = None
+                    if isinstance(notification_dict['created_at'], str):
+                        try:
+                            created_at = datetime.strptime(notification_dict['created_at'], '%Y-%m-%d %H:%M:%S')
+                        except ValueError:
+                            # Try another format if the first one fails
+                            created_at = datetime.strptime(notification_dict['created_at'], '%Y-%m-%d %H:%M:%S.%f')
+                    else:
+                        # Already a datetime object
+                        created_at = notification_dict['created_at']
+                    
+                    now = datetime.now()
+                    diff = now - created_at
+                    
+                    if diff.days > 0:
+                        relative_time = f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+                    elif diff.seconds >= 3600:
+                        hours = diff.seconds // 3600
+                        relative_time = f"{hours} hour{'s' if hours > 1 else ''} ago"
+                    elif diff.seconds >= 60:
+                        minutes = diff.seconds // 60
+                        relative_time = f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+                    else:
+                        relative_time = "just now"
+                    
+                    notification_dict['relative_time'] = relative_time
+                    result.append(notification_dict)
+                except Exception as e:
+                    print(f"Error processing notification: {e}")
             
             return result
         except Exception as e:

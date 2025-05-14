@@ -519,24 +519,6 @@ def add_comment():
     
     return redirect(url_for('view_blog') + '#post-' + post_id)
 
-@app.route('/anonymous_comment', methods=['POST'])
-def add_anonymous_comment():
-    post_id = request.form['post_id']
-    content = request.form['content']
-    author_name = request.form.get('author_name', 'Anonymous')
-    
-    if not content:
-        return redirect(url_for('view_blog'))
-    
-    Comment.create_anonymous(post_id, content, author_name)
-    
-    # Create notification
-    post = Post.get_by_id(post_id)
-    if post:
-        Notification.create_comment_notification(author_name, True, post['title'])
-    
-    return redirect(url_for('view_blog') + '#post-' + post_id)
-
 @app.route('/delete/comment/<int:comment_id>')
 @login_required
 @admin_required

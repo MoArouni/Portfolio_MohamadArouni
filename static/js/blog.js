@@ -134,11 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const liked = this.classList.contains('liked');
             const likeCountElement = this.querySelector('.comment-like-count');
             
-            // UI update
-            toggleLikeUI(this, !liked);
-            likeCountElement.textContent = parseInt(likeCountElement.textContent) + (liked ? -1 : 1);
-            
-            // API call
+            // First call the API
             const url = liked ? `/comment/unlike/${commentId}` : `/comment/like/${commentId}`;
             fetch(url, {
                 method: 'POST',
@@ -147,17 +143,16 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Only update UI after successful API response
+                    toggleLikeUI(this, !liked);
                     likeCountElement.textContent = data.like_count;
                 } else {
-                    // Revert on failure
-                    toggleLikeUI(this, liked);
-                    likeCountElement.textContent = parseInt(likeCountElement.textContent) + (liked ? 1 : -1);
+                    // Error - don't change UI
+                    console.error('Error with comment like action:', data.error);
                 }
             })
             .catch(error => {
-                // Revert on error
-                toggleLikeUI(this, liked);
-                likeCountElement.textContent = parseInt(likeCountElement.textContent) + (liked ? 1 : -1);
+                console.error('Network error with comment like action:', error);
             });
         });
     });
