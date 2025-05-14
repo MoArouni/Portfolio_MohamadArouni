@@ -1,3 +1,5 @@
+#version 1.0.0
+
 from flask import Flask, render_template, request, redirect, url_for, session, g, jsonify, send_from_directory
 import sqlite3
 import os
