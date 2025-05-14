@@ -88,21 +88,57 @@ def ensure_db_initialized():
                 print("Database already initialized")
                 return True
             except Exception as e:
-                print(f"Database tables not found: {e}")
+                print(f"Database tables not found or error querying: {e}")
                 print("Attempting to run database migrations...")
                 
+                # Try migrations first
                 try:
                     # Run migrations
                     from flask_migrate import upgrade
                     upgrade()
                     db_initialized = True
                     print("Database migrations applied successfully")
-                    # Create admin user if needed
-                    from db_init import create_admin_user1
-                    create_admin_user1()
+                    
+                    # Check if admin user exists and create if needed
+                    try:
+                        # Check if admin exists
+                        result = db.session.execute(text('SELECT COUNT(*) FROM users WHERE role = :role'), {'role': 'admin'})
+                        admin_count = result.scalar()
+                        
+                        if admin_count == 0:
+                            print("No admin user found. Creating admin user...")
+                            from db_init import create_admin_user1
+                            create_admin_user1()
+                    except Exception as admin_error:
+                        print(f"Error checking/creating admin user: {admin_error}")
+                    
                     return True
                 except Exception as migration_error:
                     print(f"Error applying migrations: {migration_error}")
+                    
+                    # Before falling back to legacy initialization, check if database has tables
+                    try:
+                        engine = db.engine
+                        connection = engine.connect()
+                        
+                        # Check if key tables exist by directly querying information_schema
+                        if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']:
+                            # PostgreSQL-specific approach
+                            tables_query = text("""
+                                SELECT COUNT(*) 
+                                FROM information_schema.tables 
+                                WHERE table_schema = 'public' 
+                                AND table_name IN ('users', 'posts', 'comments')
+                            """)
+                            result = connection.execute(tables_query)
+                            table_count = result.scalar()
+                            
+                            if table_count >= 3:
+                                print(f"Database appears to be initialized (found {table_count} core tables)")
+                                db_initialized = True
+                                return True
+                    except Exception as schema_error:
+                        print(f"Error checking schema: {schema_error}")
                     
                     # Fallback to legacy initialization if migrations fail
                     print("Falling back to legacy database initialization...")

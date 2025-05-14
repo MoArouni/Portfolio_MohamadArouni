@@ -198,9 +198,33 @@ def initialize_postgres_db():
         
         if not connection_successful:
             return False
+            
+        # Check if tables already exist
+        print("Checking if database is already initialized...")
+        try:
+            with engine.connect() as conn:
+                # Check if key tables exist
+                tables_to_check = ['users', 'posts', 'comments', 'blog_likes']
+                tables_exist = True
+                
+                for table in tables_to_check:
+                    try:
+                        result = conn.execute(text(f"SELECT 1 FROM {table} LIMIT 1"))
+                        print(f"Table '{table}' exists.")
+                    except ProgrammingError:
+                        tables_exist = False
+                        print(f"Table '{table}' does not exist.")
+                        break
+                
+                if tables_exist:
+                    print("Database is already initialized. Skipping initialization.")
+                    return True
+        except Exception as e:
+            print(f"Error checking existing tables: {e}")
+            # Continue to initialization
         
         # Now create tables
-        print("\nCreating database tables...")
+        print("\nInitializing PostgreSQL database...")
         
         # Read schema file
         schema_path = os.path.join(os.path.dirname(__file__), 'schema_postgres.sql')
