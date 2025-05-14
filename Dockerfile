@@ -26,12 +26,16 @@ echo "Working directory: $(pwd)"\n\
 echo "Files in directory:"\n\
 ls -la\n\
 \n\
-echo "Checking for database initialization..."\n\
-python -c "from app import app; from db_init import init_db; app.app_context().push(); init_db()" || {\n\
-  echo "Error during database initialization. Running diagnostics..."\n\
-  python debug_startup.py\n\
-  exit 1\n\
-}\n\
+echo "Checking DATABASE_URL..."\n\
+if [ -n "$DATABASE_URL" ]; then\n\
+  echo "DATABASE_URL is set, running PostgreSQL initialization script..."\n\
+  python init_postgres_db.py || {\n\
+    echo "Error during PostgreSQL initialization."\n\
+    exit 1\n\
+  }\n\
+else\n\
+  echo "DATABASE_URL not set, will use SQLite."\n\
+fi\n\
 \n\
 echo "Starting web server..."\n\
 exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level debug app:app\n\

@@ -42,12 +42,51 @@ db.init_app(app)
 
 # Try to initialize database if needed
 try:
-    # Use a test query to check if tables exist
+    # Check if tables exist and create them if they don't
     with app.app_context():
-        db.session.execute(text('SELECT 1'))
-        print("Database connection successful")
+        # First check if we can connect
+        try:
+            db.session.execute(text('SELECT 1'))
+            print("Database connection successful")
+            
+            # Now check if tables exist by trying to query users table
+            try:
+                db.session.execute(text('SELECT COUNT(*) FROM users'))
+                print("Database tables already exist")
+            except Exception as table_error:
+                print(f"Tables don't exist yet: {table_error}")
+                print("Creating database tables...")
+                
+                if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql'):
+                    print("Setting up PostgreSQL database...")
+                    # For PostgreSQL we need to create tables using schema.sql
+                    try:
+                        init_db()
+                        print("Database tables created successfully!")
+                    except Exception as init_error:
+                        print(f"Error creating tables: {init_error}")
+                else:
+                    # For SQLite we can use SQLAlchemy's create_all
+                    try:
+                        # Import all models to ensure they're registered
+                        from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification, CVVerification
+                        
+                        # Create tables
+                        db.create_all()
+                        print("SQLite tables created successfully!")
+                        
+                        # Create admin user if needed
+                        try:
+                            create_admin_user1()
+                        except Exception as admin_error:
+                            print(f"Error creating admin user: {admin_error}")
+                    except Exception as create_error:
+                        print(f"Error creating tables with SQLAlchemy: {create_error}")
+        except Exception as conn_error:
+            print(f"Database connection error: {conn_error}")
+            
 except Exception as e:
-    print(f"Error connecting to database: {e}")
+    print(f"Error during database initialization: {e}")
     print("Will attempt to initialize database when needed")
 
 # Configure mail

@@ -72,6 +72,3 @@ htmlcov/
 temporary/
 
 migrations/
-
-schema.sql
-schema_sqlite.sql
