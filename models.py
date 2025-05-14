@@ -505,7 +505,7 @@ class Comment:
         conn = get_db_connection()
         cursor = conn.execute(
             text('INSERT INTO comments (post_id, user_id, content, is_anonymous) VALUES (:post_id, :user_id, :content, :is_anonymous)'),
-            {"post_id": post_id, "user_id": user_id, "content": content, "is_anonymous": 0}
+            {"post_id": post_id, "user_id": user_id, "content": content, "is_anonymous": False}
         )
         # For SQLite compatibility
         if hasattr(cursor, 'lastrowid'):
@@ -523,7 +523,7 @@ class Comment:
         conn = get_db_connection()
         cursor = conn.execute(
             text('INSERT INTO comments (post_id, author_name, content, is_anonymous) VALUES (:post_id, :author_name, :content, :is_anonymous)'),
-            {"post_id": post_id, "author_name": author_name, "content": content, "is_anonymous": 1}
+            {"post_id": post_id, "author_name": author_name, "content": content, "is_anonymous": True}
         )
         # For SQLite compatibility
         if hasattr(cursor, 'lastrowid'):
@@ -567,7 +567,7 @@ class Comment:
         try:
             conn.execute(
                 text('UPDATE comments SET liked_by_author = :liked WHERE id = :comment_id'),
-                {"liked": 1 if liked else 0, "comment_id": comment_id}
+                {"liked": liked, "comment_id": comment_id}
             )
             conn.commit()
             return True

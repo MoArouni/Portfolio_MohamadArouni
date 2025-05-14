@@ -538,61 +538,89 @@ def delete_comment(comment_id):
 @app.route('/post/like/<int:post_id>', methods=['POST'])
 def like_post(post_id):
     """Add a like to a blog post"""
-    # Check if the post exists
-    post = Post.get_by_id(post_id)
-    if not post:
-        return jsonify({'success': False, 'error': 'Post not found'}), 404
-    
-    # Get the user info if logged in
-    user_id = session.get('user_id')
-    username = session.get('username')
-    is_anonymous = not user_id
-    
-    # Store like
-    like_id = BlogLike.create(post_id, user_id, username, is_anonymous)
-    
-    # If like was successful, return success
-    if like_id:
-        # Create notification
-        Notification.create_post_like_notification(username, is_anonymous, post['title'])
+    try:
+        # Check if the post exists
+        post = Post.get_by_id(post_id)
+        if not post:
+            print(f"Post not found: {post_id}")
+            return jsonify({'success': False, 'error': 'Post not found'}), 404
         
-        # Get updated like count
-        like_count = BlogLike.get_count_for_post(post_id)
-        return jsonify({'success': True, 'like_count': like_count})
-    else:
-        # User may have already liked this post
-        return jsonify({'success': False, 'error': 'Already liked'}), 400
+        # Get the user info if logged in
+        user_id = session.get('user_id')
+        username = session.get('username')
+        is_anonymous = not user_id
+        
+        print(f"Adding like to post {post_id} by user {username} (ID: {user_id}, anonymous: {is_anonymous})")
+        
+        # Store like
+        like_id = BlogLike.create(post_id, user_id, username, is_anonymous)
+        
+        # If like was successful, return success
+        if like_id:
+            try:
+                # Create notification
+                notif_id = Notification.create_post_like_notification(username, is_anonymous, post['title'])
+                print(f"Created notification ID: {notif_id}")
+            except Exception as e:
+                print(f"Error creating notification: {e}")
+                # Continue even if notification fails
+            
+            # Get updated like count
+            like_count = BlogLike.get_count_for_post(post_id)
+            print(f"Updated like count: {like_count}")
+            return jsonify({'success': True, 'like_count': like_count})
+        else:
+            # User may have already liked this post
+            print("Like not created - user may have already liked this post")
+            return jsonify({'success': False, 'error': 'Already liked'}), 400
+    except Exception as e:
+        print(f"Error in like_post: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/post/anonymous_like/<int:post_id>', methods=['POST'])
 def anonymous_like_post(post_id):
     """Add an anonymous like to a blog post"""
-    # Check if the post exists
-    post = Post.get_by_id(post_id)
-    if not post:
-        return jsonify({'success': False, 'error': 'Post not found'}), 404
-    
-    # Get the data from the request
-    data = request.get_json()
-    username = data.get('username', 'Anonymous')
-    anonymous_id = data.get('anonymous_id', '')
-    
-    # Additional metadata
-    ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-    
-    # Try to store the anonymous like
-    like_id = BlogLike.create_anonymous(post_id, username, anonymous_id, ip)
-    
-    # If like was successful, return success
-    if like_id:
-        # Create notification
-        Notification.create_post_like_notification(username, True, post['title'])
+    try:
+        # Check if the post exists
+        post = Post.get_by_id(post_id)
+        if not post:
+            print(f"Post not found: {post_id}")
+            return jsonify({'success': False, 'error': 'Post not found'}), 404
         
-        # Get updated like count
-        like_count = BlogLike.get_count_for_post(post_id)
-        return jsonify({'success': True, 'like_count': like_count})
-    else:
-        # Error creating like or already liked
-        return jsonify({'success': False, 'error': 'Already liked'}), 400
+        # Get the data from the request
+        data = request.get_json()
+        username = data.get('username', 'Anonymous')
+        anonymous_id = data.get('anonymous_id', '')
+        
+        # Additional metadata
+        ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+        
+        print(f"Adding anonymous like to post {post_id} by {username} (ID: {anonymous_id}, IP: {ip})")
+        
+        # Try to store the anonymous like
+        like_id = BlogLike.create_anonymous(post_id, username, anonymous_id, ip)
+        
+        # If like was successful, return success
+        if like_id:
+            try:
+                # Create notification
+                notif_id = Notification.create_post_like_notification(username, True, post['title'])
+                print(f"Created notification ID: {notif_id}")
+            except Exception as e:
+                print(f"Error creating notification: {e}")
+                # Continue even if notification fails
+            
+            # Get updated like count
+            like_count = BlogLike.get_count_for_post(post_id)
+            print(f"Updated like count: {like_count}")
+            return jsonify({'success': True, 'like_count': like_count})
+        else:
+            # Error creating like or already liked
+            print("Anonymous like not created - user may have already liked this post")
+            return jsonify({'success': False, 'error': 'Already liked'}), 400
+    except Exception as e:
+        print(f"Error in anonymous_like_post: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/post/unlike/<int:post_id>', methods=['POST'])
 @login_required

@@ -69,22 +69,50 @@ try:
     with open(schema_path, 'r') as f:
         schema_sql = f.read()
     
-    # Split into separate commands
-    commands = [cmd.strip() for cmd in schema_sql.split(';') if cmd.strip()]
+    # Improved command splitting - properly handling SQL with nested semicolons
+    # Split into separate commands but ignore semicolons inside quotes or parentheses
+    commands = []
+    current_command = ""
+    in_string = False
+    string_char = None
+    for char in schema_sql:
+        if char in ["'", '"'] and not (in_string and string_char != char):
+            in_string = not in_string
+            if in_string:
+                string_char = char
+            elif not in_string:
+                string_char = None
+        
+        if char == ';' and not in_string:
+            if current_command.strip():
+                commands.append(current_command.strip())
+            current_command = ""
+        else:
+            current_command += char
+    
+    # Add the last command if it's not empty
+    if current_command.strip():
+        commands.append(current_command.strip())
+    
+    print(f"Extracted {len(commands)} SQL commands from schema file")
     
     # Execute each command
     with engine.connect() as conn:
         for i, cmd in enumerate(commands):
             try:
                 print(f"Executing command {i+1}/{len(commands)}...")
+                # Print first 100 chars of command for debugging
+                print(f"Command: {cmd[:100]}..." if len(cmd) > 100 else f"Command: {cmd}")
+                
                 conn.execute(text(cmd))
                 conn.commit()
+                print(f"Command {i+1} executed successfully")
             except ProgrammingError as e:
                 if "already exists" in str(e):
                     print(f"Table already exists: {e}")
                 else:
                     print(f"Error executing command: {e}")
-                    print(f"Command was: {cmd[:100]}...")  # Show first 100 chars
+                    print(f"Full command was: {cmd}")
     
     print("Schema creation complete!")
     
@@ -98,20 +126,24 @@ try:
         hashed_password = generate_password_hash(admin_password)
         
         with engine.connect() as conn:
-            # Check if user already exists
-            result = conn.execute(text("SELECT COUNT(*) FROM users WHERE role = 'admin'"))
-            count = result.scalar()
-            
-            if count > 0:
-                print("Admin user already exists.")
-            else:
-                # Create new admin user
-                conn.execute(
-                    text("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, :role)"),
-                    {"username": admin_username, "email": admin_email, "password": hashed_password, "role": "admin"}
-                )
-                conn.commit()
-                print("Admin user created successfully!")
+            try:
+                # Check if user already exists
+                result = conn.execute(text("SELECT COUNT(*) FROM users WHERE role = 'admin'"))
+                count = result.scalar()
+                
+                if count > 0:
+                    print("Admin user already exists.")
+                else:
+                    # Create new admin user
+                    conn.execute(
+                        text("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, :role)"),
+                        {"username": admin_username, "email": admin_email, "password": hashed_password, "role": "admin"}
+                    )
+                    conn.commit()
+                    print("Admin user created successfully!")
+            except Exception as e:
+                print(f"Error with admin user: {e}")
+                # Don't fail the whole initialization if admin creation fails
     else:
         print("\nWarning: Admin credentials not found in environment variables.")
         print("No admin user was created.")
@@ -186,22 +218,50 @@ def initialize_postgres_db():
         with open(schema_path, 'r') as f:
             schema_sql = f.read()
         
-        # Split into separate commands
-        commands = [cmd.strip() for cmd in schema_sql.split(';') if cmd.strip()]
+        # Improved command splitting - properly handling SQL with nested semicolons
+        # Split into separate commands but ignore semicolons inside quotes or parentheses
+        commands = []
+        current_command = ""
+        in_string = False
+        string_char = None
+        for char in schema_sql:
+            if char in ["'", '"'] and not (in_string and string_char != char):
+                in_string = not in_string
+                if in_string:
+                    string_char = char
+                elif not in_string:
+                    string_char = None
+            
+            if char == ';' and not in_string:
+                if current_command.strip():
+                    commands.append(current_command.strip())
+                current_command = ""
+            else:
+                current_command += char
+        
+        # Add the last command if it's not empty
+        if current_command.strip():
+            commands.append(current_command.strip())
+        
+        print(f"Extracted {len(commands)} SQL commands from schema file")
         
         # Execute each command
         with engine.connect() as conn:
             for i, cmd in enumerate(commands):
                 try:
                     print(f"Executing command {i+1}/{len(commands)}...")
+                    # Print first 100 chars of command for debugging
+                    print(f"Command: {cmd[:100]}..." if len(cmd) > 100 else f"Command: {cmd}")
+                    
                     conn.execute(text(cmd))
                     conn.commit()
+                    print(f"Command {i+1} executed successfully")
                 except ProgrammingError as e:
                     if "already exists" in str(e):
                         print(f"Table already exists: {e}")
                     else:
                         print(f"Error executing command: {e}")
-                        print(f"Command was: {cmd[:100]}...")  # Show first 100 chars
+                        print(f"Full command was: {cmd}")
         
         print("Schema creation complete!")
         
