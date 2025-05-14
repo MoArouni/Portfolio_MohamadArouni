@@ -13,6 +13,13 @@ from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import re
 from sqlalchemy.sql import text
+from flask_migrate import Migrate
+
+# Make sure we import the models for migrations
+from models_for_migrate import User as UserModel, Post as PostModel, Comment as CommentModel
+from models_for_migrate import BlogLike as BlogLikeModel, CommentLike as CommentLikeModel
+from models_for_migrate import CVDownload as CVDownloadModel, VisitorStat as VisitorStatModel
+from models_for_migrate import Notification as NotificationModel, CVVerification as CVVerificationModel
 
 # Load environment variables
 load_dotenv()
@@ -39,6 +46,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy with app
 db.init_app(app)
+
+# Initialize Flask-Migrate
+migrate = Migrate(app, db)
 
 # Make a simple early route available even if database init fails
 @app.route('/health')
@@ -79,38 +89,54 @@ def ensure_db_initialized():
                 return True
             except Exception as e:
                 print(f"Database tables not found: {e}")
-                print("Attempting to initialize database...")
+                print("Attempting to run database migrations...")
                 
-                # For PostgreSQL, use standalone init script
-                if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']:
-                    from init_postgres_db import initialize_postgres_db
-                    if initialize_postgres_db():
-                        db_initialized = True
-                        print("PostgreSQL database initialized successfully")
-                        return True
+                try:
+                    # Run migrations
+                    from flask_migrate import upgrade
+                    upgrade()
+                    db_initialized = True
+                    print("Database migrations applied successfully")
+                    # Create admin user if needed
+                    from db_init import create_admin_user1
+                    create_admin_user1()
+                    return True
+                except Exception as migration_error:
+                    print(f"Error applying migrations: {migration_error}")
+                    
+                    # Fallback to legacy initialization if migrations fail
+                    print("Falling back to legacy database initialization...")
+                    
+                    # For PostgreSQL, use standalone init script
+                    if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']:
+                        from init_postgres_db import initialize_postgres_db
+                        if initialize_postgres_db():
+                            db_initialized = True
+                            print("PostgreSQL database initialized successfully")
+                            return True
+                        else:
+                            print("Failed to initialize PostgreSQL database")
+                            return False
+                            
+                    # For SQLite, use SQLAlchemy to create tables
                     else:
-                        print("Failed to initialize PostgreSQL database")
-                        return False
-                        
-                # For SQLite, use SQLAlchemy to create tables
-                else:
-                    try:
-                        # Import all models to ensure they're registered with SQLAlchemy
-                        from models import User, Post, Comment, BlogLike, CommentLike, CVDownload
-                        
-                        # Create all tables
-                        db.create_all()
-                        
-                        # Create admin user if needed
-                        from db_init import create_admin_user1
-                        create_admin_user1()
-                        
-                        db_initialized = True
-                        print("SQLite database initialized successfully")
-                        return True
-                    except Exception as init_error:
-                        print(f"Error initializing SQLite database: {init_error}")
-                        return False
+                        try:
+                            # Import all models to ensure they're registered with SQLAlchemy
+                            from models import User, Post, Comment, BlogLike, CommentLike, CVDownload
+                            
+                            # Create all tables
+                            db.create_all()
+                            
+                            # Create admin user if needed
+                            from db_init import create_admin_user1
+                            create_admin_user1()
+                            
+                            db_initialized = True
+                            print("SQLite database initialized successfully")
+                            return True
+                        except Exception as init_error:
+                            print(f"Error initializing SQLite database: {init_error}")
+                            return False
     except Exception as e:
         print(f"Database initialization failed: {e}")
         return False

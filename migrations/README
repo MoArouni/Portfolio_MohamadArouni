@@ -1,0 +1,24 @@
+# Database Migrations
+
+This directory contains the database migration scripts managed by Flask-Migrate (Alembic).
+
+- DO NOT manually edit these files
+- DO NOT delete these files
+- This directory MUST be included in your Git repository
+
+## Usage
+
+To generate a new migration after model changes:
+```
+flask db migrate -m "Description of changes"
+```
+
+To apply migrations:
+```
+flask db upgrade
+```
+
+To rollback a migration:
+```
+flask db downgrade
+```
