@@ -596,7 +596,7 @@ class BlogLike:
         try:
             cursor = conn.execute(
                 text('INSERT INTO blog_likes (post_id, user_id, username, is_anonymous) VALUES (:post_id, :user_id, :username, :is_anonymous)'),
-                {"post_id": post_id, "user_id": user_id, "username": username, "is_anonymous": 1 if is_anonymous else 0}
+                {"post_id": post_id, "user_id": user_id, "username": username, "is_anonymous": is_anonymous}
             )
             # For SQLite compatibility
             if hasattr(cursor, 'lastrowid'):
@@ -711,8 +711,8 @@ class BlogLike:
         # Check if like already exists for this IP (additional check)
         if ip_address:
             existing_ip = conn.execute(
-                text('SELECT id FROM blog_likes WHERE post_id = :post_id AND ip_address = :ip_address AND is_anonymous = 1'),
-                {"post_id": post_id, "ip_address": ip_address}
+                text('SELECT id FROM blog_likes WHERE post_id = :post_id AND ip_address = :ip_address AND is_anonymous = :is_anonymous'),
+                {"post_id": post_id, "ip_address": ip_address, "is_anonymous": True}
             ).fetchone()
             
             if existing_ip:
@@ -721,7 +721,7 @@ class BlogLike:
         try:
             cursor = conn.execute(
                 text('INSERT INTO blog_likes (post_id, user_id, username, is_anonymous, anonymous_id, ip_address) VALUES (:post_id, :user_id, :username, :is_anonymous, :anonymous_id, :ip_address)'),
-                {"post_id": post_id, "user_id": None, "username": username, "is_anonymous": 1, "anonymous_id": anonymous_id, "ip_address": ip_address}
+                {"post_id": post_id, "user_id": None, "username": username, "is_anonymous": True, "anonymous_id": anonymous_id, "ip_address": ip_address}
             )
             # For SQLite compatibility
             if hasattr(cursor, 'lastrowid'):
@@ -829,7 +829,7 @@ class CVDownload:
             is_anonymous = user_id is None
             cursor = conn.execute(
                 text('INSERT INTO cv_downloads (user_id, reason, is_anonymous, ip_address, email, is_verified) VALUES (:user_id, :reason, :is_anonymous, :ip_address, :email, :is_verified)'),
-                {"user_id": user_id, "reason": reason, "is_anonymous": 1 if is_anonymous else 0, "ip_address": ip_address, "email": email, "is_verified": 1 if is_verified else 0}
+                {"user_id": user_id, "reason": reason, "is_anonymous": is_anonymous, "ip_address": ip_address, "email": email, "is_verified": is_verified}
             )
             # For SQLite compatibility
             if hasattr(cursor, 'lastrowid'):
@@ -974,7 +974,7 @@ class VisitorStat:
                 ip_address = ip_address[:45]
             
             # Check if this IP has visited before
-            is_unique = 1
+            is_unique = True  # Use boolean True instead of 1
             try:
                 existing = conn.execute(
                     text('SELECT id FROM visitor_stats WHERE ip_address = :ip_address'),
@@ -982,11 +982,11 @@ class VisitorStat:
                 ).fetchone()
                 
                 if existing:
-                    is_unique = 0
+                    is_unique = False  # Use boolean False instead of 0
             except Exception as e:
                 print(f"Error checking for existing visitor: {e}")
                 conn.rollback()  # Important: roll back on error
-                is_unique = 0   # Assume not unique if we had an error
+                is_unique = False  # Use boolean False instead of 0
             
             # Now insert the visitor record
             try:
@@ -1144,7 +1144,7 @@ class Notification:
         try:
             cursor = conn.execute(
                 text('INSERT INTO notifications (type, message, user_id, username, is_anonymous, is_read) VALUES (:type, :message, :user_id, :username, :is_anonymous, :is_read)'),
-                {"type": type, "message": message, "user_id": user_id, "username": username, "is_anonymous": 1 if is_anonymous else 0, "is_read": 0}
+                {"type": type, "message": message, "user_id": user_id, "username": username, "is_anonymous": is_anonymous, "is_read": False}
             )
             # For SQLite compatibility
             if hasattr(cursor, 'lastrowid'):
@@ -1165,8 +1165,8 @@ class Notification:
         conn = get_db_connection()
         try:
             conn.execute(
-                text('UPDATE notifications SET is_read = 1 WHERE id = :notification_id'),
-                {"notification_id": notification_id}
+                text('UPDATE notifications SET is_read = :is_read WHERE id = :notification_id'),
+                {"notification_id": notification_id, "is_read": True}
             )
             conn.commit()
             return True
@@ -1322,8 +1322,8 @@ class CVVerification:
         conn = get_db_connection()
         try:
             conn.execute(
-                text('UPDATE cv_verifications SET is_used = 1 WHERE token = :token'),
-                {"token": token}
+                text('UPDATE cv_verifications SET is_used = :is_used WHERE token = :token'),
+                {"token": token, "is_used": True}
             )
             conn.commit()
             return True
@@ -1348,7 +1348,7 @@ class CVVerification:
             # Create the download record
             cursor = conn.execute(
                 text('INSERT INTO cv_downloads (reason, email, is_verified) VALUES (:reason, :email, :is_verified)'),
-                {"reason": verification['reason'], "email": verification['email'], "is_verified": 1}
+                {"reason": verification['reason'], "email": verification['email'], "is_verified": True}
             )
             # For SQLite compatibility
             if hasattr(cursor, 'lastrowid'):
