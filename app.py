@@ -40,6 +40,16 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize SQLAlchemy with app
 db.init_app(app)
 
+# Try to initialize database if needed
+try:
+    # Use a test query to check if tables exist
+    with app.app_context():
+        db.session.execute(text('SELECT 1'))
+        print("Database connection successful")
+except Exception as e:
+    print(f"Error connecting to database: {e}")
+    print("Will attempt to initialize database when needed")
+
 # Configure mail
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
@@ -912,6 +922,11 @@ def verify_download():
     except Exception as e:
         print(f"Error verifying download: {e}")
         return redirect(url_for('home', error='An error occurred while processing your request'))
+
+@app.route('/health')
+def health_check():
+    """Simple health check endpoint for deployment platforms"""
+    return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
 # Helper function to get application URL
 def get_app_base_url():
