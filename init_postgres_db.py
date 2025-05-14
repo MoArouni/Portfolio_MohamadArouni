@@ -13,6 +13,15 @@ from sqlalchemy.exc import OperationalError, ProgrammingError
 # Load environment variables
 load_dotenv()
 
+# Try to import the global flag if we're being imported by the app
+try:
+    from app import SKIP_DB_INIT
+except ImportError:
+    # If we're running standalone, check the environment variable
+    SKIP_DB_INIT = os.environ.get('SKIP_DB_INIT', '').lower() in ('true', '1', 'yes')
+    if SKIP_DB_INIT:
+        print("SKIP_DB_INIT environment variable set. Database initialization will be skipped.")
+
 # Get database URL
 database_url = os.environ.get('DATABASE_URL')
 if not database_url:
@@ -24,6 +33,11 @@ if database_url.startswith('postgres:'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
 print(f"Connecting to database: {database_url.split('@')[1] if '@' in database_url else '(masked)'}")
+
+# Check if we should skip initialization when run directly
+if __name__ == '__main__' and SKIP_DB_INIT:
+    print("SKIP_DB_INIT is set. Skipping database initialization when run directly.")
+    sys.exit(0)
 
 # Try to connect to the database
 max_retries = 5
@@ -158,9 +172,9 @@ except Exception as e:
 def initialize_postgres_db():
     """Initialize the PostgreSQL database - returns True if successful, False otherwise"""
     try:
-        # Check for environment variable to completely skip initialization
-        if os.environ.get('SKIP_DB_INIT', '').lower() in ('true', '1', 'yes'):
-            print("SKIP_DB_INIT environment variable set. Completely skipping database initialization.")
+        # Check if we should skip initialization based on the global flag
+        if SKIP_DB_INIT:
+            print("SKIP_DB_INIT flag is True. Completely skipping database initialization.")
             return True
             
         # Check if DATABASE_URL is set

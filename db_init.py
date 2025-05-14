@@ -34,7 +34,12 @@ def update_admin_user(conn):
 
 def init_db():
     """Initialize the database"""
-    from app import app
+    from app import app, SKIP_DB_INIT
+    
+    # First check if initialization should be skipped
+    if SKIP_DB_INIT:
+        print("SKIP_DB_INIT is set to True. Skipping database initialization.")
+        return
     
     print("== Starting database initialization ==")
     
@@ -166,6 +171,10 @@ def get_db_connection():
 
 # Execute script directly
 if __name__ == '__main__':
-    from app import app
-    with app.app_context():
-        init_db() 
+    from app import app, SKIP_DB_INIT
+    
+    if SKIP_DB_INIT:
+        print("SKIP_DB_INIT is set to True. Skipping database initialization when run directly.")
+    else:
+        with app.app_context():
+            init_db() 

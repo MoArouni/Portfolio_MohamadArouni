@@ -5,15 +5,25 @@ import sqlite3
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification, CVVerification
-from db_init import get_db_connection, init_db, create_admin_user1, db
 from functools import wraps
 from dotenv import load_dotenv
 import math
+import re
+
+# Load environment variables first
+load_dotenv()
+
+# Global flag to control database initialization - check before importing any database modules
+SKIP_DB_INIT = os.environ.get('SKIP_DB_INIT', '').lower() in ('true', '1', 'yes')
+if SKIP_DB_INIT:
+    print("SKIP_DB_INIT environment variable set. Database initialization will be skipped.")
+
+# Only import database modules after checking SKIP_DB_INIT
+from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification, CVVerification
+from db_init import get_db_connection, init_db, create_admin_user1, db
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-import re
 from sqlalchemy.sql import text
 from flask_migrate import Migrate
 
@@ -22,9 +32,6 @@ from models_for_migrate import User as UserModel, Post as PostModel, Comment as 
 from models_for_migrate import BlogLike as BlogLikeModel, CommentLike as CommentLikeModel
 from models_for_migrate import CVDownload as CVDownloadModel, VisitorStat as VisitorStatModel
 from models_for_migrate import Notification as NotificationModel, CVVerification as CVVerificationModel
-
-# Load environment variables
-load_dotenv()
 
 # Initialize app first, before any database operations
 app = Flask(__name__)
@@ -62,7 +69,8 @@ def health_check():
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
             "app_name": "Portfolio Application",
-            "env": os.environ.get('FLASK_ENV', 'production')
+            "env": os.environ.get('FLASK_ENV', 'production'),
+            "skip_db_init": SKIP_DB_INIT
         }), 200
     except Exception as e:
         print(f"Health check error: {e}")
@@ -80,9 +88,9 @@ def ensure_db_initialized():
     if db_initialized:
         return True
     
-    # Check for environment variable to completely skip initialization
-    if os.environ.get('SKIP_DB_INIT', '').lower() in ('true', '1', 'yes'):
-        print("SKIP_DB_INIT environment variable set. Assuming database is initialized.")
+    # Use the global SKIP_DB_INIT flag
+    if SKIP_DB_INIT:
+        print("Using global SKIP_DB_INIT flag. Assuming database is initialized.")
         db_initialized = True
         return True
         
@@ -206,8 +214,11 @@ def nl2br(s):
     return s.replace('\n', '<br>')
 
 # Initialize database if it doesn't exist
-if not os.path.exists('blog.db'):
+if not os.path.exists('blog.db') and not SKIP_DB_INIT:
+    print("SQLite database does not exist. Initializing...")
     init_db()
+else:
+    print("Database already exists or SKIP_DB_INIT is set.")
 
 # Authorization decorator
 def login_required(f):
