@@ -158,6 +158,11 @@ except Exception as e:
 def initialize_postgres_db():
     """Initialize the PostgreSQL database - returns True if successful, False otherwise"""
     try:
+        # Check for environment variable to completely skip initialization
+        if os.environ.get('SKIP_DB_INIT', '').lower() in ('true', '1', 'yes'):
+            print("SKIP_DB_INIT environment variable set. Completely skipping database initialization.")
+            return True
+            
         # Check if DATABASE_URL is set
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:

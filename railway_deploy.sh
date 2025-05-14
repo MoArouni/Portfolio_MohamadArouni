@@ -40,6 +40,8 @@ try:
         result = connection.execute(table_count_query)
         table_count = result.scalar()
         
+        print(f"DEBUG: Found {table_count} tables in database")
+        
         if table_count > 0:
             # Check core tables more specifically
             tables = ["users", "posts", "comments"]
@@ -49,8 +51,11 @@ try:
                 try:
                     result = connection.execute(text(f"SELECT 1 FROM {table} LIMIT 1"))
                     found_tables.append(table)
-                except Exception:
-                    pass
+                    print(f"DEBUG: Table {table} exists and has data")
+                except Exception as e:
+                    print(f"DEBUG: Table {table} check failed: {e}")
+                    
+            print(f"DEBUG: Found {len(found_tables)} core tables: {', '.join(found_tables)}")
                     
             if len(found_tables) >= 2:
                 print("initialized")
@@ -66,6 +71,10 @@ echo "Database status: $DB_STATUS"
 
 if [[ "$DB_STATUS" == "initialized" ]]; then
     echo "Database already initialized with tables. Skipping migrations."
+    
+    # Set environment variable to skip database initialization entirely
+    export SKIP_DB_INIT=true
+    echo "Set SKIP_DB_INIT=true to prevent any attempts at initialization"
     
     # Create admin user if needed
     echo "Checking admin user..."

@@ -77,6 +77,12 @@ def ensure_db_initialized():
     global db_initialized
     if db_initialized:
         return True
+    
+    # Check for environment variable to completely skip initialization
+    if os.environ.get('SKIP_DB_INIT', '').lower() in ('true', '1', 'yes'):
+        print("SKIP_DB_INIT environment variable set. Assuming database is initialized.")
+        db_initialized = True
+        return True
         
     try:
         # Check if any database tables exist by attempting a simple query
