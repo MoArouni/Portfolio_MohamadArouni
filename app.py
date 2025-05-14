@@ -135,30 +135,60 @@ def load_logged_in_user():
     g.user = None
     user_id = session.get('user_id')
     if user_id:
-        g.user = User.get_by_id(user_id)
+        try:
+            g.user = User.get_by_id(user_id)
+        except Exception as e:
+            print(f"Error loading user: {e}")
+            # Don't let user loading failures break the site
+            session.pop('user_id', None)
     
-    # Track page views for analytics, excluding static files and admin pages
-    if not request.path.startswith('/static') and not request.path.startswith('/admin'):
-        ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-        visitor_id = VisitorStat.record_visit(ip, request.path)
-        
-        # Check for view count milestones (every 100 views)
-        if visitor_id:
-            conn = get_db_connection()
-            result = conn.execute(text('SELECT COUNT(*) as count FROM visitor_stats')).fetchone()
-            # Access count safely - try both mapping and index access
-            total_views = 0
-            try:
-                if hasattr(result, "_mapping"):
-                    total_views = result._mapping["count"]
-                else:
-                    # Try accessing by position - count is the first column
-                    total_views = result[0]
-            except Exception as e:
-                print(f"Error accessing count: {e}")
+    # Only track page views if not an API request and not a static file
+    if not request.path.startswith('/static') and not request.path.startswith('/api') and not request.path.startswith('/admin'):
+        try:
+            # Get IP address and clean it
+            ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
             
-            if total_views % 100 == 0:
-                Notification.create_view_milestone_notification(total_views)
+            # Clean up IP - many proxies add multiple IPs separated by commas
+            if ip and ',' in ip:
+                # Take the first IP (usually the client's real IP)
+                ip = ip.split(',')[0].strip()
+            
+            # Truncate if too long for database
+            if ip and len(ip) > 45:  # VARCHAR(45) in database
+                ip = ip[:45]
+            
+            visitor_id = VisitorStat.record_visit(ip, request.path)
+            
+            # Check for view count milestones (every 100 views), but handle errors gracefully
+            if visitor_id:
+                try:
+                    conn = get_db_connection()
+                    # Use a separate transaction
+                    result = conn.execute(text('SELECT COUNT(*) as count FROM visitor_stats')).fetchone()
+                    
+                    # Access count safely - try both mapping and index access
+                    total_views = 0
+                    try:
+                        if hasattr(result, "_mapping"):
+                            total_views = result._mapping["count"]
+                        else:
+                            # Try accessing by position - count is the first column
+                            total_views = result[0]
+                    except Exception as count_error:
+                        print(f"Error accessing count: {count_error}")
+                    
+                    if total_views > 0 and total_views % 100 == 0:
+                        try:
+                            Notification.create_view_milestone_notification(total_views)
+                        except Exception as notif_error:
+                            print(f"Error creating milestone notification: {notif_error}")
+                
+                except Exception as view_error:
+                    print(f"Error checking view count: {view_error}")
+                    # Don't let visitor tracking break the site
+        except Exception as ip_error:
+            print(f"Error tracking visit: {ip_error}")
+            # Don't let visitor tracking break the site
 
 @app.context_processor
 def inject_current_year():

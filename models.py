@@ -248,11 +248,19 @@ class Post:
     def get_latest(limit=2):
         """Get the latest n blog posts"""
         conn = get_db_connection()
-        query = text('SELECT * FROM posts ORDER BY created_at DESC LIMIT :limit')
-        posts = conn.execute(query, {"limit": limit}).fetchall()
-        
-        # Convert to list of dicts and convert timestamps
-        return [Post._convert_post_timestamps(dict(post._mapping)) for post in posts]
+        try:
+            query = text('SELECT * FROM posts ORDER BY created_at DESC LIMIT :limit')
+            posts = conn.execute(query, {"limit": limit}).fetchall()
+            
+            # Convert to list of dicts and convert timestamps
+            return [Post._convert_post_timestamps(dict(post._mapping)) for post in posts]
+        except Exception as e:
+            print(f"Error getting latest posts: {e}")
+            try:
+                conn.rollback()
+            except:
+                pass
+            return []  # Return empty list on error
     
     @staticmethod
     def get_by_id(post_id):
@@ -772,31 +780,56 @@ class VisitorStat:
         """Record a page visit"""
         conn = get_db_connection()
         try:
+            # Clean up IP address - take only the first part if there are multiple IPs
+            if ip_address and ',' in ip_address:
+                # Split and take first IP, then trim whitespace
+                ip_address = ip_address.split(',')[0].strip()
+            
+            # Truncate IP if it's too long for the database
+            if ip_address and len(ip_address) > 45:
+                ip_address = ip_address[:45]
+            
             # Check if this IP has visited before
             is_unique = 1
-            existing = conn.execute(
-                text('SELECT id FROM visitor_stats WHERE ip_address = :ip_address'),
-                {"ip_address": ip_address}
-            ).fetchone()
-            
-            if existing:
-                is_unique = 0
-            
-            cursor = conn.execute(
-                text('INSERT INTO visitor_stats (ip_address, country, page_visited, is_unique) VALUES (:ip_address, :country, :page_visited, :is_unique)'),
-                {"ip_address": ip_address, "country": country, "page_visited": page_visited, "is_unique": is_unique}
-            )
-            # For SQLite compatibility
-            if hasattr(cursor, 'lastrowid'):
-                visitor_id = cursor.lastrowid
-            else:
-                # For PostgreSQL
-                visitor_id = cursor.fetchone()[0] if cursor.returns_rows else None
+            try:
+                existing = conn.execute(
+                    text('SELECT id FROM visitor_stats WHERE ip_address = :ip_address'),
+                    {"ip_address": ip_address}
+                ).fetchone()
                 
-            conn.commit()
-            return visitor_id
+                if existing:
+                    is_unique = 0
+            except Exception as e:
+                print(f"Error checking for existing visitor: {e}")
+                conn.rollback()  # Important: roll back on error
+                is_unique = 0   # Assume not unique if we had an error
+            
+            # Now insert the visitor record
+            try:
+                cursor = conn.execute(
+                    text('INSERT INTO visitor_stats (ip_address, country, page_visited, is_unique) VALUES (:ip_address, :country, :page_visited, :is_unique)'),
+                    {"ip_address": ip_address, "country": country, "page_visited": page_visited, "is_unique": is_unique}
+                )
+                
+                # For SQLite compatibility
+                if hasattr(cursor, 'lastrowid'):
+                    visitor_id = cursor.lastrowid
+                else:
+                    # For PostgreSQL
+                    visitor_id = cursor.fetchone()[0] if cursor.returns_rows else None
+                    
+                conn.commit()
+                return visitor_id
+            except Exception as e:
+                print(f"Error recording visitor stat: {e}")
+                conn.rollback()  # Important: roll back on error
+                return None
         except Exception as e:
-            print(f"Error recording visitor stat: {e}")
+            print(f"Error in record_visit: {e}")
+            try:
+                conn.rollback()  # Final fallback
+            except:
+                pass
             return None
     
     @staticmethod

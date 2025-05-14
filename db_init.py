@@ -58,7 +58,7 @@ def init_db():
             if is_postgres:
                 print("Initializing PostgreSQL database...")
                 # PostgreSQL requires special handling with transactions for schema creation
-                schema_file = os.path.join(os.path.dirname(__file__), 'schema.sql')
+                schema_file = os.path.join(os.path.dirname(__file__), 'schema_postgres.sql')
                 if os.path.exists(schema_file):
                     with open(schema_file) as f:
                         sql_commands = f.read()
