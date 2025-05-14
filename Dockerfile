@@ -16,29 +16,20 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Create a startup script with error handling
+# Create a simplified startup script
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
-echo "Starting deployment with diagnostic information:"\n\
-echo "Python version: $(python --version)"\n\
-echo "Working directory: $(pwd)"\n\
-echo "Files in directory:"\n\
-ls -la\n\
+echo "Starting application..."\n\
 \n\
-echo "Checking DATABASE_URL..."\n\
-if [ -n "$DATABASE_URL" ]; then\n\
-  echo "DATABASE_URL is set, running PostgreSQL initialization script..."\n\
-  python init_postgres_db.py || {\n\
-    echo "Error during PostgreSQL initialization."\n\
-    exit 1\n\
-  }\n\
-else\n\
-  echo "DATABASE_URL not set, will use SQLite."\n\
-fi\n\
-\n\
-echo "Starting web server..."\n\
-exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level debug app:app\n\
+# Start the Flask application with Gunicorn\n\
+exec gunicorn --bind 0.0.0.0:$PORT \\\n\
+  --workers=2 \\\n\
+  --timeout=120 \\\n\
+  --access-logfile=- \\\n\
+  --error-logfile=- \\\n\
+  --log-level=info \\\n\
+  app:app\n\
 ' > /app/start.sh && chmod +x /app/start.sh
 
 # Set environment variables
@@ -46,6 +37,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=5000
 ENV FLASK_ENV=production
+ENV FLASK_DEBUG=0
 
 # Expose the port the app runs on
 EXPOSE 5000

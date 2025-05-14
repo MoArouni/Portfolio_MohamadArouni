@@ -17,77 +17,103 @@ from sqlalchemy.sql import text
 # Load environment variables
 load_dotenv()
 
-# Configure app
+# Initialize app first, before any database operations
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_key_for_blog')
 
-# Database configuration - supports both PostgreSQL and SQLite
+# Configure app before database initialization
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith('postgres'):
     # Railway provides PostgreSQL URLs starting with postgres://
     # SQLAlchemy 1.4+ requires postgresql:// instead of postgres://
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    print(f"Using PostgreSQL database at {database_url}")
+    print(f"Using PostgreSQL database at {database_url.split('@')[1] if '@' in database_url else '(redacted)'}")
 else:
     # Use SQLite for local development
     sqlite_path = os.path.join(os.path.dirname(__file__), 'blog.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{sqlite_path}'
-    print(f"WARNING: Using SQLite database at {sqlite_path} for development/testing only.")
+    print(f"Using SQLite database at {sqlite_path} for development/testing only.")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy with app
 db.init_app(app)
 
-# Try to initialize database if needed
-try:
-    # Check if tables exist and create them if they don't
-    with app.app_context():
-        # First check if we can connect
-        try:
-            db.session.execute(text('SELECT 1'))
-            print("Database connection successful")
-            
-            # Now check if tables exist by trying to query users table
+# Make a simple early route available even if database init fails
+@app.route('/health')
+def health_check():
+    """Simple health check endpoint for deployment platforms that doesn't access the database"""
+    try:
+        # Return a simple response with no database queries
+        return jsonify({
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "app_name": "Portfolio Application",
+            "env": os.environ.get('FLASK_ENV', 'production')
+        }), 200
+    except Exception as e:
+        print(f"Health check error: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }), 500
+
+# Database initialization will be attempted when first needed
+db_initialized = False
+
+def ensure_db_initialized():
+    global db_initialized
+    if db_initialized:
+        return True
+        
+    try:
+        # Check if any database tables exist by attempting a simple query
+        with app.app_context():
             try:
-                db.session.execute(text('SELECT COUNT(*) FROM users'))
-                print("Database tables already exist")
-            except Exception as table_error:
-                print(f"Tables don't exist yet: {table_error}")
-                print("Creating database tables...")
+                # Try to query users table
+                db.session.execute(text('SELECT 1 FROM users LIMIT 1'))
+                db_initialized = True
+                print("Database already initialized")
+                return True
+            except Exception as e:
+                print(f"Database tables not found: {e}")
+                print("Attempting to initialize database...")
                 
-                if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql'):
-                    print("Setting up PostgreSQL database...")
-                    # For PostgreSQL we need to create tables using schema.sql
-                    try:
-                        init_db()
-                        print("Database tables created successfully!")
-                    except Exception as init_error:
-                        print(f"Error creating tables: {init_error}")
-                else:
-                    # For SQLite we can use SQLAlchemy's create_all
-                    try:
-                        # Import all models to ensure they're registered
-                        from models import User, Post, Comment, BlogLike, CommentLike, CVDownload, VisitorStat, Notification, CVVerification
+                # For PostgreSQL, use standalone init script
+                if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']:
+                    from init_postgres_db import initialize_postgres_db
+                    if initialize_postgres_db():
+                        db_initialized = True
+                        print("PostgreSQL database initialized successfully")
+                        return True
+                    else:
+                        print("Failed to initialize PostgreSQL database")
+                        return False
                         
-                        # Create tables
+                # For SQLite, use SQLAlchemy to create tables
+                else:
+                    try:
+                        # Import all models to ensure they're registered with SQLAlchemy
+                        from models import User, Post, Comment, BlogLike, CommentLike, CVDownload
+                        
+                        # Create all tables
                         db.create_all()
-                        print("SQLite tables created successfully!")
                         
                         # Create admin user if needed
-                        try:
-                            create_admin_user1()
-                        except Exception as admin_error:
-                            print(f"Error creating admin user: {admin_error}")
-                    except Exception as create_error:
-                        print(f"Error creating tables with SQLAlchemy: {create_error}")
-        except Exception as conn_error:
-            print(f"Database connection error: {conn_error}")
-            
-except Exception as e:
-    print(f"Error during database initialization: {e}")
-    print("Will attempt to initialize database when needed")
+                        from db_init import create_admin_user1
+                        create_admin_user1()
+                        
+                        db_initialized = True
+                        print("SQLite database initialized successfully")
+                        return True
+                    except Exception as init_error:
+                        print(f"Error initializing SQLite database: {init_error}")
+                        return False
+    except Exception as e:
+        print(f"Database initialization failed: {e}")
+        return False
 
 # Configure mail
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -197,22 +223,36 @@ def inject_current_year():
 # Routes
 @app.route('/')
 def home():
-    # Get the latest blog posts
-    latest_posts = Post.get_latest(2)
+    # Try to initialize the database if needed
+    if not ensure_db_initialized():
+        # If database initialization failed, show a simplified page
+        return render_template('error.html', 
+                              error_message="Database is currently unavailable. Please try again later.",
+                              error_title="Database Error")
     
-    # Get comments and like count for each post
-    for post in latest_posts:
-        post['comments'] = Comment.get_for_post(post['id'])
-        post['like_count'] = BlogLike.get_count_for_post(post['id'])
-    
-    # Check for download parameter to trigger CV download via JS
-    download_cv = request.args.get('download') == 'cv'
-    error_message = request.args.get('error')
+    try:
+        # Get the latest blog posts
+        latest_posts = Post.get_latest(2)
         
-    return render_template('home.html', 
-                          latest_posts=latest_posts, 
-                          download_cv=download_cv,
-                          error_message=error_message)
+        # Get comments and like count for each post
+        for post in latest_posts:
+            post['comments'] = Comment.get_for_post(post['id'])
+            post['like_count'] = BlogLike.get_count_for_post(post['id'])
+        
+        # Check for download parameter to trigger CV download via JS
+        download_cv = request.args.get('download') == 'cv'
+        error_message = request.args.get('error')
+            
+        return render_template('home.html', 
+                              latest_posts=latest_posts, 
+                              download_cv=download_cv,
+                              error_message=error_message)
+    except Exception as e:
+        print(f"Error rendering home page: {e}")
+        # Return a simplified error response
+        return render_template('error.html',
+                             error_message="Error loading the home page. Please try again later.",
+                             error_title="Page Error")
 
 @app.route('/blog')
 def view_blog():
@@ -991,11 +1031,6 @@ def verify_download():
     except Exception as e:
         print(f"Error verifying download: {e}")
         return redirect(url_for('home', error='An error occurred while processing your request'))
-
-@app.route('/health')
-def health_check():
-    """Simple health check endpoint for deployment platforms"""
-    return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
 # Helper function to get application URL
 def get_app_base_url():
