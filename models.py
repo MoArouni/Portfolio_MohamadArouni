@@ -229,20 +229,53 @@ class Post:
     def get_all(month_filter=None):
         """Get all posts, with optional month filtering"""
         conn = get_db_connection()
-        if month_filter:
-            # Use strftime for SQLite or TO_CHAR for PostgreSQL
-            query = text('''
-                SELECT * FROM posts 
-                WHERE strftime('%Y-%m', created_at) = :month_filter
-                ORDER BY created_at DESC
-            ''')
-            posts = conn.execute(query, {"month_filter": month_filter}).fetchall()
-        else:
-            query = text('SELECT * FROM posts ORDER BY created_at DESC')
-            posts = conn.execute(query).fetchall()
-        
-        # Convert to list of dicts and convert timestamps
-        return [Post._convert_post_timestamps(dict(post._mapping)) for post in posts]
+        try:
+            # Check if we're using PostgreSQL or SQLite
+            from app import app
+            is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+            
+            if month_filter:
+                if is_postgres:
+                    # PostgreSQL uses to_char
+                    query = text('''
+                        SELECT * FROM posts 
+                        WHERE to_char(created_at, 'YYYY-MM') = :month_filter
+                        ORDER BY created_at DESC
+                    ''')
+                else:
+                    # SQLite uses strftime
+                    query = text('''
+                        SELECT * FROM posts 
+                        WHERE strftime('%Y-%m', created_at) = :month_filter
+                        ORDER BY created_at DESC
+                    ''')
+                posts = conn.execute(query, {"month_filter": month_filter}).fetchall()
+            else:
+                query = text('SELECT * FROM posts ORDER BY created_at DESC')
+                posts = conn.execute(query).fetchall()
+            
+            # Convert to list of dicts
+            result = []
+            for post in posts:
+                try:
+                    if hasattr(post, "_mapping"):
+                        result.append(Post._convert_post_timestamps(dict(post._mapping)))
+                    else:
+                        # Create dict manually - assuming columns: id, title, content, user_id, view_count, created_at
+                        columns = ["id", "title", "content", "user_id", "view_count", "created_at"]
+                        post_dict = {columns[i]: post[i] for i in range(min(len(columns), len(post)))}
+                        result.append(Post._convert_post_timestamps(post_dict))
+                except Exception as e:
+                    print(f"Error processing post: {e}")
+                
+            return result
+        except Exception as e:
+            print(f"Error getting posts: {e}")
+            try:
+                conn.rollback()
+            except:
+                pass
+            return []  # Return empty list on error
     
     @staticmethod
     def get_latest(limit=2):
@@ -298,29 +331,83 @@ class Post:
     def get_available_months():
         """Get list of months that have posts"""
         conn = get_db_connection()
-        months = conn.execute(text('''
-            SELECT DISTINCT 
-                strftime('%Y-%m', created_at) as month_year,
-                case 
-                    when strftime('%m', created_at) = '01' then 'January ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '02' then 'February ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '03' then 'March ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '04' then 'April ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '05' then 'May ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '06' then 'June ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '07' then 'July ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '08' then 'August ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '09' then 'September ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '10' then 'October ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '11' then 'November ' || strftime('%Y', created_at)
-                    when strftime('%m', created_at) = '12' then 'December ' || strftime('%Y', created_at)
-                    else 'Unknown'
-                end as month_name
-            FROM posts
-            WHERE created_at IS NOT NULL
-            ORDER BY month_year DESC
-        ''')).fetchall()
-        return [dict(month._mapping) for month in months]
+        
+        try:
+            # Check if we're using PostgreSQL or SQLite
+            from app import app
+            is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+            
+            if is_postgres:
+                # PostgreSQL version using date_trunc and to_char
+                query = text('''
+                    SELECT DISTINCT 
+                        to_char(created_at, 'YYYY-MM') as month_year,
+                        CASE 
+                            WHEN to_char(created_at, 'MM') = '01' THEN 'January ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '02' THEN 'February ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '03' THEN 'March ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '04' THEN 'April ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '05' THEN 'May ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '06' THEN 'June ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '07' THEN 'July ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '08' THEN 'August ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '09' THEN 'September ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '10' THEN 'October ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '11' THEN 'November ' || to_char(created_at, 'YYYY')
+                            WHEN to_char(created_at, 'MM') = '12' THEN 'December ' || to_char(created_at, 'YYYY')
+                            ELSE 'Unknown'
+                        END as month_name
+                    FROM posts
+                    WHERE created_at IS NOT NULL
+                    ORDER BY month_year DESC
+                ''')
+            else:
+                # SQLite version using strftime
+                query = text('''
+                    SELECT DISTINCT 
+                        strftime('%Y-%m', created_at) as month_year,
+                        case 
+                            when strftime('%m', created_at) = '01' then 'January ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '02' then 'February ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '03' then 'March ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '04' then 'April ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '05' then 'May ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '06' then 'June ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '07' then 'July ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '08' then 'August ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '09' then 'September ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '10' then 'October ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '11' then 'November ' || strftime('%Y', created_at)
+                            when strftime('%m', created_at) = '12' then 'December ' || strftime('%Y', created_at)
+                            else 'Unknown'
+                        end as month_name
+                    FROM posts
+                    WHERE created_at IS NOT NULL
+                    ORDER BY month_year DESC
+                ''')
+            
+            months = conn.execute(query).fetchall()
+            result = []
+            
+            # Handle different row types safely
+            for month in months:
+                try:
+                    if hasattr(month, "_mapping"):
+                        result.append(dict(month._mapping))
+                    else:
+                        # Create dict manually
+                        result.append({"month_year": month[0], "month_name": month[1]})
+                except Exception as e:
+                    print(f"Error processing month: {e}")
+                
+            return result
+        except Exception as e:
+            print(f"Error getting available months: {e}")
+            try:
+                conn.rollback()
+            except:
+                pass
+            return []  # Return empty list on error
 
     @staticmethod
     def update(post_id, title, content):
@@ -520,12 +607,23 @@ class BlogLike:
     @staticmethod
     def has_user_liked(post_id, user_id):
         """Check if a user has liked a post"""
+        if not post_id or not user_id:
+            return False
+        
         conn = get_db_connection()
-        result = conn.execute(
-            text('SELECT id FROM blog_likes WHERE post_id = :post_id AND user_id = :user_id'),
-            {"post_id": post_id, "user_id": user_id}
-        ).fetchone()
-        return bool(result)
+        try:
+            result = conn.execute(
+                text('SELECT id FROM blog_likes WHERE post_id = :post_id AND user_id = :user_id'),
+                {"post_id": post_id, "user_id": user_id}
+            ).fetchone()
+            return bool(result)
+        except Exception as e:
+            print(f"Error checking if user liked post: {e}")
+            try:
+                conn.rollback()
+            except:
+                pass
+            return False  # Default to not liked on error
     
     @staticmethod
     def get_count_for_post(post_id):

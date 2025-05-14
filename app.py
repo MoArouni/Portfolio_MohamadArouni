@@ -256,34 +256,61 @@ def home():
 
 @app.route('/blog')
 def view_blog():
-    # Get month filter from query params
-    filter_month = request.args.get('month', None)
+    # Try to initialize the database if needed
+    if not ensure_db_initialized():
+        # If database initialization failed, show a simplified page
+        return render_template('error.html', 
+                              error_message="Database is currently unavailable. Please try again later.",
+                              error_title="Database Error")
     
-    # Get posts with filter
-    posts = Post.get_all(filter_month)
-    
-    # Get available months for filter dropdown
-    available_months = Post.get_available_months()
-    
-    # For each post, get its comments and like count
-    for post in posts:
-        post['comments'] = Comment.get_for_post(post['id'])
-        post['like_count'] = BlogLike.get_count_for_post(post['id'])
+    try:
+        # Get month filter from query params
+        filter_month = request.args.get('month', None)
         
-        # Check if current user has liked this post
-        if g.user:
-            post['user_has_liked'] = BlogLike.has_user_liked(post['id'], g.user['id'])
-        else:
-            post['user_has_liked'] = False
+        # Get posts with filter
+        posts = Post.get_all(filter_month)
+        
+        # Get available months for filter dropdown
+        available_months = Post.get_available_months()
+        
+        # For each post, get its comments and like count
+        for post in posts:
+            try:
+                post['comments'] = Comment.get_for_post(post['id'])
+                post['like_count'] = BlogLike.get_count_for_post(post['id'])
+                
+                # Check if current user has liked this post
+                if g.user:
+                    post['user_has_liked'] = BlogLike.has_user_liked(post['id'], g.user['id'])
+                else:
+                    post['user_has_liked'] = False
+            except Exception as post_error:
+                print(f"Error processing post {post.get('id', 'unknown')}: {post_error}")
+                # Set defaults for missing data
+                if 'comments' not in post:
+                    post['comments'] = []
+                if 'like_count' not in post:
+                    post['like_count'] = 0
+                post['user_has_liked'] = False
+        
+        # If a specific post is highlighted in the query parameters, increment its view count
+        highlighted_post_id = request.args.get('post_id')
+        if highlighted_post_id and highlighted_post_id.isdigit():
+            try:
+                Post.increment_view_count(int(highlighted_post_id))
+            except Exception as view_error:
+                print(f"Error incrementing view count: {view_error}")
+        
+        return render_template('view_blog.html', posts=posts, 
+                               available_months=available_months,
+                               filter_month=filter_month)
     
-    # If a specific post is highlighted in the query parameters, increment its view count
-    highlighted_post_id = request.args.get('post_id')
-    if highlighted_post_id and highlighted_post_id.isdigit():
-        Post.increment_view_count(int(highlighted_post_id))
-    
-    return render_template('view_blog.html', posts=posts, 
-                          available_months=available_months,
-                          filter_month=filter_month)
+    except Exception as e:
+        print(f"Error rendering blog page: {e}")
+        # Return a simplified error response
+        return render_template('error.html',
+                               error_message="Error loading the blog page. Please try again later.",
+                               error_title="Blog Error")
 
 @app.route('/blog/post/<int:post_id>')
 def view_post(post_id):
