@@ -9,7 +9,7 @@
     {% if not session.user_id or session.role != 'admin' %}
     <div class="access-notice">
         <i class="fas fa-info-circle"></i> You're viewing analytics with limited access. <span class="admin-only">Some features and sensitive information 
-            like user data and user analytics are only available to administrators.</span>
+            like user data, detailed visitor information, and advanced analytics are only available to administrators.</span>
     </div>
     {% endif %}
 
@@ -47,7 +47,7 @@
             <div class="stat-card" id="visitor-stats">
                 <div class="stat-card-header">
                     <i class="fas fa-users"></i>
-                    <h3>Visitors</h3>
+                    <h3>Visitor Analytics</h3>
                 </div>
                 <div class="stat-card-body">
                     <div class="stat-loading">Loading...</div>
@@ -58,10 +58,25 @@
             </div>
         </div>
 
+        <!-- Quick Stats Overview -->
+        {% if session.user_id and session.role == 'admin' %}
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3>Quick Overview</h3>
+            </div>
+            <div class="quick-stats" id="quick-stats">
+                <div class="stat-loading">Loading overview...</div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Notifications -->
         <div class="chart-container">
             <div class="chart-header">
-                <h3>Recent Notifications</h3>
+                <h3>Recent Activity & Notifications</h3>
+                {% if session.user_id and session.role == 'admin' %}
+                <span class="admin-badge">Admin View</span>
+                {% endif %}
             </div>
             <div class="notifications-list" id="notifications-container">
                 <div class="stat-loading">Loading notifications...</div>
@@ -253,6 +268,61 @@
                     `;
                 });
         }, 1000);
+        
+        // Load quick stats for admin users
+        const quickStatsContainer = document.getElementById('quick-stats');
+        if (quickStatsContainer) {
+            Promise.all([
+                fetch('/analytics/visitor-analytics').then(r => r.text()),
+                fetch('/analytics/blog-analytics').then(r => r.text()),
+                fetch('/analytics/cv-analytics').then(r => r.text())
+            ])
+            .then(([visitorHtml, blogHtml, cvHtml]) => {
+                const visitorDoc = new DOMParser().parseFromString(visitorHtml, 'text/html');
+                const blogDoc = new DOMParser().parseFromString(blogHtml, 'text/html');
+                const cvDoc = new DOMParser().parseFromString(cvHtml, 'text/html');
+                
+                const totalViews = visitorDoc.querySelector('.total-views')?.textContent.trim() || '0';
+                const uniqueVisitors = visitorDoc.querySelector('.unique-visitors')?.textContent.trim() || '0';
+                const totalLikes = blogDoc.querySelector('.total-likes')?.textContent.trim() || '0';
+                const totalComments = blogDoc.querySelector('.total-comments')?.textContent.trim() || '0';
+                const totalDownloads = cvDoc.querySelector('.total-downloads')?.textContent.trim() || '0';
+                
+                // Calculate engagement rate
+                const engagementRate = totalViews > 0 ? ((parseInt(totalLikes) + parseInt(totalComments)) / parseInt(totalViews) * 100).toFixed(1) : '0';
+                
+                quickStatsContainer.innerHTML = `
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value">${totalViews}</div>
+                        <div class="quick-stat-label">Total Views</div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value">${uniqueVisitors}</div>
+                        <div class="quick-stat-label">Unique Visitors</div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value">${totalLikes}</div>
+                        <div class="quick-stat-label">Total Likes</div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value">${totalComments}</div>
+                        <div class="quick-stat-label">Comments</div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value">${totalDownloads}</div>
+                        <div class="quick-stat-label">CV Downloads</div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <div class="quick-stat-value">${engagementRate}%</div>
+                        <div class="quick-stat-label">Engagement Rate</div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Error loading quick stats:', error);
+                quickStatsContainer.innerHTML = '<div class="stat-error">Error loading overview</div>';
+            });
+        }
         
         // Setup chart filters
         document.querySelectorAll('.chart-filter').forEach(filter => {

@@ -266,7 +266,7 @@ def load_logged_in_user():
             
             visitor_id = VisitorStat.record_visit(ip, request.path)
             
-            # Check for view count milestones (every 100 views), but handle errors gracefully
+            # Check for view count milestones, but handle errors gracefully
             if visitor_id:
                 try:
                     conn = get_db_connection()
@@ -284,7 +284,22 @@ def load_logged_in_user():
                     except Exception as count_error:
                         print(f"Error accessing count: {count_error}")
                     
-                    if total_views > 0 and total_views % 100 == 0:
+                    # Check for various milestones
+                    should_notify = False
+                    if total_views in [1, 10, 50, 100, 250, 500, 1000, 2500, 5000, 10000]:
+                        should_notify = True
+                    elif total_views > 10000 and total_views % 10000 == 0:
+                        should_notify = True
+                    elif total_views > 5000 and total_views % 5000 == 0:
+                        should_notify = True
+                    elif total_views > 1000 and total_views % 1000 == 0:
+                        should_notify = True
+                    elif total_views > 500 and total_views % 500 == 0:
+                        should_notify = True
+                    elif total_views > 100 and total_views % 100 == 0:
+                        should_notify = True
+                    
+                    if should_notify:
                         try:
                             Notification.create_view_milestone_notification(total_views)
                         except Exception as notif_error:
@@ -936,8 +951,34 @@ def visitor_analytics():
         
         # Filter sensitive information for non-admin users
         if not session.get('user_id') or session.get('role') != 'admin':
-            # Remove IP addresses or other sensitive data
-            pass  # Specific filtering based on what's in the analytics
+            # For non-admin users, limit the data shown
+            # Remove detailed page information and limit to general stats
+            filtered_pages = []
+            for page in analytics.get('popular_pages', []):
+                # Only show main pages, hide specific post details
+                if page.get('page_path') in ['/', '/blog', '/login', '/register']:
+                    filtered_pages.append({
+                        'page_name': page.get('page_name', 'Unknown'),
+                        'page_path': page.get('page_path', ''),
+                        'count': page.get('count', 0)
+                    })
+                elif page.get('page_path', '').startswith('/blog/post/'):
+                    # Group all blog posts together for non-admin users
+                    blog_post_entry = next((p for p in filtered_pages if p['page_name'] == 'Blog Posts'), None)
+                    if blog_post_entry:
+                        blog_post_entry['count'] += page.get('count', 0)
+                    else:
+                        filtered_pages.append({
+                            'page_name': 'Blog Posts',
+                            'page_path': '/blog/posts/*',
+                            'count': page.get('count', 0)
+                        })
+            
+            analytics['popular_pages'] = filtered_pages[:5]  # Limit to top 5 for non-admin
+            
+            # Limit unique visitors info for privacy
+            if analytics.get('unique_visitors', 0) > 10:
+                analytics['unique_visitors'] = f"{analytics['unique_visitors']}+"
         
         return render_template('analytics/visitor_analytics.html', analytics=analytics)
     except Exception as e:
@@ -1087,19 +1128,64 @@ def user_analytics():
 
 @app.route('/api/notifications')
 def get_notifications():
-    """API endpoint to get recent notifications"""
-    notifications = Notification.get_recent(5)  # Limit to 5 notifications
-    
-    # Filter sensitive information for non-admins
-    if not session.get('user_id') or session.get('role') != 'admin':
-        for notification in notifications:
-            # Replace usernames with 'Anonymous' for non-admins
-            if not notification['is_anonymous']:
-                # Keep the notification but anonymize the username if it's a registered user
-                notification['message'] = notification['message'].replace(notification['username'], 'Anonymous User')
-                notification['username'] = 'Anonymous'
-    
-    return jsonify(notifications)
+    """Get recent notifications for the dashboard"""
+    try:
+        notifications = Notification.get_recent(10)
+        return jsonify(notifications)
+    except Exception as e:
+        print(f"Error getting notifications: {e}")
+        return jsonify([])
+
+@app.route('/api/analytics/summary')
+def get_analytics_summary():
+    """Get summary analytics data for dashboard"""
+    try:
+        # Get basic stats that are safe to show
+        visitor_analytics = VisitorStat.get_analytics()
+        blog_analytics = Post.get_analytics()
+        cv_analytics = CVDownload.get_analytics()
+        
+        # Calculate some derived metrics
+        total_views = visitor_analytics.get('total_views', 0) if visitor_analytics else 0
+        unique_visitors = visitor_analytics.get('unique_visitors', 0) if visitor_analytics else 0
+        
+        # Get total likes
+        total_likes = BlogLike.get_total_likes_count()
+        
+        # Calculate engagement rate
+        total_interactions = total_likes
+        if blog_analytics:
+            total_interactions += sum(post.get('comment_count', 0) for post in blog_analytics)
+        
+        engagement_rate = (total_interactions / total_views * 100) if total_views > 0 else 0
+        
+        summary = {
+            'total_views': total_views,
+            'unique_visitors': unique_visitors,
+            'total_likes': total_likes,
+            'total_downloads': cv_analytics.get('total_downloads', 0) if cv_analytics else 0,
+            'engagement_rate': round(engagement_rate, 1),
+            'total_posts': len(blog_analytics) if blog_analytics else 0
+        }
+        
+        # Filter sensitive data for non-admin users
+        if not session.get('user_id') or session.get('role') != 'admin':
+            if summary['unique_visitors'] > 10:
+                summary['unique_visitors'] = f"{summary['unique_visitors']}+"
+            # Limit some metrics for privacy
+            summary['total_downloads'] = min(summary['total_downloads'], 50)
+        
+        return jsonify(summary)
+    except Exception as e:
+        print(f"Error getting analytics summary: {e}")
+        return jsonify({
+            'total_views': 0,
+            'unique_visitors': 0,
+            'total_likes': 0,
+            'total_downloads': 0,
+            'engagement_rate': 0,
+            'total_posts': 0
+        })
 
 @app.route('/notifications-history')
 def notifications_history():

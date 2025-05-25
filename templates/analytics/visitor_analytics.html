@@ -9,6 +9,13 @@
 
 {% block admin_content %}
 <div class="analytics-content">
+    {% if not session.user_id or session.role != 'admin' %}
+    <div class="access-notice">
+        <i class="fas fa-info-circle"></i> 
+        <span>You're viewing public analytics. Detailed visitor information and advanced metrics are available to administrators only.</span>
+    </div>
+    {% endif %}
+
     <!-- Summary cards -->
     <div class="summary-cards">
         <div class="summary-card">
@@ -25,14 +32,23 @@
                 {{ analytics.unique_visitors }}
             </div>
             <div class="summary-label">
-                <i class="fas fa-user-check"></i> Unique Visitors
+                <i class="fas fa-user-check"></i> 
+                {% if session.user_id and session.role == 'admin' %}
+                Unique Visitors
+                {% else %}
+                Visitors
+                {% endif %}
             </div>
         </div>
         
         <div class="summary-card">
             <div class="summary-value">
-                {% if analytics.unique_visitors > 0 %}
-                {{ (analytics.total_views / analytics.unique_visitors)|round(1) }}
+                {% if analytics.unique_visitors and analytics.unique_visitors != '0' %}
+                    {% if analytics.unique_visitors|string|last == '+' %}
+                    {{ (analytics.total_views / (analytics.unique_visitors|string|replace('+', '')|int))|round(1) }}+
+                    {% else %}
+                    {{ (analytics.total_views / analytics.unique_visitors)|round(1) }}
+                    {% endif %}
                 {% else %}
                 0
                 {% endif %}
@@ -44,16 +60,24 @@
     </div>
 
     <!-- Daily views chart -->
+    {% if session.user_id and session.role == 'admin' %}
     <div class="chart-container">
-        <h3>Views Over Time (Last 7 Days)</h3>
+        <h3>Views Over Time (Last 7 Days) <span class="admin-badge">Admin Only</span></h3>
         <div class="daily-views-chart">
             <canvas id="viewsChart"></canvas>
         </div>
     </div>
+    {% endif %}
 
     <!-- Popular pages table -->
     <div class="analytics-table-container">
-        <h3>Most Visited Pages</h3>
+        <h3>Most Visited Pages
+            {% if session.user_id and session.role == 'admin' %}
+            <span class="admin-badge">Full Details</span>
+            {% else %}
+            <span class="public-badge">Public View</span>
+            {% endif %}
+        </h3>
         <table class="analytics-table">
             <thead>
                 <tr>
@@ -65,7 +89,14 @@
             <tbody>
                 {% for page in analytics.popular_pages %}
                 <tr>
-                    <td class="page-path">{{ page.page_visited }}</td>
+                    <td class="page-path">
+                        <div class="page-info">
+                            <div class="page-name">{{ page.page_name }}</div>
+                            {% if session.user_id and session.role == 'admin' %}
+                            <div class="page-url">{{ page.page_path }}</div>
+                            {% endif %}
+                        </div>
+                    </td>
                     <td class="page-views">{{ page.count }}</td>
                     <td class="percentage">
                         {% if analytics.total_views > 0 %}
@@ -78,6 +109,13 @@
                 {% endfor %}
             </tbody>
         </table>
+        
+        {% if not (session.user_id and session.role == 'admin') %}
+        <div class="limited-view-notice">
+            <i class="fas fa-lock"></i> 
+            <span>Detailed page analytics and visitor tracking are available to administrators.</span>
+        </div>
+        {% endif %}
     </div>
 </div>
 

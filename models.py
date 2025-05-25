@@ -1062,12 +1062,27 @@ class VisitorStat:
             except Exception as e:
                 print(f"Error getting unique visitors: {e}")
             
-            # Most visited pages
+            # Most visited pages with better categorization
             popular_pages_rows = conn.execute(text('''
                 SELECT 
                     page_visited, 
                     COUNT(*) as count
                 FROM visitor_stats
+                WHERE page_visited NOT LIKE '/api/%' 
+                    AND page_visited NOT LIKE '/static/%'
+                    AND page_visited NOT LIKE '/analytics%'
+                    AND page_visited NOT LIKE '/admin%'
+                    AND page_visited NOT LIKE '/post/like/%'
+                    AND page_visited NOT LIKE '/post/unlike/%'
+                    AND page_visited NOT LIKE '/comment%'
+                    AND page_visited NOT LIKE '/delete%'
+                    AND page_visited NOT LIKE '/edit%'
+                    AND page_visited NOT LIKE '/add%'
+                    AND page_visited NOT LIKE '/update%'
+                    AND page_visited NOT LIKE '/download_cv'
+                    AND page_visited NOT LIKE '/send-verification-link'
+                    AND page_visited NOT LIKE '/verify-download'
+                    AND page_visited NOT LIKE '/logout'
                 GROUP BY page_visited
                 ORDER BY count DESC
                 LIMIT 10
@@ -1077,9 +1092,17 @@ class VisitorStat:
             for row in popular_pages_rows:
                 try:
                     if hasattr(row, "_mapping"):
-                        popular_pages.append(dict(row._mapping))
+                        page_data = dict(row._mapping)
                     else:
-                        popular_pages.append({"page_visited": row[0], "count": row[1]})
+                        page_data = {"page_visited": row[0], "count": row[1]}
+                    
+                    # Improve page names for better readability
+                    page_path = page_data["page_visited"]
+                    page_name = VisitorStat._get_friendly_page_name(page_path)
+                    page_data["page_name"] = page_name
+                    page_data["page_path"] = page_path
+                    
+                    popular_pages.append(page_data)
                 except Exception as e:
                     print(f"Error processing popular page: {e}")
             
@@ -1092,6 +1115,10 @@ class VisitorStat:
                         COUNT(*) as count
                     FROM visitor_stats
                     WHERE created_at >= NOW() - INTERVAL '7 days'
+                        AND page_visited NOT LIKE '/api/%' 
+                        AND page_visited NOT LIKE '/static/%'
+                        AND page_visited NOT LIKE '/analytics%'
+                        AND page_visited NOT LIKE '/admin%'
                     GROUP BY date
                     ORDER BY date
                 ''')
@@ -1103,6 +1130,10 @@ class VisitorStat:
                         COUNT(*) as count
                     FROM visitor_stats
                     WHERE created_at >= date('now', '-7 days')
+                        AND page_visited NOT LIKE '/api/%' 
+                        AND page_visited NOT LIKE '/static/%'
+                        AND page_visited NOT LIKE '/analytics%'
+                        AND page_visited NOT LIKE '/admin%'
                     GROUP BY date
                     ORDER BY date
                 ''')
@@ -1138,6 +1169,46 @@ class VisitorStat:
                 'popular_pages': [],
                 'views_by_day': []
             }
+    
+    @staticmethod
+    def _get_friendly_page_name(page_path):
+        """Convert page paths to friendly names"""
+        if page_path == '/':
+            return 'Home Page'
+        elif page_path == '/blog':
+            return 'Blog'
+        elif page_path == '/login':
+            return 'Login Page'
+        elif page_path == '/register':
+            return 'Registration Page'
+        elif page_path.startswith('/blog/post/'):
+            # Extract post ID and try to get post title
+            try:
+                post_id = page_path.split('/')[-1]
+                if post_id.isdigit():
+                    # Try to get the post title
+                    conn = get_db_connection()
+                    result = conn.execute(
+                        text('SELECT title FROM posts WHERE id = :post_id'),
+                        {"post_id": int(post_id)}
+                    ).fetchone()
+                    if result:
+                        if hasattr(result, "_mapping"):
+                            title = result._mapping["title"]
+                        else:
+                            title = result[0]
+                        return f'Blog Post: {title[:50]}{"..." if len(title) > 50 else ""}'
+                    else:
+                        return f'Blog Post #{post_id}'
+                else:
+                    return 'Blog Post'
+            except Exception as e:
+                print(f"Error getting post title: {e}")
+                return 'Blog Post'
+        else:
+            # For any other pages, clean up the path
+            clean_path = page_path.strip('/').replace('/', ' > ').title()
+            return clean_path if clean_path else 'Unknown Page'
 
 class Notification:
     """Notification model for admin dashboard notifications"""
@@ -1286,9 +1357,113 @@ class Notification:
     @staticmethod
     def create_view_milestone_notification(count):
         """Create a notification for a view milestone"""
-        message = f"Your website got viewed {count} times!"
+        # Create different messages based on milestone type
+        if count == 1:
+            message = "🎉 Welcome! Your first visitor has arrived!"
+        elif count == 10:
+            message = "🚀 Great start! Your website has reached 10 views!"
+        elif count == 50:
+            message = "📈 Growing strong! 50 people have visited your site!"
+        elif count == 100:
+            message = "💯 Milestone achieved! Your website has been viewed 100 times!"
+        elif count == 250:
+            message = "🌟 Amazing progress! 250 visitors have explored your content!"
+        elif count == 500:
+            message = "🔥 Half a thousand! Your website has reached 500 views!"
+        elif count == 1000:
+            message = "🎊 Incredible! You've hit 1,000 page views!"
+        elif count == 2500:
+            message = "🚀 Phenomenal growth! 2,500 views and counting!"
+        elif count == 5000:
+            message = "💎 Outstanding! Your website has reached 5,000 views!"
+        elif count == 10000:
+            message = "🏆 Legendary! 10,000 views - you're making waves!"
+        elif count % 10000 == 0:
+            message = f"🌟 Incredible milestone! Your website has been viewed {count:,} times!"
+        elif count % 5000 == 0:
+            message = f"🎯 Major achievement! {count:,} views reached!"
+        elif count % 1000 == 0:
+            message = f"📊 Milestone alert! Your site has {count:,} total views!"
+        elif count % 500 == 0:
+            message = f"📈 Growing steadily! {count} views and counting!"
+        else:
+            # For other hundreds, use a more varied message
+            messages = [
+                f"🎉 Your website has been viewed {count} times!",
+                f"📊 Analytics update: {count} total page views!",
+                f"🚀 Traffic milestone: {count} views reached!",
+                f"📈 Visitor counter: {count} views and growing!",
+                f"🌟 Progress update: {count} people have visited your site!"
+            ]
+            import random
+            message = random.choice(messages)
+        
         return Notification.create(Notification.TYPE_VIEW_MILESTONE, message)
     
+    @staticmethod
+    def create_daily_summary_notification():
+        """Create a daily summary notification with key metrics"""
+        try:
+            conn = get_db_connection()
+            
+            # Get today's stats
+            from app import app
+            is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+            
+            if is_postgres:
+                today_query = text('''
+                    SELECT COUNT(*) as views, COUNT(DISTINCT ip_address) as unique_visitors
+                    FROM visitor_stats 
+                    WHERE date(created_at) = CURRENT_DATE
+                        AND page_visited NOT LIKE '/api/%' 
+                        AND page_visited NOT LIKE '/static/%'
+                        AND page_visited NOT LIKE '/analytics%'
+                ''')
+            else:
+                today_query = text('''
+                    SELECT COUNT(*) as views, COUNT(DISTINCT ip_address) as unique_visitors
+                    FROM visitor_stats 
+                    WHERE date(created_at) = date('now')
+                        AND page_visited NOT LIKE '/api/%' 
+                        AND page_visited NOT LIKE '/static/%'
+                        AND page_visited NOT LIKE '/analytics%'
+                ''')
+            
+            result = conn.execute(today_query).fetchone()
+            
+            if result:
+                if hasattr(result, "_mapping"):
+                    views = result._mapping["views"]
+                    unique_visitors = result._mapping["unique_visitors"]
+                else:
+                    views = result[0]
+                    unique_visitors = result[1]
+                
+                if views > 0:
+                    message = f"📊 Daily Summary: {views} views from {unique_visitors} unique visitors today!"
+                    return Notification.create(Notification.TYPE_VIEW_MILESTONE, message)
+            
+        except Exception as e:
+            print(f"Error creating daily summary: {e}")
+        
+        return None
+    
+    @staticmethod
+    def create_engagement_notification(engagement_type, details):
+        """Create notifications for various engagement activities"""
+        if engagement_type == 'popular_post':
+            message = f"🔥 Your post '{details['title']}' is trending with {details['views']} views!"
+        elif engagement_type == 'high_engagement':
+            message = f"💬 Great engagement! Your post '{details['title']}' has {details['comments']} comments and {details['likes']} likes!"
+        elif engagement_type == 'new_country':
+            message = f"🌍 Global reach! Someone from {details['country']} visited your website!"
+        elif engagement_type == 'return_visitor':
+            message = f"👋 Welcome back! You have {details['count']} returning visitors today!"
+        else:
+            message = f"📈 Engagement update: {details}"
+        
+        return Notification.create(Notification.TYPE_VIEW_MILESTONE, message)
+
     @staticmethod
     def create_new_user_notification(username):
         """Create a notification for a new registered user"""
