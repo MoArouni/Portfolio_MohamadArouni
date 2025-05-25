@@ -249,8 +249,55 @@ def load_logged_in_user():
             # Don't let user loading failures break the site
             session.pop('user_id', None)
     
-    # Only track page views if not an API request and not a static file
-    if not request.path.startswith('/static') and not request.path.startswith('/api') and not request.path.startswith('/admin'):
+    # Define patterns to exclude from visitor tracking (bot traffic, WordPress scans, etc.)
+    excluded_patterns = [
+        '/wp-admin/',
+        '/wordpress/',
+        '/wp-includes/',
+        '/wp-content/',
+        '/wp/',
+        '/cms/',
+        '/shop/',
+        '/site/',
+        '/test/',
+        '/2019/',
+        '/wp1/',
+        '/blog/wp-',
+        '.php',
+        '/xmlrpc.php',
+        '/robots.txt',
+        '/sitemap.xml',
+        '/favicon.ico',
+        '/apple-touch-icon',
+        '/.well-known/',
+        '/static/',
+        '/api/',
+        '/admin',
+        '/post/anonymous_like/',
+        '/post/like/',
+        '/post/unlike/', 
+        '/post/comment/'
+    ]
+    
+    # Check if this is a legitimate page visit (not bot traffic or admin actions)
+    should_track = True
+    
+    # Don't track if it matches excluded patterns
+    for pattern in excluded_patterns:
+        if pattern in request.path:
+            should_track = False
+            break
+    
+    # Don't track if it's a POST request (form submissions, API calls)
+    if request.method != 'GET':
+        should_track = False
+    
+    # Don't track if it's an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        should_track = False
+    
+    # Only track legitimate page views
+    if should_track:
         try:
             # Get IP address and clean it
             ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
@@ -654,14 +701,15 @@ def like_post(post_id):
                 print(f"Error creating notification: {e}")
                 # Continue even if notification fails
             
-            # Get updated like count
+            # Get updated like count - use a fresh connection to ensure we see the committed changes
             like_count = BlogLike.get_count_for_post(post_id)
             print(f"Updated like count: {like_count}")
             return jsonify({'success': True, 'like_count': like_count})
         else:
-            # User may have already liked this post
+            # User may have already liked this post - still return current count
+            like_count = BlogLike.get_count_for_post(post_id)
             print("Like not created - user may have already liked this post")
-            return jsonify({'success': False, 'error': 'Already liked'}), 400
+            return jsonify({'success': False, 'error': 'Already liked', 'like_count': like_count}), 400
     except Exception as e:
         print(f"Error in like_post: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -699,14 +747,15 @@ def anonymous_like_post(post_id):
                 print(f"Error creating notification: {e}")
                 # Continue even if notification fails
             
-            # Get updated like count
+            # Get updated like count - use a fresh connection to ensure we see the committed changes
             like_count = BlogLike.get_count_for_post(post_id)
             print(f"Updated like count: {like_count}")
             return jsonify({'success': True, 'like_count': like_count})
         else:
-            # Error creating like or already liked
+            # Error creating like or already liked - still return current count
+            like_count = BlogLike.get_count_for_post(post_id)
             print("Anonymous like not created - user may have already liked this post")
-            return jsonify({'success': False, 'error': 'Already liked'}), 400
+            return jsonify({'success': False, 'error': 'Already liked', 'like_count': like_count}), 400
     except Exception as e:
         print(f"Error in anonymous_like_post: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -720,12 +769,13 @@ def unlike_post(post_id):
     # Try to delete the like
     success = BlogLike.delete(post_id=post_id, user_id=user_id)
     
+    # Always return the current like count, regardless of success
+    like_count = BlogLike.get_count_for_post(post_id)
+    
     if success:
-        # Get updated like count
-        like_count = BlogLike.get_count_for_post(post_id)
         return jsonify({'success': True, 'like_count': like_count})
     else:
-        return jsonify({'success': False, 'error': 'Like not found'}), 404
+        return jsonify({'success': False, 'error': 'Like not found', 'like_count': like_count}), 404
 
 @app.route('/comment/like/<int:comment_id>', methods=['POST'])
 @login_required
@@ -736,6 +786,9 @@ def like_comment(comment_id):
     
     # Add the like
     like_id = CommentLike.create(comment_id, user_id)
+    
+    # Always get the current like count
+    like_count = CommentLike.get_count_for_comment(comment_id)
     
     if like_id:
         # Get the post info for notification
@@ -762,11 +815,9 @@ def like_comment(comment_id):
             # Create notification
             Notification.create_comment_like_notification(username, False, title)
         
-        # Get updated like count
-        like_count = CommentLike.get_count_for_comment(comment_id)
         return jsonify({'success': True, 'like_count': like_count})
     else:
-        return jsonify({'success': False, 'error': 'Already liked or comment not found'}), 400
+        return jsonify({'success': False, 'error': 'Already liked or comment not found', 'like_count': like_count}), 400
 
 @app.route('/comment/unlike/<int:comment_id>', methods=['POST'])
 @login_required
@@ -777,12 +828,13 @@ def unlike_comment(comment_id):
     # Delete the like
     success = CommentLike.delete(comment_id, user_id)
     
+    # Always get the current like count
+    like_count = CommentLike.get_count_for_comment(comment_id)
+    
     if success:
-        # Get updated like count
-        like_count = CommentLike.get_count_for_comment(comment_id)
         return jsonify({'success': True, 'like_count': like_count})
     else:
-        return jsonify({'success': False, 'error': 'Like not found'}), 404
+        return jsonify({'success': False, 'error': 'Like not found', 'like_count': like_count}), 404
 
 @app.route('/comment/author-like/<int:comment_id>', methods=['POST'])
 @login_required

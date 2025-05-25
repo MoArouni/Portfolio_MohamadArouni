@@ -26,7 +26,11 @@
         
         <div class="summary-card">
             <div class="summary-value total-likes">
-                {{ total_likes_count }}
+                {% set total_likes = 0 %}
+                {% for post in analytics %}
+                    {% set total_likes = total_likes + (post.total_likes or 0) %}
+                {% endfor %}
+                {{ total_likes }}
             </div>
             <div class="summary-label">
                 <i class="fas fa-heart"></i> Total Likes
@@ -44,6 +48,14 @@
             <div class="summary-label">
                 <i class="fas fa-comment"></i> Total Comments
             </div>
+        </div>
+    </div>
+
+    <!-- Engagement Chart -->
+    <div class="chart-container">
+        <h3>Post Engagement Overview</h3>
+        <div class="engagement-chart">
+            <canvas id="engagementChart"></canvas>
         </div>
     </div>
 

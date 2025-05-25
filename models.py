@@ -651,24 +651,35 @@ class BlogLike:
     @staticmethod
     def get_count_for_post(post_id):
         """Get the count of likes for a post"""
-        conn = get_db_connection()
-        result = conn.execute(
-            text('SELECT COUNT(*) as count FROM blog_likes WHERE post_id = :post_id'),
-            {"post_id": post_id}
-        ).fetchone()
-        
-        # Handle different result row types (dict-like or tuple)
-        if result:
-            try:
-                if hasattr(result, "_mapping"):
-                    return result._mapping["count"]
-                else:
-                    # In tuple form, the count should be the first column
-                    return result[0]
-            except Exception as e:
-                print(f"Error accessing count: {e}")
-                return 0
-        return 0
+        conn = None
+        try:
+            conn = get_db_connection()
+            result = conn.execute(
+                text('SELECT COUNT(*) as count FROM blog_likes WHERE post_id = :post_id'),
+                {"post_id": post_id}
+            ).fetchone()
+            
+            # Handle different result row types (dict-like or tuple)
+            if result:
+                try:
+                    if hasattr(result, "_mapping"):
+                        return result._mapping["count"]
+                    else:
+                        # In tuple form, the count should be the first column
+                        return result[0]
+                except Exception as e:
+                    print(f"Error accessing count: {e}")
+                    return 0
+            return 0
+        except Exception as e:
+            print(f"Error getting like count for post {post_id}: {e}")
+            return 0
+        finally:
+            if conn:
+                try:
+                    conn.close()
+                except:
+                    pass
     
     @staticmethod
     def get_total_likes_count():
@@ -799,24 +810,35 @@ class CommentLike:
     @staticmethod
     def get_count_for_comment(comment_id):
         """Get the count of likes for a comment"""
-        conn = get_db_connection()
-        result = conn.execute(
-            text('SELECT COUNT(*) as count FROM comment_likes WHERE comment_id = :comment_id'),
-            {"comment_id": comment_id}
-        ).fetchone()
-        
-        # Handle different result row types (dict-like or tuple)
-        if result:
-            try:
-                if hasattr(result, "_mapping"):
-                    return result._mapping["count"]
-                else:
-                    # In tuple form, the count should be the first column
-                    return result[0]
-            except Exception as e:
-                print(f"Error accessing count: {e}")
-                return 0
-        return 0
+        conn = None
+        try:
+            conn = get_db_connection()
+            result = conn.execute(
+                text('SELECT COUNT(*) as count FROM comment_likes WHERE comment_id = :comment_id'),
+                {"comment_id": comment_id}
+            ).fetchone()
+            
+            # Handle different result row types (dict-like or tuple)
+            if result:
+                try:
+                    if hasattr(result, "_mapping"):
+                        return result._mapping["count"]
+                    else:
+                        # In tuple form, the count should be the first column
+                        return result[0]
+                except Exception as e:
+                    print(f"Error accessing count: {e}")
+                    return 0
+            return 0
+        except Exception as e:
+            print(f"Error getting like count for comment {comment_id}: {e}")
+            return 0
+        finally:
+            if conn:
+                try:
+                    conn.close()
+                except:
+                    pass
 
 class CVDownload:
     """CV Download model for tracking CV downloads"""
@@ -1038,8 +1060,55 @@ class VisitorStat:
             from app import app
             is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
             
-            # Total page views
-            result = conn.execute(text('SELECT COUNT(*) as count FROM visitor_stats')).fetchone()
+            # Define patterns to exclude (bot traffic, WordPress scans, etc.)
+            excluded_patterns = [
+                '/wp-admin/%',
+                '/wordpress/%',
+                '/wp-includes/%',
+                '/wp-content/%',
+                '/wp/%',
+                '/cms/%',
+                '/shop/%',
+                '/site/%',
+                '/test/%',
+                '/2019/%',
+                '/wp1/%',
+                '/blog/wp-%',
+                '%.php',
+                '/xmlrpc.php',
+                '/robots.txt',
+                '/sitemap.xml',
+                '/favicon.ico',
+                '/apple-touch-icon%',
+                '/.well-known/%',
+                '/api/%',
+                '/static/%',
+                '/analytics%',
+                '/admin%',
+                '/post/like/%',
+                '/post/unlike/%',
+                '/comment%',
+                '/delete%',
+                '/edit%',
+                '/add%',
+                '/update%',
+                '/download_cv',
+                '/send-verification-link',
+                '/verify-download',
+                '/post/anonymous_like/%',
+                '/logout'
+            ]
+            
+            # Build the WHERE clause to exclude unwanted patterns
+            where_conditions = []
+            for pattern in excluded_patterns:
+                where_conditions.append(f"page_visited NOT LIKE '{pattern}'")
+            
+            where_clause = " AND ".join(where_conditions)
+            
+            # Total page views (excluding bot traffic)
+            total_views_query = f"SELECT COUNT(*) as count FROM visitor_stats WHERE {where_clause}"
+            result = conn.execute(text(total_views_query)).fetchone()
             total_views = 0
             try:
                 if hasattr(result, "_mapping"):
@@ -1049,10 +1118,9 @@ class VisitorStat:
             except Exception as e:
                 print(f"Error getting total views: {e}")
             
-            # Unique visitors
-            result = conn.execute(
-                text('SELECT COUNT(DISTINCT ip_address) as count FROM visitor_stats')
-            ).fetchone()
+            # Unique visitors (excluding bot traffic)
+            unique_visitors_query = f"SELECT COUNT(DISTINCT ip_address) as count FROM visitor_stats WHERE {where_clause}"
+            result = conn.execute(text(unique_visitors_query)).fetchone()
             unique_visitors = 0
             try:
                 if hasattr(result, "_mapping"):
@@ -1062,31 +1130,18 @@ class VisitorStat:
             except Exception as e:
                 print(f"Error getting unique visitors: {e}")
             
-            # Most visited pages with better categorization
-            popular_pages_rows = conn.execute(text('''
+            # Most visited pages with better categorization (excluding bot traffic)
+            popular_pages_query = f"""
                 SELECT 
                     page_visited, 
                     COUNT(*) as count
                 FROM visitor_stats
-                WHERE page_visited NOT LIKE '/api/%' 
-                    AND page_visited NOT LIKE '/static/%'
-                    AND page_visited NOT LIKE '/analytics%'
-                    AND page_visited NOT LIKE '/admin%'
-                    AND page_visited NOT LIKE '/post/like/%'
-                    AND page_visited NOT LIKE '/post/unlike/%'
-                    AND page_visited NOT LIKE '/comment%'
-                    AND page_visited NOT LIKE '/delete%'
-                    AND page_visited NOT LIKE '/edit%'
-                    AND page_visited NOT LIKE '/add%'
-                    AND page_visited NOT LIKE '/update%'
-                    AND page_visited NOT LIKE '/download_cv'
-                    AND page_visited NOT LIKE '/send-verification-link'
-                    AND page_visited NOT LIKE '/verify-download'
-                    AND page_visited NOT LIKE '/logout'
+                WHERE {where_clause}
                 GROUP BY page_visited
                 ORDER BY count DESC
                 LIMIT 10
-            ''')).fetchall()
+            """
+            popular_pages_rows = conn.execute(text(popular_pages_query)).fetchall()
             
             popular_pages = []
             for row in popular_pages_rows:
@@ -1106,39 +1161,33 @@ class VisitorStat:
                 except Exception as e:
                     print(f"Error processing popular page: {e}")
             
-            # Views over time (last 7 days)
+            # Views over time (last 7 days, excluding bot traffic)
             if is_postgres:
                 # PostgreSQL date formatting
-                views_by_day_query = text('''
+                views_by_day_query = f"""
                     SELECT 
                         date(created_at) as date,
                         COUNT(*) as count
                     FROM visitor_stats
                     WHERE created_at >= NOW() - INTERVAL '7 days'
-                        AND page_visited NOT LIKE '/api/%' 
-                        AND page_visited NOT LIKE '/static/%'
-                        AND page_visited NOT LIKE '/analytics%'
-                        AND page_visited NOT LIKE '/admin%'
+                        AND {where_clause}
                     GROUP BY date
                     ORDER BY date
-                ''')
+                """
             else:
                 # SQLite date formatting
-                views_by_day_query = text('''
+                views_by_day_query = f"""
                     SELECT 
                         date(created_at) as date,
                         COUNT(*) as count
                     FROM visitor_stats
                     WHERE created_at >= date('now', '-7 days')
-                        AND page_visited NOT LIKE '/api/%' 
-                        AND page_visited NOT LIKE '/static/%'
-                        AND page_visited NOT LIKE '/analytics%'
-                        AND page_visited NOT LIKE '/admin%'
+                        AND {where_clause}
                     GROUP BY date
                     ORDER BY date
-                ''')
+                """
             
-            views_by_day_rows = conn.execute(views_by_day_query).fetchall()
+            views_by_day_rows = conn.execute(text(views_by_day_query)).fetchall()
             
             views_by_day = []
             for row in views_by_day_rows:

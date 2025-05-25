@@ -52,19 +52,27 @@ document.addEventListener('DOMContentLoaded', function() {
         // First call the API
         const url = liked ? `/post/unlike/${postId}` : `/post/like/${postId}`;
         
+        console.log(`Making ${liked ? 'unlike' : 'like'} request to ${url} for post ${postId}`);
+        
         fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         })
         .then(response => response.json())
         .then(data => {
+            console.log('API response:', data);
             if (data.success) {
                 // Only update UI after successful API response
                 toggleLikeUI(button, !liked);
                 likeCountElement.textContent = data.like_count;
+                console.log(`Updated like count to: ${data.like_count}`);
             } else {
-                // Error - don't change UI
+                // Error - but update count if provided
                 console.error('Error with like action:', data.error);
+                if (data.like_count !== undefined) {
+                    likeCountElement.textContent = data.like_count;
+                    console.log(`Updated like count from error response to: ${data.like_count}`);
+                }
                 if (data.error === 'Already liked') {
                     // If already liked but UI doesn't show it, update UI
                     if (!liked) toggleLikeUI(button, true);
@@ -109,8 +117,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 anonymousLikes.push(postId);
                 localStorage.setItem('anonymous_likes', JSON.stringify(anonymousLikes));
             } else {
-                // Error - don't change UI
+                // Error - but update count if provided
                 console.error('Error with anonymous like:', data.error);
+                if (data.like_count !== undefined) {
+                    likeCountElement.textContent = data.like_count;
+                }
                 if (data.error === 'Already liked') {
                     // If already liked but not in localStorage, add it
                     if (!anonymousLikes.includes(postId)) {
@@ -147,8 +158,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     toggleLikeUI(this, !liked);
                     likeCountElement.textContent = data.like_count;
                 } else {
-                    // Error - don't change UI
+                    // Error - but update count if provided
                     console.error('Error with comment like action:', data.error);
+                    if (data.like_count !== undefined) {
+                        likeCountElement.textContent = data.like_count;
+                    }
                 }
             })
             .catch(error => {
