@@ -900,44 +900,6 @@ def admin_dashboard():
     """Admin dashboard homepage"""
     return render_template('analytics/dashboard.html')
 
-@app.route('/analytics/blog-analytics')
-def blog_analytics():
-    """Blog post analytics"""
-    # Try to initialize the database if needed
-    if not ensure_db_initialized():
-        return render_template('error.html', 
-                              error_message="Database is currently unavailable. Please try again later.",
-                              error_title="Database Error")
-
-    try:
-        analytics = Post.get_analytics()
-        
-        # If analytics returned None (e.g., due to error), provide default empty structure
-        if analytics is None:
-            analytics = []
-        
-        # Get the total likes count directly from the database
-        total_likes_count = BlogLike.get_total_likes_count()
-        
-        # Filter sensitive information for non-admin users
-        if not session.get('user_id') or session.get('role') != 'admin':
-            # Remove sensitive user information
-            for post in analytics:
-                # Remove details that should be admin-only
-                if 'ip_addresses' in post:
-                    del post['ip_addresses']
-                if 'username' in post:
-                    post['username'] = 'Anonymous'
-                if 'email' in post:
-                    post['email'] = '***@***.***'
-        
-        return render_template('analytics/blog_analytics.html', analytics=analytics, total_likes_count=total_likes_count)
-    except Exception as e:
-        print(f"Error in blog analytics: {e}")
-        return render_template('error.html',
-                              error_message="Error loading blog analytics. Please try again later.",
-                              error_title="Analytics Error")
-
 @app.route('/analytics/cv-analytics')
 def cv_analytics():
     """CV download analytics"""
@@ -1194,7 +1156,6 @@ def get_analytics_summary():
     try:
         # Get basic stats that are safe to show
         visitor_analytics = VisitorStat.get_analytics()
-        blog_analytics = Post.get_analytics()
         cv_analytics = CVDownload.get_analytics()
         
         # Calculate some derived metrics
@@ -1204,10 +1165,10 @@ def get_analytics_summary():
         # Get total likes
         total_likes = BlogLike.get_total_likes_count()
         
-        # Calculate engagement rate
+        # Calculate engagement rate based on downloads and likes
         total_interactions = total_likes
-        if blog_analytics:
-            total_interactions += sum(post.get('comment_count', 0) for post in blog_analytics)
+        if cv_analytics:
+            total_interactions += cv_analytics.get('total', 0)
         
         engagement_rate = (total_interactions / total_views * 100) if total_views > 0 else 0
         
@@ -1215,9 +1176,8 @@ def get_analytics_summary():
             'total_views': total_views,
             'unique_visitors': unique_visitors,
             'total_likes': total_likes,
-            'total_downloads': cv_analytics.get('total_downloads', 0) if cv_analytics else 0,
-            'engagement_rate': round(engagement_rate, 1),
-            'total_posts': len(blog_analytics) if blog_analytics else 0
+            'total_downloads': cv_analytics.get('total', 0) if cv_analytics else 0,
+            'engagement_rate': round(engagement_rate, 1)
         }
         
         # Filter sensitive data for non-admin users
@@ -1235,8 +1195,7 @@ def get_analytics_summary():
             'unique_visitors': 0,
             'total_likes': 0,
             'total_downloads': 0,
-            'engagement_rate': 0,
-            'total_posts': 0
+            'engagement_rate': 0
         })
 
 @app.route('/notifications-history')

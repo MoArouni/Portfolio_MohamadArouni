@@ -303,33 +303,7 @@
     color: var(--primary);
 }
 
-/* Blog Analytics specific styles */
-.post-title {
-    font-weight: 500;
-}
-
-.post-title a {
-    color: var(--primary);
-    text-decoration: none;
-}
-
-.post-title a:hover {
-    text-decoration: underline;
-}
-
-.like-breakdown {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-top: 0.3rem;
-    display: flex;
-    gap: 0.8rem;
-}
-
-.engagement-rate {
-    font-weight: 600;
-}
-
-/* CV Analytics specific styles */
+/* Visitor Analytics specific styles */
 .page-path {
     max-width: 300px;
     overflow: hidden;

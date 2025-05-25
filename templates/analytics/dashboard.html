@@ -15,20 +15,6 @@
 
     <div class="dashboard-content">
         <div class="dashboard-cards">
-            <!-- Blog Stats Card -->
-            <div class="stat-card" id="blog-stats">
-                <div class="stat-card-header">
-                    <i class="fas fa-blog"></i>
-                    <h3>Blog Activity</h3>
-                </div>
-                <div class="stat-card-body">
-                    <div class="stat-loading">Loading...</div>
-                </div>
-                <div class="stat-card-footer">
-                    <a href="{{ url_for('blog_analytics') }}">View Details</a>
-                </div>
-            </div>
-
             <!-- CV Downloads Card -->
             <div class="stat-card" id="cv-stats">
                 <div class="stat-card-header">
@@ -109,44 +95,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Fetch blog stats
-        fetch('/analytics/blog-analytics')
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.text();
-            })
-            .then(html => {
-                // Extract total likes, views, comments from the HTML
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const totalLikes = doc.querySelector('.total-likes')?.textContent.trim() || '0';
-                const totalViews = doc.querySelector('.total-views')?.textContent.trim() || '0';
-                const totalComments = doc.querySelector('.total-comments')?.textContent.trim() || '0';
-                
-                // Update the blog stats card
-                const blogStatsBody = document.querySelector('#blog-stats .stat-card-body');
-                blogStatsBody.innerHTML = `
-                    <div class="stat-item">
-                        <span class="stat-value">${totalLikes}</span>
-                        <span class="stat-label">Likes</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">${totalViews}</span>
-                        <span class="stat-label">Views</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">${totalComments}</span>
-                        <span class="stat-label">Comments</span>
-                    </div>
-                `;
-            })
-            .catch(error => {
-                console.error('Error fetching blog stats:', error);
-                document.querySelector('#blog-stats .stat-card-body').innerHTML = 
-                    `<div class="stat-error">Error loading data</div>`;
-            });
-            
         // Fetch CV stats
         fetch('/analytics/cv-analytics')
             .then(response => {
@@ -274,22 +222,18 @@
         if (quickStatsContainer) {
             Promise.all([
                 fetch('/analytics/visitor-analytics').then(r => r.text()),
-                fetch('/analytics/blog-analytics').then(r => r.text()),
                 fetch('/analytics/cv-analytics').then(r => r.text())
             ])
-            .then(([visitorHtml, blogHtml, cvHtml]) => {
+            .then(([visitorHtml, cvHtml]) => {
                 const visitorDoc = new DOMParser().parseFromString(visitorHtml, 'text/html');
-                const blogDoc = new DOMParser().parseFromString(blogHtml, 'text/html');
                 const cvDoc = new DOMParser().parseFromString(cvHtml, 'text/html');
                 
                 const totalViews = visitorDoc.querySelector('.total-views')?.textContent.trim() || '0';
                 const uniqueVisitors = visitorDoc.querySelector('.unique-visitors')?.textContent.trim() || '0';
-                const totalLikes = blogDoc.querySelector('.total-likes')?.textContent.trim() || '0';
-                const totalComments = blogDoc.querySelector('.total-comments')?.textContent.trim() || '0';
                 const totalDownloads = cvDoc.querySelector('.total-downloads')?.textContent.trim() || '0';
                 
                 // Calculate engagement rate
-                const engagementRate = totalViews > 0 ? ((parseInt(totalLikes) + parseInt(totalComments)) / parseInt(totalViews) * 100).toFixed(1) : '0';
+                const engagementRate = totalViews > 0 ? (parseInt(totalDownloads) / parseInt(totalViews) * 100).toFixed(1) : '0';
                 
                 quickStatsContainer.innerHTML = `
                     <div class="quick-stat-item">
@@ -299,14 +243,6 @@
                     <div class="quick-stat-item">
                         <div class="quick-stat-value">${uniqueVisitors}</div>
                         <div class="quick-stat-label">Unique Visitors</div>
-                    </div>
-                    <div class="quick-stat-item">
-                        <div class="quick-stat-value">${totalLikes}</div>
-                        <div class="quick-stat-label">Total Likes</div>
-                    </div>
-                    <div class="quick-stat-item">
-                        <div class="quick-stat-value">${totalComments}</div>
-                        <div class="quick-stat-label">Comments</div>
                     </div>
                     <div class="quick-stat-item">
                         <div class="quick-stat-value">${totalDownloads}</div>
